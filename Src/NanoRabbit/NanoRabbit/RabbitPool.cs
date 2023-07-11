@@ -1,5 +1,7 @@
-﻿using RabbitMQ.Client;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
 
 namespace NanoRabbit.NanoRabbit
 {
@@ -8,6 +10,12 @@ namespace NanoRabbit.NanoRabbit
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
 
+        /// <summary>
+        /// Get registered connection by connectionName.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public IConnection GetConnection(string connectionName)
         {
             if (!_connections.ContainsKey(connectionName))
@@ -18,6 +26,11 @@ namespace NanoRabbit.NanoRabbit
             return _connections[connectionName];
         }
 
+        /// <summary>
+        /// Register connection by connect options.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="options"></param>
         public void RegisterConnection(string connectionName, ConnectOptions options)
         {
             var factory = new ConnectionFactory
@@ -34,6 +47,26 @@ namespace NanoRabbit.NanoRabbit
             _connections.Add(connectionName, connection);
         }
 
+        /// <summary>
+        /// Register connection by uri.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="connUri"></param>
+        public void RegisterConnection(string connectionName, ConnectUri connUri)
+        {
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(connUri.ConnectionString)
+            };
+
+            var connection = factory.CreateConnection();
+
+            _connections.Add(connectionName, connection);
+        }
+
+        /// <summary>
+        /// Close All Connections.
+        /// </summary>
         public void CloseAllConnections()
         {
             foreach (var connection in _connections.Values)
@@ -44,6 +77,10 @@ namespace NanoRabbit.NanoRabbit
             _connections.Clear();
         }
 
+        /// <summary>
+        /// Close Connection by connectionName.
+        /// </summary>
+        /// <param name="connectionName"></param>
         public void CloseConnection(string connectionName)
         {
             _connections[connectionName].Close();
@@ -51,6 +88,13 @@ namespace NanoRabbit.NanoRabbit
             _connections.Remove(connectionName);
         }
 
+        /// <summary>
+        /// Original RabbitMQ BasicPublish.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="routingKey"></param>
+        /// <param name="body"></param>
         public void Send(string connectionName, string exchangeName, string routingKey, byte[] body)
         {
             using (var channel = GetConnection(connectionName).CreateModel())
@@ -62,6 +106,35 @@ namespace NanoRabbit.NanoRabbit
             }
         }
 
+        /// <summary>
+        /// Publish Any Types of message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="connectionName"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="routingKey"></param>
+        /// <param name="Message"></param>
+        public void Publish<T>(string connectionName, string exchangeName, string routingKey, T Message)
+        {
+            using (var channel = GetConnection(connectionName).CreateModel())
+            {
+                channel.ExchangeDeclare(exchangeName, ExchangeType.Topic, durable: true);
+                var properties = channel.CreateBasicProperties();
+                properties.Persistent = true;
+
+                var messageString = JsonConvert.SerializeObject(Message);
+                var messageBytes = Encoding.UTF8.GetBytes(messageString);
+
+                channel.BasicPublish(exchangeName, routingKey, properties, messageBytes);
+            }
+        }
+
+        /// <summary>
+        /// Original RabbitMQ BasicConsume.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="queueName"></param>
+        /// <param name="handler"></param>
         public void Receive(string connectionName, string queueName, Action<byte[]> handler)
         {
             using (var channel = GetConnection(connectionName).CreateModel())
