@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.MultiConnQuickStart
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.QuickStart", "Example\Example.QuickStart\Example.QuickStart.csproj", "{603676E0-EA56-4F03-8037-F96BE0F671C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.SimpleDI", "Example\Example.SimpleDI\Example.SimpleDI.csproj", "{CE34BE6F-E234-4938-B6E6-2F1333C8A435}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{603676E0-EA56-4F03-8037-F96BE0F671C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{603676E0-EA56-4F03-8037-F96BE0F671C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{603676E0-EA56-4F03-8037-F96BE0F671C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE34BE6F-E234-4938-B6E6-2F1333C8A435}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE34BE6F-E234-4938-B6E6-2F1333C8A435}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE34BE6F-E234-4938-B6E6-2F1333C8A435}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE34BE6F-E234-4938-B6E6-2F1333C8A435}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,6 +53,7 @@ Global
 		{95D715B0-F686-4282-AFD9-C3498B5D4BD9} = {7D44FDE1-85BA-4BAE-AE0A-B9287C8BBD6E}
 		{11865C15-5E2D-4687-A874-886E3F4DBC7E} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{603676E0-EA56-4F03-8037-F96BE0F671C7} = {D187C758-604D-4325-9FEF-912DB32D6131}
+		{CE34BE6F-E234-4938-B6E6-2F1333C8A435} = {D187C758-604D-4325-9FEF-912DB32D6131}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EE19DFD-83A9-4A48-B245-5A1344E7865A}
