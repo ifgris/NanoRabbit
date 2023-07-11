@@ -6,7 +6,7 @@ using System.Text;
 namespace NanoRabbit.NanoRabbit
 {
 
-    public class RabbitPool
+    public class RabbitPool : IRabbitPool
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
 
