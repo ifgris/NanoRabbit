@@ -4,7 +4,24 @@ namespace NanoRabbit.NanoRabbit
 {
     public interface IRabbitPool
     {
+        /// <summary>
+        /// Get register connection by connectionName
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <returns></returns>
         public IConnection GetConnection(string connectionName);
+        /// <summary>
+        /// Get registered producerConfig by producerName.
+        /// </summary>
+        /// <param name="producerName"></param>
+        /// <returns></returns>
+        public ProducerConfig GetProducer(string producerName);
+        /// <summary>
+        /// Get registered consumerConfig by consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <returns></returns>
+        public ConsumerConfig GetConsumer(string consumerName);
 
         /// <summary>
         /// Register connection by connect options.
@@ -12,13 +29,6 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="connectionName"></param>
         /// <param name="options"></param>
         public void RegisterConnection(string connectionName, ConnectOptions options);
-
-        /// <summary>
-        /// Register connection by uri.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="connUri"></param>
-        public void RegisterConnection(string connectionName, ConnectUri connUri);
 
         /// <summary>
         /// Close All Connections.
@@ -32,23 +42,13 @@ namespace NanoRabbit.NanoRabbit
         public void CloseConnection(string connectionName);
 
         /// <summary>
-        /// Original RabbitMQ BasicPublish.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="exchangeName"></param>
-        /// <param name="routingKey"></param>
-        /// <param name="body"></param>
-        public void Send(string connectionName, string exchangeName, string routingKey, byte[] body);
-
-        /// <summary>
         /// Publish Any Types of message.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connectionName"></param>
-        /// <param name="exchangeName"></param>
-        /// <param name="routingKey"></param>
+        /// <param name="producerName"></param>
         /// <param name="Message"></param>
-        public void Publish<T>(string connectionName, string exchangeName, string routingKey, T Message);
+        public void Publish<T>(string connectionName, string producerName, T Message);
 
         /// <summary>
         /// Original RabbitMQ BasicConsume.
@@ -56,7 +56,7 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="connectionName"></param>
         /// <param name="queueName"></param>
         /// <param name="handler"></param>
-        public void Receive(string connectionName, string queueName, Action<byte[]> handler);
+        public void Receive(string connectionName, string consumerName, string queueName, Action<byte[]> handler);
 
     }
 }

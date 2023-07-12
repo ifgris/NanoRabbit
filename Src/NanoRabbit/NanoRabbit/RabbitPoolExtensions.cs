@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Tracing;
 
 namespace NanoRabbit.NanoRabbit
 {
@@ -6,14 +7,14 @@ namespace NanoRabbit.NanoRabbit
     {
         public static IServiceCollection AddRabbitPool(this IServiceCollection services, IDictionary<string, ConnectOptions> connectionOptions)
         {
-            var wrapper = new RabbitPool();
+            var pool = new RabbitPool();
 
             foreach (var entry in connectionOptions)
             {
-                wrapper.RegisterConnection(entry.Key, entry.Value);
+                pool.RegisterConnection(entry.Key, entry.Value);
             }
 
-            services.AddSingleton(wrapper);
+            services.AddSingleton(pool);
 
             return services;
         }

@@ -9,6 +9,8 @@ namespace NanoRabbit.NanoRabbit
     public class RabbitPool : IRabbitPool
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
+        private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
+        private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
 
         /// <summary>
         /// Get registered connection by connectionName.
@@ -27,41 +29,84 @@ namespace NanoRabbit.NanoRabbit
         }
 
         /// <summary>
+        /// Get registered producerConfig by producerName.
+        /// </summary>
+        /// <param name="producerName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public ProducerConfig GetProducer(string producerName)
+        {
+            if (!_producerConfig.ContainsKey(producerName))
+            {
+                throw new ArgumentException($"Connection {producerName} not found.");
+            }
+
+            return _producerConfig[producerName];
+        }
+
+        /// <summary>
+        /// Get registered consumerConfig by consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public ConsumerConfig GetConsumer(string consumerName)
+        {
+            if (!_consumerConfig.ContainsKey(consumerName))
+            {
+                throw new ArgumentException($"Connection {consumerName} not found.");
+            }
+
+            return _consumerConfig[consumerName];
+        }
+
+        /// <summary>
         /// Register connection by connect options.
         /// </summary>
         /// <param name="connectionName"></param>
         /// <param name="options"></param>
         public void RegisterConnection(string connectionName, ConnectOptions options)
         {
-            var factory = new ConnectionFactory
+            if (options.ConnectConfig != null)
             {
-                HostName = options.HostName,
-                Port = options.Port,
-                UserName = options.UserName,
-                Password = options.Password,
-                VirtualHost = options.VirtualHost
-            };
+                var factory = new ConnectionFactory
+                {
+                    HostName = options.ConnectConfig?.HostName,
+                    Port = options.ConnectConfig.Port,
+                    UserName = options.ConnectConfig?.UserName,
+                    Password = options.ConnectConfig?.Password,
+                    VirtualHost = options.ConnectConfig?.VirtualHost
+                };
 
-            var connection = factory.CreateConnection();
-
-            _connections.Add(connectionName, connection);
-        }
-
-        /// <summary>
-        /// Register connection by uri.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="connUri"></param>
-        public void RegisterConnection(string connectionName, ConnectUri connUri)
-        {
-            var factory = new ConnectionFactory
+                var connection = factory.CreateConnection();
+                _connections.Add(connectionName, connection);
+            }
+            else if (options.ConnectUri != null)
             {
-                Uri = new Uri(connUri.ConnectionString)
-            };
+                var factory = new ConnectionFactory
+                {
+                    Uri = new Uri(options.ConnectUri.ConnectionString)
+                };
 
-            var connection = factory.CreateConnection();
+                var connection = factory.CreateConnection();
+                _connections.Add(connectionName, connection);
+            }
 
-            _connections.Add(connectionName, connection);
+            if (options.ProducerConfigs != null)
+            {
+                foreach ( var key in options.ProducerConfigs.Keys )
+                {
+                    _producerConfig.Add(key, options.ProducerConfigs[key]);
+                }
+            }            
+            
+            if (options.ConsumerConfigs != null)
+            {
+                foreach ( var key in options.ConsumerConfigs.Keys )
+                {
+                    _consumerConfig.Add(key, options.ConsumerConfigs[key]);
+                }
+            }
         }
 
         /// <summary>
@@ -89,43 +134,26 @@ namespace NanoRabbit.NanoRabbit
         }
 
         /// <summary>
-        /// Original RabbitMQ BasicPublish.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="exchangeName"></param>
-        /// <param name="routingKey"></param>
-        /// <param name="body"></param>
-        public void Send(string connectionName, string exchangeName, string routingKey, byte[] body)
-        {
-            using (var channel = GetConnection(connectionName).CreateModel())
-            {
-                channel.ExchangeDeclare(exchangeName, ExchangeType.Topic, durable: true);
-                var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-                channel.BasicPublish(exchangeName, routingKey, properties, body);
-            }
-        }
-
-        /// <summary>
         /// Publish Any Types of message.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connectionName"></param>
-        /// <param name="exchangeName"></param>
-        /// <param name="routingKey"></param>
-        /// <param name="Message"></param>
-        public void Publish<T>(string connectionName, string exchangeName, string routingKey, T Message)
+        /// <param name="producerName"></param>
+        /// <param name="message"></param>
+        public void Publish<T>(string connectionName, string producerName, T message)
         {
+            var producerConfig = GetProducer(producerName);
+
             using (var channel = GetConnection(connectionName).CreateModel())
             {
-                channel.ExchangeDeclare(exchangeName, ExchangeType.Topic, durable: true);
+                channel.ExchangeDeclare(producerConfig.ExchangeName, ExchangeType.Topic, durable: true);
                 var properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 
-                var messageString = JsonConvert.SerializeObject(Message);
+                var messageString = JsonConvert.SerializeObject(message);
                 var messageBytes = Encoding.UTF8.GetBytes(messageString);
 
-                channel.BasicPublish(exchangeName, routingKey, properties, messageBytes);
+                channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
             }
         }
 
@@ -135,7 +163,7 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="connectionName"></param>
         /// <param name="queueName"></param>
         /// <param name="handler"></param>
-        public void Receive(string connectionName, string queueName, Action<byte[]> handler)
+        public void Receive(string connectionName, string consumerName, string queueName, Action<byte[]> handler)
         {
             using (var channel = GetConnection(connectionName).CreateModel())
             {
