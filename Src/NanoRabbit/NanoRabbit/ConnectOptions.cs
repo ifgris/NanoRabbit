@@ -69,6 +69,7 @@ namespace NanoRabbit.NanoRabbit
     /// </summary>
     public class ConsumerConfig
     {
+        public string? QueueName { get; set; } = null;
         public bool Durable { get; set; } = true;
         public bool Exclusive { get; set; } = false;
         public bool AutoDelete { get; set; } = false;

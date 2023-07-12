@@ -49,14 +49,5 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="producerName"></param>
         /// <param name="Message"></param>
         public void Publish<T>(string connectionName, string producerName, T Message);
-
-        /// <summary>
-        /// Original RabbitMQ BasicConsume.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="queueName"></param>
-        /// <param name="handler"></param>
-        public void Receive(string connectionName, string consumerName, string queueName, Action<byte[]> handler);
-
     }
 }

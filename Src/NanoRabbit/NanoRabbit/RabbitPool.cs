@@ -156,28 +156,5 @@ namespace NanoRabbit.NanoRabbit
                 channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
             }
         }
-
-        /// <summary>
-        /// Original RabbitMQ BasicConsume.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <param name="queueName"></param>
-        /// <param name="handler"></param>
-        public void Receive(string connectionName, string consumerName, string queueName, Action<byte[]> handler)
-        {
-            using (var channel = GetConnection(connectionName).CreateModel())
-            {
-                channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (sender, ea) =>
-                {
-                    //var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body.ToArray()));
-                    //var message = Encoding.UTF8.GetString(ea.Body.ToArray());
-                    handler(ea.Body.ToArray());
-                    channel.BasicAck(ea.DeliveryTag, multiple: false);
-                };
-                channel.BasicConsume(queueName, autoAck: false, consumer: consumer);
-            }
-        }
     }
 }
