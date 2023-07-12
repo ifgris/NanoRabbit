@@ -1,4 +1,5 @@
-﻿using NanoRabbit.NanoRabbit;
+﻿using Example.QuickStart;
+using NanoRabbit.NanoRabbit;
 using RabbitMQ.Client;
 
 var pool = new RabbitPool();
@@ -23,23 +24,36 @@ pool.RegisterConnection("Connection1", new ConnectOptions
                 Type = ExchangeType.Topic
             }
         }
+    },
+    ConsumerConfigs = new Dictionary<string, ConsumerConfig>
+    {
+        {
+            "DataBasicQueueConsumer",
+            new ConsumerConfig
+            {
+                QueueName = "BASIC_QUEUE"
+            }
+        }
     }
 });
 
-while (true)
+await Task.Run(async () =>
 {
-    pool.Publish<string>("Connection1", "DataBasicQueueProducer", "Hello from Publish<T>()!");
+    while (true)
+    {
+        pool.Publish<string>("Connection1", "DataBasicQueueProducer", "Hello from Publish<T>()!");
+        Console.WriteLine("Sent to RabbitMQ");
+        await Task.Delay(1000);
+    }
+});
 
-    Console.WriteLine("Sent to RabbitMQ");
-
-    await Task.Delay(1000);
-}
-
-//while (true)
-//{
-//    pool.Receive("Connection1", "BASIC_QUEUE", body =>
-//    {
-//        Console.WriteLine(Encoding.UTF8.GetString(body));
-//    });
-//    Task.Delay(1000);
-//}
+var consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", pool);
+await Task.Run(async() =>
+{
+    while (true)
+    {
+        Console.WriteLine("Start receiving...");
+        consumer.Receive();
+        await Task.Delay(1000);
+    }
+});

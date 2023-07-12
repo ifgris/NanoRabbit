@@ -54,13 +54,3 @@ while (true)
     pool.Publish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
     await Task.Delay(1000);
 }
-
-//while (true)
-//{
-//    // 接收消息
-//    pool.Receive("Connection1", "BASIC_QUEUE", body =>
-//    {
-//        Console.WriteLine(Encoding.UTF8.GetString(body));
-//    });
-//    Task.Delay(1000);
-//}
