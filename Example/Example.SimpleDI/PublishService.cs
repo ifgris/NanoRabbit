@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.NanoRabbit;
-using System.Text;
 
 namespace Example.SimpleDI
 {
@@ -20,9 +19,9 @@ namespace Example.SimpleDI
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _rabbitPool.Send("Connection1", "BASIC.TOPIC", "BASIC.KEY", Encoding.UTF8.GetBytes("Hello from conn1"));
+                _rabbitPool.Publish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
                 _logger.LogInformation("Conn 1");
-                _rabbitPool.Send("Connection2", "BASIC.TOPIC", "BASIC.KEY", Encoding.UTF8.GetBytes("Hello from conn2"));
+                _rabbitPool.Publish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
                 _logger.LogInformation("Conn 2");
                 await Task.Delay(1000, stoppingToken);
             }

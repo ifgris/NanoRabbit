@@ -1,20 +1,34 @@
 ﻿using NanoRabbit.NanoRabbit;
-using System.Text;
+using RabbitMQ.Client;
 
 var pool = new RabbitPool();
 pool.RegisterConnection("Connection1", new ConnectOptions
 {
-    HostName = "localhost",
-    Port = 5672,
-    UserName = "admin",
-    Password = "admin",
-    VirtualHost = "DATA"
+    ConnectConfig = new()
+    {
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "DATA"
+    },
+    ProducerConfigs = new Dictionary<string, ProducerConfig>
+    {
+        {
+            "DataBasicQueueProducer", 
+            new ProducerConfig
+            {
+                ExchangeName = "BASIC.TOPIC",
+                RoutingKey = "BASIC.KEY",
+                Type = ExchangeType.Topic
+            }
+        }
+    }
 });
 
 while (true)
 {
-    pool.Send("Connection1", "BASIC.TOPIC", "BASIC.KEY", Encoding.UTF8.GetBytes("Hello from Send()!"));
-    pool.Publish<string>("Connection1", "BASIC.TOPIC", "BASIC.KEY", "Hello from Publish<T>()!");
+    pool.Publish<string>("Connection1", "DataBasicQueueProducer", "Hello from Publish<T>()!");
 
     Console.WriteLine("Sent to RabbitMQ");
 
