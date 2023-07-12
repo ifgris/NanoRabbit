@@ -1,0 +1,16 @@
+---
+version: "3"
+
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    restart: unless-stopped
+    image: rabbitmq:management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - /opt/rabbitmq:/var/lib/rabbitmq
