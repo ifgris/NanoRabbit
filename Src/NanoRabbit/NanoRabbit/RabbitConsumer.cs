@@ -9,10 +9,10 @@ namespace NanoRabbit.NanoRabbit
     public abstract class RabbitConsumer<T> : IRabbitConsumer, IDisposable
     {
         private readonly IModel _channel;
-        private readonly RabbitPool _pool;
+        private readonly IRabbitPool _pool;
         private readonly ConsumerConfig _consumerConfig;
 
-        public RabbitConsumer(string connectionName, string consumerName, RabbitPool pool)
+        public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool)
         {
             _pool = pool;
             var connection = _pool.GetConnection(connectionName);

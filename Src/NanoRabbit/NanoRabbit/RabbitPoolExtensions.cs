@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.Tracing;
 
 namespace NanoRabbit.NanoRabbit
 {
@@ -14,7 +13,7 @@ namespace NanoRabbit.NanoRabbit
                 pool.RegisterConnection(entry.Key, entry.Value);
             }
 
-            services.AddSingleton(pool);
+            services.AddSingleton<IRabbitPool>(pool);
 
             return services;
         }
