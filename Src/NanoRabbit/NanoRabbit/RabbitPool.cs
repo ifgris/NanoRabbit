@@ -140,7 +140,7 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="connectionName"></param>
         /// <param name="producerName"></param>
         /// <param name="message"></param>
-        public void Publish<T>(string connectionName, string producerName, T message)
+        public void SimplePublish<T>(string connectionName, string producerName, T message)
         {
             var producerConfig = GetProducer(producerName);
 

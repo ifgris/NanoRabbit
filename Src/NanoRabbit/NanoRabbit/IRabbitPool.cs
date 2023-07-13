@@ -48,6 +48,6 @@ namespace NanoRabbit.NanoRabbit
         /// <param name="connectionName"></param>
         /// <param name="producerName"></param>
         /// <param name="Message"></param>
-        public void Publish<T>(string connectionName, string producerName, T Message);
+        public void SimplePublish<T>(string connectionName, string producerName, T Message);
     }
 }
