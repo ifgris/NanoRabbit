@@ -48,9 +48,9 @@ pool.RegisterConnection("Connection2", new ConnectOptions
 
 while (true)
 {
-    pool.Publish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
+    pool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
     await Task.Delay(1000);
 
-    pool.Publish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
+    pool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
     await Task.Delay(1000);
 }

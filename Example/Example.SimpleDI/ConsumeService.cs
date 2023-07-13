@@ -6,9 +6,9 @@ namespace Example.SimpleDI
     public class ConsumeService : BackgroundService
     {
         private readonly BasicConsumer _consumer;
-        private readonly RabbitPool _pool;
+        private readonly IRabbitPool _pool;
 
-        public ConsumeService(RabbitPool pool)
+        public ConsumeService(IRabbitPool pool)
         {
             _pool = pool;
             _consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", _pool);

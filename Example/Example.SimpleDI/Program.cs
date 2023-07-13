@@ -67,6 +67,9 @@ builder.Services.AddRabbitPool(new Dictionary<string, ConnectOptions>
         }
     });
 
+builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
+builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "DataBasicQueueProducer");
+
 builder.Services.AddHostedService<PublishService>();
 builder.Services.AddHostedService<ConsumeService>();
 using IHost host = builder.Build();

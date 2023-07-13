@@ -9,7 +9,7 @@ namespace Example.SimpleDI
 {
     public class BasicConsumer : RabbitConsumer<string>
     {
-        public BasicConsumer(string connectionName, string consumerName, RabbitPool pool) : base(connectionName, consumerName, pool)
+        public BasicConsumer(string connectionName, string consumerName, IRabbitPool pool) : base(connectionName, consumerName, pool)
         {
         }
 

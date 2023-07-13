@@ -41,7 +41,18 @@ await Task.Run(async () =>
 {
     while (true)
     {
-        pool.Publish<string>("Connection1", "DataBasicQueueProducer", "Hello from Publish<T>()!");
+        pool.SimplePublish<string>("Connection1", "DataBasicQueueProducer", "Hello from SimplePublish<T>()!");
+        Console.WriteLine("Sent to RabbitMQ");
+        await Task.Delay(1000);
+    }
+});
+
+var producer = new RabbitProducer("Connection1", "DataBasicQueueProducer", pool);
+await Task.Run(async () =>
+{
+    while (true)
+    {
+        producer.Publish<string>("Hello from Publish<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
         await Task.Delay(1000);
     }
