@@ -2,7 +2,7 @@
 using RabbitMQ.Client;
 
 var pool = new RabbitPool();
-pool.RegisterConnection("Connection1", new ConnectOptions
+pool.RegisterConnection(new ConnectOptions("Connection1")
 {
     ConnectConfig = new()
     {
@@ -14,16 +14,15 @@ pool.RegisterConnection("Connection1", new ConnectOptions
     },
     ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig
+        new ProducerConfig("DataBasicQueueProducer")
         {
-            ProducerName = "DataBasicQueueProducer",
             ExchangeName = "BASIC.TOPIC",
             RoutingKey = "BASIC.KEY",
             Type = ExchangeType.Topic
         }
     }
 });
-pool.RegisterConnection("Connection2", new ConnectOptions
+pool.RegisterConnection(new ConnectOptions("Connection2")
 {
     ConnectUri = new()
     {
@@ -31,9 +30,8 @@ pool.RegisterConnection("Connection2", new ConnectOptions
     },
     ProducerConfigs = new List<ProducerConfig> 
     {
-        new ProducerConfig
+        new ProducerConfig("HostBasicQueueProducer")
         {
-            ProducerName = "HostBasicQueueProducer",
             ExchangeName = "BASIC.TOPIC",
             RoutingKey = "BASIC.KEY",
             Type = ExchangeType.Topic

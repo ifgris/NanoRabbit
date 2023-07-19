@@ -8,9 +8,8 @@ using RabbitMQ.Client;
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddRabbitPool(c =>
 {
-    c.Add(new ConnectOptions
+    c.Add(new ConnectOptions("Connection1")
     {
-        ConnectionName = "Connection1",
         ConnectConfig = new ConnectConfig
         {
             HostName = "localhost",
@@ -20,9 +19,8 @@ builder.Services.AddRabbitPool(c =>
             VirtualHost = "DATA"
         },
         ProducerConfigs = new List<ProducerConfig> { 
-            new ProducerConfig
+            new ProducerConfig("DataBasicQueueProducer")
             {
-                ProducerName = "DataBasicQueueProducer",
                 ExchangeName = "BASIC.TOPIC",
                 RoutingKey = "BASIC.KEY",
                 Type = ExchangeType.Topic
@@ -30,17 +28,15 @@ builder.Services.AddRabbitPool(c =>
         },
         ConsumerConfigs = new List<ConsumerConfig>
         {
-            new ConsumerConfig
+            new ConsumerConfig("DataBasicQueueConsumer")
             {
-                ConsumerName = "DataBasicQueueConsumer",
                 QueueName = "BASIC_QUEUE"
             }
         }
     });
 
-    c.Add(new ConnectOptions
+    c.Add(new ConnectOptions("Connection2")
     {
-        ConnectionName = "Connection2",
         ConnectConfig = new ConnectConfig
         {
             HostName = "localhost",
@@ -50,9 +46,8 @@ builder.Services.AddRabbitPool(c =>
             VirtualHost = "HOST"
         },
         ProducerConfigs = new List<ProducerConfig> {
-            new ProducerConfig
+            new ProducerConfig("HostBasicQueueProducer")
             {
-                ProducerName = "HostBasicQueueProducer",
                 ExchangeName = "BASIC.TOPIC",
                 RoutingKey = "BASIC.KEY",
                 Type = ExchangeType.Topic
@@ -60,9 +55,8 @@ builder.Services.AddRabbitPool(c =>
         },
         ConsumerConfigs = new List<ConsumerConfig>
         {
-            new ConsumerConfig
+            new ConsumerConfig("HostBasicQueueConsumer")
             {
-                ConsumerName = "HostBasicQueueConsumer",
                 QueueName = "BASIC_QUEUE"
             }
         }
