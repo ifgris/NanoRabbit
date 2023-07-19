@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using System.ComponentModel.DataAnnotations;
 
 namespace NanoRabbit.Connection
 {
@@ -7,6 +8,11 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ConnectOptions
     {
+        public ConnectOptions([Required] string connectionName)
+        {
+            ConnectionName = connectionName;
+        }
+
         public string ConnectionName { get; set; }
         public ConnectConfig? ConnectConfig { get; set; }
         public ConnectUri? ConnectUri { get; set; }
@@ -57,6 +63,11 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ProducerConfig
     {
+        public ProducerConfig([Required] string producerName)
+        {
+            ProducerName = producerName;
+        }
+
         public string ProducerName { get; set; }
         public string? ExchangeName { get; set; }
         public string? RoutingKey { get; set; }
@@ -71,6 +82,11 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ConsumerConfig
     {
+        public ConsumerConfig([Required] string consumerName)
+        {
+            ConsumerName = consumerName;
+        }
+
         public string ConsumerName { get; set; }
         public string? QueueName { get; set; } = null;
         public bool Durable { get; set; } = true;

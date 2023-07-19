@@ -26,9 +26,8 @@ namespace NanoRabbit.Connection
         /// <summary>
         /// Register connection by connect options.
         /// </summary>
-        /// <param name="connectionName"></param>
         /// <param name="options"></param>
-        public void RegisterConnection(string connectionName, ConnectOptions options);
+        public void RegisterConnection(ConnectOptions options);
 
         /// <summary>
         /// Close All Connections.

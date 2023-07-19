@@ -11,8 +11,8 @@ namespace NanoRabbit.DependencyInjection
         {
             services.AddTransient<IRabbitProducer>(c =>
             {
-                var pool = c.GetService<IRabbitPool>();
-                var rabbitProducer = new RabbitProducer(connectionName, producerName, pool);
+                var pool = c.GetRequiredService<IRabbitPool>();
+                var rabbitProducer = new RabbitProducer(connectionName, producerName, pool!);
                 return ActivatorUtilities.CreateInstance<TProducer>(c, rabbitProducer);
             });
 

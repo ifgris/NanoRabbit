@@ -65,21 +65,21 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="connectionName"></param>
         /// <param name="options"></param>
-        public void RegisterConnection(string connectionName, ConnectOptions options)
+        public void RegisterConnection(ConnectOptions options)
         {
             if (options.ConnectConfig != null)
             {
                 var factory = new ConnectionFactory
                 {
                     HostName = options.ConnectConfig?.HostName,
-                    Port = options.ConnectConfig.Port,
+                    Port = (options.ConnectConfig != null) ? options.ConnectConfig.Port : 5672,
                     UserName = options.ConnectConfig?.UserName,
                     Password = options.ConnectConfig?.Password,
                     VirtualHost = options.ConnectConfig?.VirtualHost
                 };
 
                 var connection = factory.CreateConnection();
-                _connections.Add(connectionName, connection);
+                _connections.Add(options.ConnectionName, connection);
             }
             else if (options.ConnectUri != null)
             {
@@ -89,7 +89,7 @@ namespace NanoRabbit.Connection
                 };
 
                 var connection = factory.CreateConnection();
-                _connections.Add(connectionName, connection);
+                _connections.Add(options.ConnectionName, connection);
             }
 
             if (options.ProducerConfigs != null)

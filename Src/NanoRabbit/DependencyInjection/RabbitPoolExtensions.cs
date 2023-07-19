@@ -14,7 +14,7 @@ namespace NanoRabbit.DependencyInjection
 
             foreach (var option in  options)
             {
-                pool.RegisterConnection(option.ConnectionName, option);
+                pool.RegisterConnection(option);
             }
 
             services.AddSingleton<IRabbitPool>(pool);

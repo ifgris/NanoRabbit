@@ -28,7 +28,10 @@ namespace NanoRabbit.Consumer
             {
                 var body = Encoding.UTF8.GetString(ea.Body.ToArray());
                 var message = JsonConvert.DeserializeObject<T>(body);
-                MessageHandler(message);
+                if (message != null)
+                {
+                    MessageHandler(message);
+                }
             };
             _channel.BasicConsume(queue: _consumerConfig.QueueName, autoAck: true, consumer: consumer);
         }
