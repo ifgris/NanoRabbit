@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using NanoRabbit.Connection;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.DependencyInjection
 {
     public static class RabbitPoolExtensions
     {

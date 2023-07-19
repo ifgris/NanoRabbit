@@ -1,4 +1,4 @@
-﻿namespace NanoRabbit.NanoRabbit
+﻿namespace NanoRabbit.Producer
 {
     public interface IRabbitProducer
     {

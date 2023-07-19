@@ -1,8 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using NanoRabbit.Connection;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.Producer
 {
     public class RabbitProducer : IRabbitProducer
     {

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.DependencyInjection
 {
     public static class RabbitProducerExtensions
     {

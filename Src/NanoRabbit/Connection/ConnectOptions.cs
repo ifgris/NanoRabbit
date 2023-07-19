@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.Connection
 {
     /// <summary>
     /// Connection options.
@@ -10,7 +10,7 @@ namespace NanoRabbit.NanoRabbit
         public ConnectConfig? ConnectConfig { get; set; }
         public ConnectUri? ConnectUri { get; set; }
         public IDictionary<string, ProducerConfig>? ProducerConfigs { get; set; }
-        public IDictionary<string, ConsumerConfig>? ConsumerConfigs { get; set;}
+        public IDictionary<string, ConsumerConfig>? ConsumerConfigs { get; set; }
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.Connection
 {
     public interface IRabbitPool
     {

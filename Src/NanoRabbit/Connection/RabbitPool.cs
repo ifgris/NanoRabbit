@@ -3,7 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.Connection
 {
 
     public class RabbitPool : IRabbitPool
@@ -94,15 +94,15 @@ namespace NanoRabbit.NanoRabbit
 
             if (options.ProducerConfigs != null)
             {
-                foreach ( var key in options.ProducerConfigs.Keys )
+                foreach (var key in options.ProducerConfigs.Keys)
                 {
                     _producerConfig.Add(key, options.ProducerConfigs[key]);
                 }
-            }            
-            
+            }
+
             if (options.ConsumerConfigs != null)
             {
-                foreach ( var key in options.ConsumerConfigs.Keys )
+                foreach (var key in options.ConsumerConfigs.Keys)
                 {
                     _consumerConfig.Add(key, options.ConsumerConfigs[key]);
                 }

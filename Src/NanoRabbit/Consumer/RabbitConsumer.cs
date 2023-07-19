@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace NanoRabbit.NanoRabbit
+namespace NanoRabbit.Consumer
 {
     public abstract class RabbitConsumer<T> : IRabbitConsumer, IDisposable
     {
