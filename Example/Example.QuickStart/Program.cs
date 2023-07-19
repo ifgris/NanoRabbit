@@ -14,26 +14,22 @@ pool.RegisterConnection("Connection1", new ConnectOptions
         Password = "admin",
         VirtualHost = "DATA"
     },
-    ProducerConfigs = new Dictionary<string, ProducerConfig>
+    ProducerConfigs = new List<ProducerConfig> 
     {
+        new ProducerConfig
         {
-            "DataBasicQueueProducer", 
-            new ProducerConfig
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
+            ProducerName = "DataBasicQueueProducer",
+            ExchangeName = "BASIC.TOPIC",
+            RoutingKey = "BASIC.KEY",
+            Type = ExchangeType.Topic
         }
     },
-    ConsumerConfigs = new Dictionary<string, ConsumerConfig>
+    ConsumerConfigs = new List<ConsumerConfig>
     {
+        new ConsumerConfig
         {
-            "DataBasicQueueConsumer",
-            new ConsumerConfig
-            {
-                QueueName = "BASIC_QUEUE"
-            }
+            ConsumerName = "DataBasicQueueConsumer",
+            QueueName = "BASIC_QUEUE"
         }
     }
 });
@@ -60,7 +56,7 @@ await Task.Run(async () =>
 });
 
 var consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", pool);
-await Task.Run(async() =>
+await Task.Run(async () =>
 {
     while (true)
     {

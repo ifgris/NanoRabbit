@@ -6,73 +6,74 @@ using NanoRabbit.DependencyInjection;
 using RabbitMQ.Client;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddRabbitPool(new Dictionary<string, ConnectOptions>
+builder.Services.AddRabbitPool(c =>
+{
+    c.Add(new ConnectOptions
     {
-        {"Connection1", new ConnectOptions
+        ConnectionName = "Connection1",
+        ConnectConfig = new ConnectConfig
+        {
+            HostName = "localhost",
+            Port = 5672,
+            UserName = "admin",
+            Password = "admin",
+            VirtualHost = "DATA"
+        },
+        ProducerConfigs = new List<ProducerConfig> { 
+            new ProducerConfig
             {
-                ConnectConfig = new ConnectConfig
-                {
-                    HostName = "localhost",
-                    Port = 5672,
-                    UserName = "admin",
-                    Password = "admin",
-                    VirtualHost = "DATA"
-                },
-                ProducerConfigs = new Dictionary<string, ProducerConfig>
-                {
-                    {
-                        "DataBasicQueueProducer", 
-                        new ProducerConfig
-                        {
-                            ExchangeName = "BASIC.TOPIC",
-                            RoutingKey = "BASIC.KEY",
-                            Type = ExchangeType.Topic
-                        }
-                    }
-                },
-                ConsumerConfigs = new Dictionary<string, ConsumerConfig>
-                {
-                    {
-                        "DataBasicQueueConsumer",
-                        new ConsumerConfig
-                        {
-                            QueueName = "BASIC_QUEUE"
-                        }
-                    }
-                }
+                ProducerName = "DataBasicQueueProducer",
+                ExchangeName = "BASIC.TOPIC",
+                RoutingKey = "BASIC.KEY",
+                Type = ExchangeType.Topic
             }
         },
-        {"Connection2", new ConnectOptions
+        ConsumerConfigs = new List<ConsumerConfig>
+        {
+            new ConsumerConfig
             {
-                ConnectConfig = new ConnectConfig
-                {
-                    HostName = "localhost",
-                    Port = 5672,
-                    UserName = "admin",
-                    Password = "admin",
-                    VirtualHost = "HOST"
-                },
-                ProducerConfigs = new Dictionary<string, ProducerConfig>
-                {
-                    {
-                        "HostBasicQueueProducer", 
-                        new ProducerConfig
-                        {
-                            ExchangeName = "BASIC.TOPIC",
-                            RoutingKey = "BASIC.KEY",
-                            Type = ExchangeType.Topic
-                        }
-                    }
-                }
+                ConsumerName = "DataBasicQueueConsumer",
+                QueueName = "BASIC_QUEUE"
             }
         }
     });
+
+    c.Add(new ConnectOptions
+    {
+        ConnectionName = "Connection2",
+        ConnectConfig = new ConnectConfig
+        {
+            HostName = "localhost",
+            Port = 5672,
+            UserName = "admin",
+            Password = "admin",
+            VirtualHost = "HOST"
+        },
+        ProducerConfigs = new List<ProducerConfig> {
+            new ProducerConfig
+            {
+                ProducerName = "HostBasicQueueProducer",
+                ExchangeName = "BASIC.TOPIC",
+                RoutingKey = "BASIC.KEY",
+                Type = ExchangeType.Topic
+            }
+        },
+        ConsumerConfigs = new List<ConsumerConfig>
+        {
+            new ConsumerConfig
+            {
+                ConsumerName = "HostBasicQueueConsumer",
+                QueueName = "BASIC_QUEUE"
+            }
+        }
+    });
+});
 
 builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
 builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "DataBasicQueueProducer");
 
 builder.Services.AddHostedService<PublishService>();
-builder.Services.AddHostedService<ConsumeService>();
+//builder.Services.AddHostedService<ConsumeService>();
 using IHost host = builder.Build();
 
 await host.RunAsync();

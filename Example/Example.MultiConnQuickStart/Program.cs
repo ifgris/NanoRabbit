@@ -12,16 +12,14 @@ pool.RegisterConnection("Connection1", new ConnectOptions
         Password = "admin",
         VirtualHost = "DATA"
     },
-    ProducerConfigs = new Dictionary<string, ProducerConfig>
+    ProducerConfigs = new List<ProducerConfig>
     {
+        new ProducerConfig
         {
-            "DataBasicQueueProducer",
-            new ProducerConfig
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
+            ProducerName = "DataBasicQueueProducer",
+            ExchangeName = "BASIC.TOPIC",
+            RoutingKey = "BASIC.KEY",
+            Type = ExchangeType.Topic
         }
     }
 });
@@ -31,16 +29,14 @@ pool.RegisterConnection("Connection2", new ConnectOptions
     {
         ConnectionString = "amqp://admin:admin@localhost:5672/HOST"
     },
-    ProducerConfigs = new Dictionary<string, ProducerConfig>
+    ProducerConfigs = new List<ProducerConfig> 
     {
+        new ProducerConfig
         {
-            "HostBasicQueueProducer",
-            new ProducerConfig
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
+            ProducerName = "HostBasicQueueProducer",
+            ExchangeName = "BASIC.TOPIC",
+            RoutingKey = "BASIC.KEY",
+            Type = ExchangeType.Topic
         }
     }
 });

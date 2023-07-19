@@ -25,11 +25,11 @@ namespace Example.SimpleDI
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                //_rabbitPool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
-                _dataBasicQueueProducer.Publish<string>("Hello from conn1");
+                _rabbitPool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
+                //_dataBasicQueueProducer.Publish<string>("Hello from conn1");
                 _logger.LogInformation("Conn 1");
-                //_rabbitPool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
-                _hostBasicQueueProducer.Publish<string>("Hello from conn2");
+                _rabbitPool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
+                //_hostBasicQueueProducer.Publish<string>("Hello from conn2");
                 _logger.LogInformation("Conn 2");
                 await Task.Delay(1000, stoppingToken);
             }
