@@ -1,5 +1,4 @@
-﻿// 发送消息
-using NanoRabbit.NanoRabbit;
+﻿using NanoRabbit.Connection;
 using RabbitMQ.Client;
 
 var pool = new RabbitPool();

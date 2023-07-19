@@ -1,5 +1,6 @@
 ﻿using Example.QuickStart;
-using NanoRabbit.NanoRabbit;
+using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 using RabbitMQ.Client;
 
 var pool = new RabbitPool();

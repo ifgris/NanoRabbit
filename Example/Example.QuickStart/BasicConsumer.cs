@@ -1,4 +1,5 @@
-﻿using NanoRabbit.NanoRabbit;
+﻿using NanoRabbit.Connection;
+using NanoRabbit.Consumer;
 using System;
 using System.Collections.Generic;
 using System.Linq;

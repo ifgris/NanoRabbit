@@ -1,7 +1,8 @@
 ﻿using Example.SimpleDI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NanoRabbit.NanoRabbit;
+using NanoRabbit.Connection;
+using NanoRabbit.DependencyInjection;
 using RabbitMQ.Client;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);

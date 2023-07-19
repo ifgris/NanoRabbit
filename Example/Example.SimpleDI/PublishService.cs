@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NanoRabbit.NanoRabbit;
+using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 
 namespace Example.SimpleDI
 {

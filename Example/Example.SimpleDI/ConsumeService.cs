@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using NanoRabbit.NanoRabbit;
+using NanoRabbit.Connection;
 
 namespace Example.SimpleDI
 {

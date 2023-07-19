@@ -1,4 +1,4 @@
-﻿using NanoRabbit.NanoRabbit;
+﻿using NanoRabbit.Producer;
 
 namespace Example.SimpleDI
 {
