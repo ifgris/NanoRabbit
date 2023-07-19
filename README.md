@@ -4,7 +4,7 @@ NanoRabbit, a Lightweight RabbitMQ .NET API.
 
 ## Installation
 
-You can get NanoRabbit by grabbing the latest NuGet package. 
+You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/packages/NanoRabbit) package. 
 
 ## Version
 
@@ -14,13 +14,17 @@ You can get NanoRabbit by grabbing the latest NuGet package.
 
 ## QuickStart
 
+Note: NanoRabbit **heavily relies** on Naming Connections, Producers, Consumers.
+
 Follow the examples below to start using NanoRabbit!
 
-### Simple Publish
+### Register a Connection
+
+Register a RabbitMQ Connection by instantiating `RabbitPool`, and configure the producer and consumer.
 
 ```csharp
 var pool = new RabbitPool();
-pool.RegisterConnection("Connection1", new ConnectOptions
+pool.RegisterConnection(new ConnectOptions("Connection1")
 {
     ConnectConfig = new()
     {
@@ -29,9 +33,31 @@ pool.RegisterConnection("Connection1", new ConnectOptions
         UserName = "admin",
         Password = "admin",
         VirtualHost = "DATA"
+    },
+    ProducerConfigs = new List<ProducerConfig> 
+    {
+        new ProducerConfig("DataBasicQueueProducer")
+        {
+            ExchangeName = "BASIC.TOPIC",
+            RoutingKey = "BASIC.KEY",
+            Type = ExchangeType.Topic
+        }
+    },
+    ConsumerConfigs = new List<ConsumerConfig>
+    {
+        new ConsumerConfig("DataBasicQueueConsumer")
+        {
+            QueueName = "BASIC_QUEUE"
+        }
     }
 });
+```
 
+### Simple Publish
+
+After registering the `RabbitPool`, you can simply publish a message by calling `SimplePublish<T>()`.
+
+```csharp
 await Task.Run(async () =>
 {
     while (true)
@@ -43,6 +69,10 @@ await Task.Run(async () =>
 });
 ```
 
+### Receive messages
+
+Working...
+
 ## Contributing
 
 1. Fork this repository.
@@ -51,7 +81,7 @@ await Task.Run(async () =>
 
 ## TODO
 
-- [ ] DependencyInjection support
+- [x] DependencyInjection support
 - [ ] Logging support
 - [ ] ASP.NET support
 
@@ -65,4 +95,4 @@ await Task.Run(async () =>
 
 ## LICENSE
 
-NanoRabbit is licensed under the Apache-2.0 license
+NanoRabbit is licensed under the Apache-2.0 license.
