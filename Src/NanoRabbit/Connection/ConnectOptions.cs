@@ -7,10 +7,11 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ConnectOptions
     {
+        public string ConnectionName { get; set; }
         public ConnectConfig? ConnectConfig { get; set; }
         public ConnectUri? ConnectUri { get; set; }
-        public IDictionary<string, ProducerConfig>? ProducerConfigs { get; set; }
-        public IDictionary<string, ConsumerConfig>? ConsumerConfigs { get; set; }
+        public List<ProducerConfig>? ProducerConfigs { get; set; }
+        public List<ConsumerConfig>? ConsumerConfigs { get; set; }
     }
 
     /// <summary>
@@ -56,6 +57,7 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ProducerConfig
     {
+        public string ProducerName { get; set; }
         public string? ExchangeName { get; set; }
         public string? RoutingKey { get; set; }
         public string Type { get; set; } = ExchangeType.Direct;
@@ -69,6 +71,7 @@ namespace NanoRabbit.Connection
     /// </summary>
     public class ConsumerConfig
     {
+        public string ConsumerName { get; set; }
         public string? QueueName { get; set; } = null;
         public bool Durable { get; set; } = true;
         public bool Exclusive { get; set; } = false;

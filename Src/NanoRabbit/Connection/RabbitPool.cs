@@ -94,17 +94,17 @@ namespace NanoRabbit.Connection
 
             if (options.ProducerConfigs != null)
             {
-                foreach (var key in options.ProducerConfigs.Keys)
+                foreach (var producerConfig in options.ProducerConfigs)
                 {
-                    _producerConfig.Add(key, options.ProducerConfigs[key]);
+                    _producerConfig.Add(producerConfig.ProducerName, producerConfig);
                 }
             }
 
             if (options.ConsumerConfigs != null)
             {
-                foreach (var key in options.ConsumerConfigs.Keys)
+                foreach (var consumerConfig in options.ConsumerConfigs)
                 {
-                    _consumerConfig.Add(key, options.ConsumerConfigs[key]);
+                    _consumerConfig.Add(consumerConfig.ConsumerName, consumerConfig);
                 }
             }
         }
