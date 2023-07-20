@@ -1,6 +1,8 @@
 ![NanoRabbit logo](https://raw.githubusercontent.com/cgcel/NanoRabbit/master/Img/logo.png)
 
-# NanoRabbit
+[![.NET](https://github.com/cgcel/NanoRabbit/actions/workflows/dotnet.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/dotnet.yml) [![NuGet](https://img.shields.io/nuget/v/NanoRabbit.svg)](https://nuget.org/packages/NanoRabbit)
+
+## About
 
 NanoRabbit, A Lightweight RabbitMQ .NET API for .NET 6.
 
