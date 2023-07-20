@@ -18,9 +18,14 @@
     <PackageTags>RabbitMQ;AMQP;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\Img\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
