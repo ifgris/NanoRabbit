@@ -1,3 +1,5 @@
+![NanoRabbit logo](https://raw.githubusercontent.com/cgcel/NanoRabbit/master/Img/logo.png)
+
 # NanoRabbit
 
 NanoRabbit, A Lightweight RabbitMQ .NET API for .NET 6.
