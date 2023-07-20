@@ -13,8 +13,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>NanoRabbit, a Lightweight RabbitMQ .NET API.</Description>
-    <Optimize>true</Optimize>
+    <Optimize>True</Optimize>
     <DebugSymbols>true</DebugSymbols>
+    <PackageTags>RabbitMQ;AMQP;</PackageTags>
+    <IncludeSymbols>True</IncludeSymbols>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

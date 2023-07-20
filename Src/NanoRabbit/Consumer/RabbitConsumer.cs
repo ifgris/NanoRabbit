@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using NanoRabbit.Connection;
+﻿using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -7,7 +6,11 @@ using System.Text;
 
 namespace NanoRabbit.Consumer
 {
-    public abstract class RabbitConsumer<T> : IRabbitConsumer, IDisposable
+    /// <summary>
+    /// RabbitConsumer
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class RabbitConsumer<T> : IRabbitConsumer<T>
     {
         private readonly IModel _channel;
         private readonly IRabbitPool _pool;
@@ -16,8 +19,7 @@ namespace NanoRabbit.Consumer
         public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool)
         {
             _pool = pool;
-            var connection = _pool.GetConnection(connectionName);
-            _channel = connection.CreateModel();
+            _channel = _pool.GetConnection(connectionName).CreateModel();
             _consumerConfig = _pool.GetConsumer(consumerName);
         }
 
@@ -36,7 +38,7 @@ namespace NanoRabbit.Consumer
             _channel.BasicConsume(queue: _consumerConfig.QueueName, autoAck: true, consumer: consumer);
         }
 
-        protected abstract void MessageHandler(T message);
+        public abstract void MessageHandler(T message);
 
         public void Dispose()
         {

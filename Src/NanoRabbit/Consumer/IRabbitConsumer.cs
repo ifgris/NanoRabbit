@@ -1,13 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NanoRabbit.Consumer
+﻿namespace NanoRabbit.Consumer
 {
-    public interface IRabbitConsumer
+    /// <summary>
+    /// IRabbitConsumer
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IRabbitConsumer<T> : IDisposable
     {
-        public void Receive();
+        /// <summary>
+        /// Receive from Queue.
+        /// </summary>
+        void Receive();
+
+        /// <summary>
+        /// Handle the received message.
+        /// </summary>
+        /// <param name="message"></param>
+        void MessageHandler(T message);
     }
 }
