@@ -9,7 +9,7 @@ namespace Example.QuickStart
         {
         }
 
-        protected override void MessageHandler(string message)
+        public override void MessageHandler(string message)
         {
             Console.WriteLine($"Receive: {message}");
         }

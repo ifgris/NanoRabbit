@@ -67,7 +67,7 @@ builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQu
 builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "DataBasicQueueProducer");
 
 builder.Services.AddHostedService<PublishService>();
-//builder.Services.AddHostedService<ConsumeService>();
+builder.Services.AddHostedService<ConsumeService>();
 using IHost host = builder.Build();
 
 await host.RunAsync();

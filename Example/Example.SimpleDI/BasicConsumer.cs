@@ -9,7 +9,7 @@ namespace Example.SimpleDI
         {
         }
 
-        protected override void MessageHandler(string message)
+        public override void MessageHandler(string message)
         {
             Console.WriteLine($"Receive: {message}");
         }
