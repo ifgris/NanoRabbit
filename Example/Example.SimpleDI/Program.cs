@@ -3,68 +3,70 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
-using RabbitMQ.Client;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddRabbitPool(c =>
 {
-    c.Add(new ConnectOptions("Connection1")
+    c.Add(new ConnectOptions("Connection1", option =>
     {
-        ConnectConfig = new ConnectConfig
+        option.ConnectConfig = new(config =>
         {
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "DATA"
-        },
-        ProducerConfigs = new List<ProducerConfig> { 
-            new ProducerConfig("DataBasicQueueProducer")
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
-        },
-        ConsumerConfigs = new List<ConsumerConfig>
+            config.HostName = "localhost";
+            config.Port = 5672;
+            config.UserName = "admin";
+            config.Password = "admin";
+            config.VirtualHost = "DATA";
+        });
+        option.ProducerConfigs = new List<ProducerConfig>
+    {
+        new ProducerConfig("DataBasicQueueProducer", c =>
         {
-            new ConsumerConfig("DataBasicQueueConsumer")
-            {
-                QueueName = "BASIC_QUEUE"
-            }
-        }
-    });
+            c.ExchangeName = "BASIC.TOPIC";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Topic;
+        })
+    };
+        option.ConsumerConfigs = new List<ConsumerConfig>
+    {
+        new ConsumerConfig("DataBasicQueueConsumer", c =>
+        {
+            c.QueueName = "BASIC_QUEUE";
+        })
+    };
+    }));
 
-    c.Add(new ConnectOptions("Connection2")
+
+    c.Add(new ConnectOptions("Connection2", option =>
     {
-        ConnectConfig = new ConnectConfig
+        option.ConnectConfig = new(config =>
         {
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "HOST"
-        },
-        ProducerConfigs = new List<ProducerConfig> {
-            new ProducerConfig("HostBasicQueueProducer")
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
-        },
-        ConsumerConfigs = new List<ConsumerConfig>
+            config.HostName = "localhost";
+            config.Port = 5672;
+            config.UserName = "admin";
+            config.Password = "admin";
+            config.VirtualHost = "HOST";
+        });
+        option.ProducerConfigs = new List<ProducerConfig>
+    {
+        new ProducerConfig("HostBasicQueueProducer", c =>
         {
-            new ConsumerConfig("HostBasicQueueConsumer")
-            {
-                QueueName = "BASIC_QUEUE"
-            }
-        }
-    });
+            c.ExchangeName = "BASIC.DIRECT";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Direct;
+        })
+    };
+        option.ConsumerConfigs = new List<ConsumerConfig>
+    {
+        new ConsumerConfig("HostBasicQueueConsumer", c =>
+        {
+            c.QueueName = "BASIC_QUEUE";
+        })
+    };
+    }));
 });
 
 builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
-builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "DataBasicQueueProducer");
+builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "HostBasicQueueProducer");
 
 builder.Services.AddHostedService<PublishService>();
 builder.Services.AddHostedService<ConsumeService>();

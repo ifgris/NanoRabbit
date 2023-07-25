@@ -1,36 +1,36 @@
 ﻿using Example.QuickStart;
 using NanoRabbit.Connection;
 using NanoRabbit.Producer;
-using RabbitMQ.Client;
 
 var pool = new RabbitPool();
-pool.RegisterConnection(new ConnectOptions("Connection1")
+pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
-    ConnectConfig = new()
+    option.ConnectConfig = new(config =>
     {
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "DATA"
-    },
-    ProducerConfigs = new List<ProducerConfig> 
+        config.HostName = "localhost";
+        config.Port = 5672;
+        config.UserName = "admin";
+        config.Password = "admin";
+        config.VirtualHost = "DATA";
+    });
+    option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("DataBasicQueueProducer")
+        new ProducerConfig("DataBasicQueueProducer", c =>
         {
-            ExchangeName = "BASIC.TOPIC",
-            RoutingKey = "BASIC.KEY",
-            Type = ExchangeType.Topic
-        }
-    },
-    ConsumerConfigs = new List<ConsumerConfig>
+            c.ExchangeName = "BASIC.TOPIC";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Topic;
+        })
+    };
+    option.ConsumerConfigs = new List<ConsumerConfig>
     {
-        new ConsumerConfig("DataBasicQueueConsumer")
+        new ConsumerConfig("DataBasicQueueConsumer", c =>
         {
-            QueueName = "BASIC_QUEUE"
-        }
-    }
-});
+            c.QueueName = "BASIC_QUEUE";
+        })
+    };
+})
+);
 
 await Task.Run(async () =>
 {

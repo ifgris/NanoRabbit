@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NanoRabbit" Version="0.0.3" />
+    <ProjectReference Include="..\..\Src\NanoRabbit\NanoRabbit.csproj" />
   </ItemGroup>
 
 </Project>

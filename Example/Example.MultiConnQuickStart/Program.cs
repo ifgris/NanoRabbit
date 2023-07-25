@@ -1,43 +1,40 @@
 ﻿using NanoRabbit.Connection;
-using RabbitMQ.Client;
 
 var pool = new RabbitPool();
-pool.RegisterConnection(new ConnectOptions("Connection1")
+pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
-    ConnectConfig = new()
+    option.ConnectConfig = new(config =>
     {
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "DATA"
-    },
-    ProducerConfigs = new List<ProducerConfig>
+        config.HostName = "localhost";
+        config.Port = 5672;
+        config.UserName = "admin";
+        config.Password = "admin";
+        config.VirtualHost = "DATA";
+    });
+    option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("DataBasicQueueProducer")
+        new ProducerConfig("DataBasicQueueProducer", c =>
         {
-            ExchangeName = "BASIC.TOPIC",
-            RoutingKey = "BASIC.KEY",
-            Type = ExchangeType.Topic
-        }
-    }
-});
-pool.RegisterConnection(new ConnectOptions("Connection2")
+            c.ExchangeName = "BASIC.TOPIC";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Topic;
+        })
+    };
+}));
+
+pool.RegisterConnection(new ConnectOptions("Connection2", option =>
 {
-    ConnectUri = new()
+    option.ConnectUri = new ConnectUri("amqp://admin:admin@localhost:5672/HOST");
+    option.ProducerConfigs = new List<ProducerConfig>
     {
-        ConnectionString = "amqp://admin:admin@localhost:5672/HOST"
-    },
-    ProducerConfigs = new List<ProducerConfig> 
-    {
-        new ProducerConfig("HostBasicQueueProducer")
+        new ProducerConfig("HostBasicQueueProducer", c =>
         {
-            ExchangeName = "BASIC.TOPIC",
-            RoutingKey = "BASIC.KEY",
-            Type = ExchangeType.Topic
-        }
-    }
-});
+            c.ExchangeName = "BASIC.DIRECT";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Direct;
+        })
+    };
+}));
 
 while (true)
 {
