@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace NanoRabbit.Connection
@@ -11,54 +10,6 @@ namespace NanoRabbit.Connection
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
-
-        /// <summary>
-        /// Get registered connection by connectionName.
-        /// </summary>
-        /// <param name="connectionName"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public IConnection GetConnection(string connectionName)
-        {
-            if (!_connections.ContainsKey(connectionName))
-            {
-                throw new ArgumentException($"Connection {connectionName} not found.");
-            }
-
-            return _connections[connectionName];
-        }
-
-        /// <summary>
-        /// Get registered producerConfig by producerName.
-        /// </summary>
-        /// <param name="producerName"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ProducerConfig GetProducer(string producerName)
-        {
-            if (!_producerConfig.ContainsKey(producerName))
-            {
-                throw new ArgumentException($"Connection {producerName} not found.");
-            }
-
-            return _producerConfig[producerName];
-        }
-
-        /// <summary>
-        /// Get registered consumerConfig by consumerName.
-        /// </summary>
-        /// <param name="consumerName"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ConsumerConfig GetConsumer(string consumerName)
-        {
-            if (!_consumerConfig.ContainsKey(consumerName))
-            {
-                throw new ArgumentException($"Connection {consumerName} not found.");
-            }
-
-            return _consumerConfig[consumerName];
-        }
 
         /// <summary>
         /// Register connection by connect options.
@@ -110,6 +61,54 @@ namespace NanoRabbit.Connection
         }
 
         /// <summary>
+        /// Get registered connection by connectionName.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public IConnection GetConnection(string connectionName)
+        {
+            if (!_connections.ContainsKey(connectionName))
+            {
+                throw new ArgumentException($"Connection {connectionName} not found.");
+            }
+
+            return _connections[connectionName];
+        }
+
+        /// <summary>
+        /// Get registered producerConfig by producerName.
+        /// </summary>
+        /// <param name="producerName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public ProducerConfig GetProducer(string producerName)
+        {
+            if (!_producerConfig.ContainsKey(producerName))
+            {
+                throw new ArgumentException($"Connection {producerName} not found.");
+            }
+
+            return _producerConfig[producerName];
+        }
+
+        /// <summary>
+        /// Get registered consumerConfig by consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public ConsumerConfig GetConsumer(string consumerName)
+        {
+            if (!_consumerConfig.ContainsKey(consumerName))
+            {
+                throw new ArgumentException($"Connection {consumerName} not found.");
+            }
+
+            return _consumerConfig[consumerName];
+        }
+
+        /// <summary>
         /// Close All Connections.
         /// </summary>
         public void CloseAllConnections()
@@ -146,7 +145,7 @@ namespace NanoRabbit.Connection
 
             using (var channel = GetConnection(connectionName).CreateModel())
             {
-                channel.ExchangeDeclare(producerConfig.ExchangeName, ExchangeType.Topic, durable: true);
+                channel.ExchangeDeclare(producerConfig.ExchangeName, producerConfig.Type, durable: true);
                 var properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 
