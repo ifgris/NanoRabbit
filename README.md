@@ -1,4 +1,4 @@
-![NanoRabbit logo](https://raw.githubusercontent.com/cgcel/NanoRabbit/master/Img/logo.png)
+﻿![NanoRabbit logo](https://raw.githubusercontent.com/cgcel/NanoRabbit/master/Img/logo.png)
 
 [![.NET](https://github.com/cgcel/NanoRabbit/actions/workflows/dotnet.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/dotnet.yml) [![NuGet](https://img.shields.io/nuget/v/NanoRabbit.svg)](https://nuget.org/packages/NanoRabbit) [![Nuget Downloads](https://img.shields.io/nuget/dt/NanoRabbit)](https://www.nuget.org/packages/NanoRabbit) [![License](https://img.shields.io/github/license/cgcel/NanoRabbit)](https://github.com/cgcel/NanoRabbit)
 
@@ -24,9 +24,7 @@ See [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 ## QuickStart
 
-Note: NanoRabbit **heavily relies** on Naming Connections, Producers, Consumers.
-
-Follow the codes below to start using NanoRabbit!
+> NanoRabbit is designed as a library depends on **NAMING** Connections, Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Connections, Producers, Consumers.
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
@@ -36,33 +34,33 @@ Register a RabbitMQ Connection by instantiating `RabbitPool`, and configure the 
 
 ```csharp
 var pool = new RabbitPool();
-pool.RegisterConnection(new ConnectOptions("Connection1")
+pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
-    ConnectConfig = new()
+    option.ConnectConfig = new(config =>
     {
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "DATA"
-    },
-    ProducerConfigs = new List<ProducerConfig> 
+        config.HostName = "localhost";
+        config.Port = 5672;
+        config.UserName = "admin";
+        config.Password = "admin";
+        config.VirtualHost = "DATA";
+    });
+    option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("DataBasicQueueProducer")
+        new ProducerConfig("DataBasicQueueProducer", c =>
         {
-            ExchangeName = "BASIC.TOPIC",
-            RoutingKey = "BASIC.KEY",
-            Type = ExchangeType.Topic
-        }
-    },
-    ConsumerConfigs = new List<ConsumerConfig>
+            c.ExchangeName = "BASIC.TOPIC";
+            c.RoutingKey = "BASIC.KEY";
+            c.Type = ExchangeType.Topic;
+        })
+    };
+    option.ConsumerConfigs = new List<ConsumerConfig>
     {
-        new ConsumerConfig("DataBasicQueueConsumer")
+        new ConsumerConfig("DataBasicQueueConsumer", c =>
         {
-            QueueName = "BASIC_QUEUE"
-        }
-    }
-});
+            c.QueueName = "BASIC_QUEUE";
+        })
+    };
+}));
 ```
 
 ### Simple Publish
@@ -122,37 +120,38 @@ Register IRabbitPool in Program.cs:
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddRabbitPool(c =>
 {
-    c.Add(new ConnectOptions("Connection1")
+    c.Add(new ConnectOptions("Connection1", option =>
     {
-        ConnectConfig = new ConnectConfig
+        option.ConnectConfig = new(config =>
         {
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "DATA"
-        },
-        ProducerConfigs = new List<ProducerConfig> { 
-            new ProducerConfig("DataBasicQueueProducer")
-            {
-                ExchangeName = "BASIC.TOPIC",
-                RoutingKey = "BASIC.KEY",
-                Type = ExchangeType.Topic
-            }
-        },
-        ConsumerConfigs = new List<ConsumerConfig>
+            config.HostName = "localhost";
+            config.Port = 5672;
+            config.UserName = "admin";
+            config.Password = "admin";
+            config.VirtualHost = "DATA";
+        });
+        option.ProducerConfigs = new List<ProducerConfig>
         {
-            new ConsumerConfig("DataBasicQueueConsumer")
+            new ProducerConfig("DataBasicQueueProducer", c =>
             {
-                QueueName = "BASIC_QUEUE"
-            }
-        }
-    });
+                c.ExchangeName = "BASIC.TOPIC";
+                c.RoutingKey = "BASIC.KEY";
+                c.Type = ExchangeType.Topic;
+            })
+        };
+        option.ConsumerConfigs = new List<ConsumerConfig>
+        {
+            new ConsumerConfig("DataBasicQueueConsumer", c =>
+            {
+                c.QueueName = "BASIC_QUEUE";
+            })
+        };
+    }));
 
-    c.Add(new ConnectOptions("Connection2")
+    c.Add(new ConnectOptions("Connection2", option =>
     {
         // ...
-    });
+    }));
 });
 ```
 
