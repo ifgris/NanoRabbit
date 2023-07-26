@@ -18,23 +18,22 @@ builder.Services.AddRabbitPool(c =>
             config.VirtualHost = "DATA";
         });
         option.ProducerConfigs = new List<ProducerConfig>
-    {
-        new ProducerConfig("DataBasicQueueProducer", c =>
         {
-            c.ExchangeName = "BASIC.TOPIC";
-            c.RoutingKey = "BASIC.KEY";
-            c.Type = ExchangeType.Topic;
-        })
-    };
+            new ProducerConfig("DataBasicQueueProducer", c =>
+            {
+                c.ExchangeName = "BASIC.TOPIC";
+                c.RoutingKey = "BASIC.KEY";
+                c.Type = ExchangeType.Topic;
+            })
+        };
         option.ConsumerConfigs = new List<ConsumerConfig>
-    {
-        new ConsumerConfig("DataBasicQueueConsumer", c =>
         {
-            c.QueueName = "BASIC_QUEUE";
-        })
-    };
+            new ConsumerConfig("DataBasicQueueConsumer", c =>
+            {
+                c.QueueName = "BASIC_QUEUE";
+            })
+        };
     }));
-
 
     c.Add(new ConnectOptions("Connection2", option =>
     {
@@ -47,21 +46,21 @@ builder.Services.AddRabbitPool(c =>
             config.VirtualHost = "HOST";
         });
         option.ProducerConfigs = new List<ProducerConfig>
-    {
-        new ProducerConfig("HostBasicQueueProducer", c =>
         {
-            c.ExchangeName = "BASIC.DIRECT";
-            c.RoutingKey = "BASIC.KEY";
-            c.Type = ExchangeType.Direct;
-        })
-    };
+            new ProducerConfig("HostBasicQueueProducer", c =>
+            {
+                c.ExchangeName = "BASIC.DIRECT";
+                c.RoutingKey = "BASIC.KEY";
+                c.Type = ExchangeType.Direct;
+            })
+        };
         option.ConsumerConfigs = new List<ConsumerConfig>
-    {
-        new ConsumerConfig("HostBasicQueueConsumer", c =>
         {
-            c.QueueName = "BASIC_QUEUE";
-        })
-    };
+            new ConsumerConfig("HostBasicQueueConsumer", c =>
+            {
+                c.QueueName = "BASIC_QUEUE";
+            })
+        };
     }));
 });
 

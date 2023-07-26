@@ -29,8 +29,7 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
             c.QueueName = "BASIC_QUEUE";
         })
     };
-})
-);
+}));
 
 await Task.Run(async () =>
 {
