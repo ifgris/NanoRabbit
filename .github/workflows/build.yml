@@ -16,6 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Create source code archive
+      run: |
+        cd /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
+        tar -czvf source.tar.gz .
+        zip -r source.zip .
+      working-directory: /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
     - name: Setup build
       uses: actions/setup-dotnet@v3
       with:
@@ -28,12 +34,6 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Pack the project
       run: dotnet pack --configuration Release --include-symbols --output ./bin/Release/net6.0 /p:SymbolPackageFormat=snupkg
-    - name: Create source code archive
-      run: |
-        cd /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
-        tar -czvf source.tar.gz .
-        zip -r source.zip .
-      working-directory: /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       with:
