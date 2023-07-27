@@ -17,7 +17,12 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddProducer<TProducer>(this IServiceCollection services, string connectionName, string producerName)
             where TProducer : RabbitProducer
         {
-            services.AddSingleton<TProducer>(provider => ActivatorUtilities.CreateInstance<TProducer>(provider, connectionName, producerName, provider.GetRequiredService<IRabbitPool>()));
+            services.AddSingleton<TProducer>(provider =>
+            {
+                var producer = ActivatorUtilities.CreateInstance<TProducer>(provider, connectionName, producerName, provider.GetRequiredService<IRabbitPool>());
+                return producer;
+            });
+
             return services;
         }
     }
