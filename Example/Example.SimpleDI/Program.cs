@@ -5,6 +5,8 @@ using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+// Configure the RabbitMQ Connection
 builder.Services.AddRabbitPool(c =>
 {
     c.Add(new ConnectOptions("Connection1", option =>
@@ -49,9 +51,9 @@ builder.Services.AddRabbitPool(c =>
         {
             new ProducerConfig("HostBasicQueueProducer", c =>
             {
-                c.ExchangeName = "BASIC.DIRECT";
+                c.ExchangeName = "BASIC.TOPIC";
                 c.RoutingKey = "BASIC.KEY";
-                c.Type = ExchangeType.Direct;
+                c.Type = ExchangeType.Topic;
             })
         };
         option.ConsumerConfigs = new List<ConsumerConfig>
@@ -64,11 +66,14 @@ builder.Services.AddRabbitPool(c =>
     }));
 });
 
+// register the customize RabbitProducer
 builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
 builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "HostBasicQueueProducer");
 
+// register BackgroundService
 builder.Services.AddHostedService<PublishService>();
 builder.Services.AddHostedService<ConsumeService>();
+
 using IHost host = builder.Build();
 
 await host.RunAsync();

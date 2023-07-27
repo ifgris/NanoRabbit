@@ -1,19 +1,10 @@
-﻿using NanoRabbit.Producer;
+﻿using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 
 namespace Example.SimpleDI
 {
-    public class DataBasicQueueProducer : IRabbitProducer
+    public class DataBasicQueueProducer : RabbitProducer
     {
-        private readonly IRabbitProducer _producer;
-
-        public DataBasicQueueProducer(IRabbitProducer producer)
-        {
-            _producer = producer;
-        }
-
-        void IRabbitProducer.Publish<T>(T message)
-        {
-            _producer.Publish<T>(message);
-        }
+        public DataBasicQueueProducer(string connectionName, string producerName, IRabbitPool pool) : base(connectionName, producerName, pool) { }
     }
 }
