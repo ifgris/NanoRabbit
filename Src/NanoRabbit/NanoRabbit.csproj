@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>NanoRabbit</Title>
-    <VersionPrefix>0.0.3</VersionPrefix>
+    <VersionPrefix>0.0.4</VersionPrefix>
     <Authors>GC Chen</Authors>
     <PackageProjectUrl>https://github.com/cgcel/NanoRabbit</PackageProjectUrl>
     <RepositoryUrl>https://github.com/cgcel/NanoRabbit</RepositoryUrl>
