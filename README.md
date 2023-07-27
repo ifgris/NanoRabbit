@@ -14,9 +14,7 @@ You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/pack
 
 | NanoRabbit | RabbitMQ.Client |
 | :---: | :---: |
-| 0.0.1 | 6.5.0 |
-| 0.0.2 | 6.5.0 |
-| 0.0.3 | 6.5.0 |
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4 | 6.5.0 |
 
 ## Document
 
