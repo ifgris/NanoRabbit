@@ -27,7 +27,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Pack the project
-      run: dotnet pack --configuration Release --include-symbols --output ./dist /p:SymbolPackageFormat=snupkg
+      run: dotnet pack --configuration Release --include-symbols --output ./bin/Release/net6.0 /p:SymbolPackageFormat=snupkg
     - name: Create source code archive
       run: |
         tar -czvf source.tar.gz .
@@ -37,10 +37,10 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         asset_path: |
-          ./dist/*.nupkg
-          ./dist/*.snupkg
-          ./src/source.tar.gz
-          ./src/source.zip
+          ./bin/Release/net6.0/*.nupkg
+          ./bin/Release/net6.0/*.snupkg
+          ./Src/NanoRabbit/source.tar.gz
+          ./Src/NanoRabbit/source.zip
         asset_name: ${{ github.repository }} ${GITHUB_REF##*/} build artifacts
         asset_content_type: application/zip
         tag_name: ${{ github.ref }}
