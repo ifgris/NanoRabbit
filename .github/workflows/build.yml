@@ -16,12 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Create source code archive
-      run: |
-        cd /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
-        tar -czvf source.tar.gz .
-        zip -r source.zip .
-      working-directory: /home/runner/work/NanoRabbit/NanoRabbit/Src/NanoRabbit/
     - name: Setup build
       uses: actions/setup-dotnet@v3
       with:
@@ -40,8 +34,6 @@ jobs:
         asset_path: |
           ./bin/Release/net6.0/*.nupkg
           ./bin/Release/net6.0/*.snupkg
-          ./source.tar.gz
-          ./source.zip
         asset_name: ${{ github.repository }} ${GITHUB_REF##*/} build artifacts
         asset_content_type: application/zip
         tag_name: ${{ github.ref }}
