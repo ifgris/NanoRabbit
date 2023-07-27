@@ -70,6 +70,8 @@ builder.Services.AddRabbitPool(c =>
 builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
 builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "HostBasicQueueProducer");
 
+builder.Services.AddConsumer<BasicConsumer, string>("Connection1", "DataBasicQueueConsumer");
+
 // register BackgroundService
 builder.Services.AddHostedService<PublishService>();
 builder.Services.AddHostedService<ConsumeService>();

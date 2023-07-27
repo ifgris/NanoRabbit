@@ -20,7 +20,7 @@ namespace Example.SimpleDI
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _dataProducer.Enqueue("Hello from conn1");
+                _dataProducer.Publish("Hello from conn1");
                 _logger.LogInformation("Conn 1");
                 _hostProducer.Enqueue("Hello from conn2");
                 _logger.LogInformation("Conn 2");
