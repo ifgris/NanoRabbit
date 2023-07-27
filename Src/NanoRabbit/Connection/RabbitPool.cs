@@ -145,7 +145,7 @@ namespace NanoRabbit.Connection
 
             using (var channel = GetConnection(connectionName).CreateModel())
             {
-                channel.ExchangeDeclare(producerConfig.ExchangeName, producerConfig.Type, durable: true);
+                channel.ExchangeDeclare(producerConfig.ExchangeName, producerConfig.Type, durable: producerConfig.Durable, autoDelete: producerConfig.AutoDelete, arguments: producerConfig.Arguments);
                 var properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 

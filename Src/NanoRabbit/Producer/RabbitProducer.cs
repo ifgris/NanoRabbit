@@ -28,7 +28,7 @@ namespace NanoRabbit.Producer
         {
             using (var channel = _connection.CreateModel())
             {
-                channel.ExchangeDeclare(_producerConfig.ExchangeName, _producerConfig.Type, durable: true);
+                channel.ExchangeDeclare(_producerConfig.ExchangeName, _producerConfig.Type, durable: _producerConfig.Durable);
                 var properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 
