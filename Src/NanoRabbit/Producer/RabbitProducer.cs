@@ -6,6 +6,9 @@ using System.Text;
 
 namespace NanoRabbit.Producer
 {
+    /// <summary>
+    /// RabbitProsucer, can be inherited by custom Producer.
+    /// </summary>
     public class RabbitProducer : IRabbitProducer
     {
         private readonly IRabbitPool _pool;
@@ -22,14 +25,14 @@ namespace NanoRabbit.Producer
             _producerConfig = _pool.GetProducer(producerName);
             _connection = _pool.GetConnection(connectionName);
             _channel = _connection.CreateModel();
-            _publishThread = new Thread(SendData);
+            _publishThread = new Thread(PublishTask);
             _publishThread.Start();
         }
 
         /// <summary>
-        /// SendData runs in PublishThread.
+        /// PublishTask runs in PublishThread.
         /// </summary>
-        public void SendData()
+        public void PublishTask()
         {
             while(true)
             {

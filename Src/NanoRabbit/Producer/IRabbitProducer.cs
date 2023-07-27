@@ -5,9 +5,9 @@ namespace NanoRabbit.Producer
     public interface IRabbitProducer
     {
         /// <summary>
-        /// SendData runs in PublishThread.
+        /// PublishTask runs in PublishThread.
         /// </summary>
-        public void SendData();
+        public void PublishTask();
         /// <summary>
         /// Add message to the end of concurrent cache queue.
         /// </summary>
