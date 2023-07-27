@@ -20,7 +20,7 @@ You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/pack
 
 ## Document
 
-See [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
+The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 ## QuickStart
 
@@ -78,6 +78,8 @@ await Task.Run(async () =>
     }
 });
 ```
+
+There is also a easy-to-use `RabbitProducer`, which used to publish messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Producer).
 
 ### Receive messages
 
@@ -155,33 +157,9 @@ builder.Services.AddRabbitPool(c =>
 });
 ```
 
-Then, you can use IRabbitPool at anywhere, for example, create a publisher backgroungservice:
+Then, you can use IRabbitPool at anywhere.
 
-```csharp
-public class PublishService : BackgroundService
-{
-    private readonly IRabbitPool _rabbitPool;
-    private readonly ILogger<PublishService> _logger;
-
-    public PublishService(IRabbitPool rabbitPool, ILogger<PublishService> logger)
-    {
-        _rabbitPool = rabbitPool;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _rabbitPool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
-            _logger.LogInformation("Conn 1");
-            _rabbitPool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
-            _logger.LogInformation("Conn 2");
-            await Task.Delay(1000, stoppingToken);
-        }
-    }
-}
-```
+More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
 
 ## Contributing
 
@@ -191,9 +169,11 @@ public class PublishService : BackgroundService
 
 ## TODO
 
+- [x] Basic Consume & Publish support
 - [x] DependencyInjection support
 - [ ] Logging support
 - [ ] ASP.NET support
+- [ ] Exchange Configurations
 
 ## Thanks
 
