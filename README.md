@@ -4,11 +4,19 @@
 
 ## About
 
-NanoRabbit, A Lightweight RabbitMQ .NET API for .NET 6.
+NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
+
+## Features
+
+- Customize the name of connections, producers, consumers.
+- Dependency injection available.
+- Multiple connections, producers, and consumers can be created.
 
 ## Installation
 
 You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/packages/NanoRabbit) package. 
+
+See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more details.
 
 ## Version
 
@@ -165,7 +173,7 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 2. Create a new branch in you current repos from the **dev** branch.
 3. Push commits and create a Pull Request (PR) to NanoRabbit.
 
-## TODO
+## Todo
 
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
@@ -181,6 +189,6 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 - [Masstransit](https://github.com/masstransit/masstransit)
 - [EasyNetQ](https://github.com/autofac/Autofac)
 
-## LICENSE
+## License
 
 NanoRabbit is licensed under the Apache-2.0 license.
