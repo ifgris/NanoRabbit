@@ -20,9 +20,9 @@ namespace Example.SimpleDI
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _dataProducer.Publish("Hello from conn1");
+                _dataProducer.Enqueue("Hello from conn1");
                 _logger.LogInformation("Conn 1");
-                _hostProducer.Publish("Hello from conn2");
+                _hostProducer.Enqueue("Hello from conn2");
                 _logger.LogInformation("Conn 2");
                 await Task.Delay(1000, stoppingToken);
             }
