@@ -52,13 +52,12 @@ await Task.Run(async () =>
     }
 });
 
-var consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", pool);
 await Task.Run(async () =>
 {
+    var consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", pool);
     while (true)
     {
         Console.WriteLine("Start receiving...");
-        consumer.Receive();
         await Task.Delay(1000);
     }
 });
