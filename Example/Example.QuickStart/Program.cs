@@ -46,7 +46,7 @@ await Task.Run(async () =>
 {
     while (true)
     {
-        producer.Publish<string>("Hello from Publish<T>()!");
+        producer.Enqueue<string>("Hello from Enqueue<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
         await Task.Delay(1000);
     }
