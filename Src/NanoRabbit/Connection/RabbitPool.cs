@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using NanoRabbit.Logging;
+using NanoRabbit.Producer;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -13,8 +15,24 @@ namespace NanoRabbit.Connection
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
 
-        private readonly ILogger<RabbitPool> _logger;
+        private readonly ILogger<RabbitPool>? _logger;
 
+        public static GlobalConfig? GlobalConfig { get; private set; }
+
+
+        public RabbitPool(Action<GlobalConfig> config)
+        {
+            GlobalConfig = new GlobalConfig();
+            config(GlobalConfig);
+            if (GlobalConfig.EnableLogging == false)
+            {
+                _logger = null;
+            }
+            else
+            {
+                _logger = GlobalLogger.CreateLogger<RabbitPool>();
+            }
+        }
         public RabbitPool(ILogger<RabbitPool> logger)
         {
             _logger = logger;
@@ -23,7 +41,6 @@ namespace NanoRabbit.Connection
         /// <summary>
         /// Register connection by connect options.
         /// </summary>
-        /// <param name="connectionName"></param>
         /// <param name="options"></param>
         public void RegisterConnection(ConnectOptions options)
         {
@@ -42,7 +59,7 @@ namespace NanoRabbit.Connection
 
                     var connection = factory.CreateConnection();
                     _connections.Add(options.ConnectionName, connection);
-                    _logger.LogInformation($"Connection - {options.ConnectionName} Registered");
+                    _logger?.LogInformation($"Connection - {options.ConnectionName} Registered");
                 }
                 else if (options.ConnectUri != null)
                 {
@@ -73,7 +90,7 @@ namespace NanoRabbit.Connection
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger?.LogError(ex, ex.Message);
                 throw;
             }
         }
@@ -173,7 +190,7 @@ namespace NanoRabbit.Connection
                 channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
             }
 
-            _logger.LogInformation($"Message published by {producerName} to {connectionName}");
+            _logger?.LogInformation($"Message published by {producerName} to {connectionName}");
         }
 
         /// <summary>
@@ -192,7 +209,7 @@ namespace NanoRabbit.Connection
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
                 {
-                    _logger.LogInformation($"Received messages from {connectionName} - {consumerConfig.QueueName}");
+                    _logger?.LogInformation($"Received messages from {connectionName} - {consumerConfig.QueueName}");
                     var body = Encoding.UTF8.GetString(ea.Body.ToArray());
                     var message = JsonConvert.DeserializeObject<T>(body);
                     if (message != null)
@@ -204,7 +221,7 @@ namespace NanoRabbit.Connection
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger?.LogError(ex, ex.Message);
             }
         }
     }

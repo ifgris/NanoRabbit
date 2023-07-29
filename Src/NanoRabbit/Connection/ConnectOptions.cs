@@ -2,6 +2,11 @@
 
 namespace NanoRabbit.Connection
 {
+    public class GlobalConfig
+    {
+        public bool EnableLogging { get; set; } = true;
+    }
+
     /// <summary>
     /// Connection options.
     /// </summary>

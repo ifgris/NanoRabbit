@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Collections.Concurrent;
 using System.Text;
+using NanoRabbit.DependencyInjection;
 
 namespace NanoRabbit.Producer
 {
@@ -16,12 +17,12 @@ namespace NanoRabbit.Producer
         private readonly ProducerConfig _producerConfig;
         private readonly IConnection _connection;
         private readonly IModel _channel;
-        private readonly ILogger<RabbitProducer> _logger;
+        private readonly ILogger<RabbitProducer>? _logger;
 
         private readonly ConcurrentQueue<object> _cacheQueue = new();
         private readonly Thread _publishThread;
 
-        public RabbitProducer(string connectionName, string producerName, IRabbitPool pool, ILogger<RabbitProducer> logger)
+        public RabbitProducer(string connectionName, string producerName, IRabbitPool pool, ILogger<RabbitProducer>? logger)
         {
             _pool = pool;
             _producerConfig = _pool.GetProducer(producerName);
@@ -30,6 +31,10 @@ namespace NanoRabbit.Producer
             _publishThread = new Thread(PublishTask);
             _publishThread.Start();
             _logger = logger;
+            if (RabbitPoolExtensions._globalConfig!=null && !RabbitPoolExtensions._globalConfig.EnableLogging)
+            {
+                _logger = null;
+            }
         }
 
         /// <summary>
@@ -57,12 +62,12 @@ namespace NanoRabbit.Producer
                             _channel.BasicPublish(exchange: _producerConfig.ExchangeName, routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
                         }
 
-                        _logger.LogInformation($"Message sent by {_producerConfig.ProducerName}");
+                        _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, ex.Message);
+                    _logger?.LogError(ex, ex.Message);
                 }
 
                 Thread.Sleep(1000);
@@ -78,11 +83,11 @@ namespace NanoRabbit.Producer
             try
             {
                 _cacheQueue.Enqueue(message!);
-                _logger.LogInformation("Message added to CacheQueue");
+                _logger?.LogInformation("Message added to CacheQueue");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger?.LogError(ex, ex.Message);
             }
         }
 
@@ -107,11 +112,11 @@ namespace NanoRabbit.Producer
                     channel.BasicPublish(_producerConfig.ExchangeName, _producerConfig.RoutingKey, properties, messageBytes);
                 }
 
-                _logger.LogInformation($"Message sent by {_producerConfig.ProducerName}");
+                _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger?.LogError(ex, ex.Message);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
+using NanoRabbit.DependencyInjection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,11 +17,11 @@ namespace NanoRabbit.Consumer
         private readonly IModel _channel;
         private readonly IRabbitPool _pool;
         private readonly ConsumerConfig _consumerConfig;
-        private readonly ILogger<RabbitConsumer<T>> _logger;
+        private readonly ILogger<RabbitConsumer<T>>? _logger;
 
         private readonly Thread _consumeThread;
 
-        public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<T>> logger)
+        public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<T>>? logger)
         {
             _pool = pool;
             _channel = _pool.GetConnection(connectionName).CreateModel();
@@ -28,6 +29,10 @@ namespace NanoRabbit.Consumer
             _consumeThread = new Thread(ReceiveTask);
             _consumeThread.Start();
             _logger = logger;
+            if (RabbitPoolExtensions._globalConfig != null && !RabbitPoolExtensions._globalConfig.EnableLogging)
+            {
+                _logger = null;
+            }
         }
 
         /// <summary>
@@ -53,7 +58,7 @@ namespace NanoRabbit.Consumer
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, ex.Message);
+                    _logger?.LogError(ex, ex.Message);
                 }
                 Thread.Sleep(1000);
             }
@@ -80,7 +85,7 @@ namespace NanoRabbit.Consumer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger?.LogError(ex, ex.Message);
             }
         }
 
