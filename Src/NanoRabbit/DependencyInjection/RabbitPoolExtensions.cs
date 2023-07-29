@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 
 namespace NanoRabbit.DependencyInjection
@@ -10,7 +11,8 @@ namespace NanoRabbit.DependencyInjection
             var options = new List<ConnectOptions>();
             setupAction(options);
 
-            var pool = new RabbitPool();
+            var logger = services.BuildServiceProvider().GetRequiredService<ILogger<RabbitPool>>();
+            var pool = new RabbitPool(logger);
 
             foreach (var option in  options)
             {

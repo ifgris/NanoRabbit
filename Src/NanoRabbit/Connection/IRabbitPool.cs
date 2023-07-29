@@ -1,4 +1,6 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Threading.Channels;
 
 namespace NanoRabbit.Connection
 {
@@ -48,5 +50,14 @@ namespace NanoRabbit.Connection
         /// <param name="producerName"></param>
         /// <param name="Message"></param>
         public void SimplePublish<T>(string connectionName, string producerName, T Message);
+
+        /// <summary>
+        /// Receive message from queue.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="connectionName"></param>
+        /// <param name="consumerName"></param>
+        /// <param name="messageHandler"></param>
+        public void SimpleReceive<T>(string connectionName, string consumerName, Action<T> messageHandler);
     }
 }

@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace NanoRabbit.Connection
@@ -11,6 +13,13 @@ namespace NanoRabbit.Connection
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
 
+        private readonly ILogger<RabbitPool> _logger;
+
+        public RabbitPool(ILogger<RabbitPool> logger)
+        {
+            _logger = logger;
+        }
+
         /// <summary>
         /// Register connection by connect options.
         /// </summary>
@@ -18,45 +27,54 @@ namespace NanoRabbit.Connection
         /// <param name="options"></param>
         public void RegisterConnection(ConnectOptions options)
         {
-            if (options.ConnectConfig != null)
+            try
             {
-                var factory = new ConnectionFactory
+                if (options.ConnectConfig != null)
                 {
-                    HostName = options.ConnectConfig?.HostName,
-                    Port = (options.ConnectConfig != null) ? options.ConnectConfig.Port : 5672,
-                    UserName = options.ConnectConfig?.UserName,
-                    Password = options.ConnectConfig?.Password,
-                    VirtualHost = options.ConnectConfig?.VirtualHost
-                };
+                    var factory = new ConnectionFactory
+                    {
+                        HostName = options.ConnectConfig?.HostName,
+                        Port = (options.ConnectConfig != null) ? options.ConnectConfig.Port : 5672,
+                        UserName = options.ConnectConfig?.UserName,
+                        Password = options.ConnectConfig?.Password,
+                        VirtualHost = options.ConnectConfig?.VirtualHost
+                    };
 
-                var connection = factory.CreateConnection();
-                _connections.Add(options.ConnectionName, connection);
-            }
-            else if (options.ConnectUri != null)
-            {
-                var factory = new ConnectionFactory
+                    var connection = factory.CreateConnection();
+                    _connections.Add(options.ConnectionName, connection);
+                    _logger.LogInformation($"Connection - {options.ConnectionName} Registered");
+                }
+                else if (options.ConnectUri != null)
                 {
-                    Uri = new Uri(options.ConnectUri.ConnectionString)
-                };
+                    var factory = new ConnectionFactory
+                    {
+                        Uri = new Uri(options.ConnectUri.ConnectionString)
+                    };
 
-                var connection = factory.CreateConnection();
-                _connections.Add(options.ConnectionName, connection);
-            }
+                    var connection = factory.CreateConnection();
+                    _connections.Add(options.ConnectionName, connection);
+                }
 
-            if (options.ProducerConfigs != null)
-            {
-                foreach (var producerConfig in options.ProducerConfigs)
+                if (options.ProducerConfigs != null)
                 {
-                    _producerConfig.Add(producerConfig.ProducerName, producerConfig);
+                    foreach (var producerConfig in options.ProducerConfigs)
+                    {
+                        _producerConfig.Add(producerConfig.ProducerName, producerConfig);
+                    }
+                }
+
+                if (options.ConsumerConfigs != null)
+                {
+                    foreach (var consumerConfig in options.ConsumerConfigs)
+                    {
+                        _consumerConfig.Add(consumerConfig.ConsumerName, consumerConfig);
+                    }
                 }
             }
-
-            if (options.ConsumerConfigs != null)
+            catch (Exception ex)
             {
-                foreach (var consumerConfig in options.ConsumerConfigs)
-                {
-                    _consumerConfig.Add(consumerConfig.ConsumerName, consumerConfig);
-                }
+                _logger.LogError(ex, ex.Message);
+                throw;
             }
         }
 
@@ -153,6 +171,40 @@ namespace NanoRabbit.Connection
                 var messageBytes = Encoding.UTF8.GetBytes(messageString);
 
                 channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
+            }
+
+            _logger.LogInformation($"Message published by {producerName} to {connectionName}");
+        }
+
+        /// <summary>
+        /// Receive message from queue.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="consumerName"></param>
+        /// <param name="messageHandler"></param>
+        public void SimpleReceive<T>(string connectionName, string consumerName, Action<T> messageHandler)
+        {
+            try
+            {
+                IModel channel = GetConnection(connectionName).CreateModel();
+                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (model, ea) =>
+                {
+                    _logger.LogInformation($"Received messages from {connectionName} - {consumerConfig.QueueName}");
+                    var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var message = JsonConvert.DeserializeObject<T>(body);
+                    if (message != null)
+                    {
+                        messageHandler(message);
+                    }
+                };
+                channel.BasicConsume(queue: consumerConfig.QueueName, autoAck: true, consumer: consumer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
             }
         }
     }

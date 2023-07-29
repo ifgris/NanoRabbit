@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.Producer;
 
@@ -19,7 +20,8 @@ namespace NanoRabbit.DependencyInjection
         {
             services.AddSingleton<TProducer>(provider =>
             {
-                var producer = ActivatorUtilities.CreateInstance<TProducer>(provider, connectionName, producerName, provider.GetRequiredService<IRabbitPool>());
+                var logger = provider.GetRequiredService<ILogger<RabbitProducer>>();
+                var producer = ActivatorUtilities.CreateInstance<TProducer>(provider, connectionName, producerName, provider.GetRequiredService<IRabbitPool>(), logger);
                 return producer;
             });
 

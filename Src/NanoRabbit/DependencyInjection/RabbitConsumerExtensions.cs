@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.Consumer;
 
@@ -19,7 +20,8 @@ namespace NanoRabbit.DependencyInjection
         {
             services.AddSingleton<TConsumer>(provider =>
             {
-                var consumer = ActivatorUtilities.CreateInstance<TConsumer>(provider, connectionName, consumerName, provider.GetRequiredService<IRabbitPool>());
+                var logger = provider.GetRequiredService<ILogger<RabbitConsumer<TMessage>>>();
+                var consumer = ActivatorUtilities.CreateInstance<TConsumer>(provider, connectionName, consumerName, provider.GetRequiredService<IRabbitPool>(), logger);
                 return consumer;
             });
             return services;
