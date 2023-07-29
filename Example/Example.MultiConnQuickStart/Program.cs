@@ -36,11 +36,25 @@ pool.RegisterConnection(new ConnectOptions("Connection2", option =>
     };
 }));
 
-while (true)
+Thread fooThread = new Thread(() =>
 {
-    pool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
-    await Task.Delay(1000);
+    while (true)
+    {
+        pool.SimplePublish("Connection1", "DataBasicQueueProducer", "Hello from conn1");
+        Console.WriteLine("Sent to RabbitMQ");
+        Thread.Sleep(1000);
+    }
+});
 
-    pool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
-    await Task.Delay(1000);
-}
+Thread barThread = new Thread(() =>
+{
+    while (true)
+    {
+        pool.SimplePublish("Connection2", "HostBasicQueueProducer", "Hello from conn2");
+        Console.WriteLine("Sent to RabbitMQ");
+        Thread.Sleep(1000);
+    }
+});
+
+fooThread.Start();
+barThread.Start();

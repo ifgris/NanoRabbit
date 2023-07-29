@@ -1,8 +1,13 @@
 ﻿using Example.SimpleDI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
+
+var loggerFactory = LoggerFactory.Create(builder => {
+    builder.AddConsole();
+});
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
@@ -65,6 +70,10 @@ builder.Services.AddRabbitPool(c =>
         };
     }));
 });
+
+builder.Logging.AddConsole();
+var logger = loggerFactory.CreateLogger<Program>();
+logger.LogInformation("Program");
 
 // register the customize RabbitProducer
 builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");

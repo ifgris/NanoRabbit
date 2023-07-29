@@ -18,12 +18,12 @@ namespace Example.SimpleDI
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Testing PublishService");
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 _dataProducer.Publish("Hello from conn1");
-                _logger.LogInformation("Conn 1");
                 _hostProducer.Enqueue("Hello from conn2");
-                _logger.LogInformation("Conn 2");
                 await Task.Delay(1000, stoppingToken);
             }
         }
