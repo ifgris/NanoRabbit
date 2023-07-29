@@ -6,7 +6,7 @@ namespace NanoRabbit.Logging
     {
         public static ILoggerFactory Factory { get; } = new LoggerFactory();
 
-        public static ILogger CreateLogger<T>()
+        public static ILogger<T> CreateLogger<T>()
         {
             return Factory.CreateLogger<T>();
         }
