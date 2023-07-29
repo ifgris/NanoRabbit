@@ -1,8 +1,10 @@
 ﻿using NanoRabbit.Connection;
-using NanoRabbit.Logging;
 
-var logger = GlobalLogger.CreateLogger<RabbitPool>();
-var pool = new RabbitPool(logger);
+var pool = new RabbitPool(config =>
+{
+    config.EnableLogging = true;
+});
+
 pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
     option.ConnectConfig = new(config =>
@@ -45,9 +47,9 @@ Thread consumeThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimpleReceive<string>("Connection1", "DataBasicQueueConsumer", handler =>
+        pool.SimpleReceive<string>("Connection1", "DataBasicQueueConsumer", msg =>
         {
-            Console.WriteLine($"Received: {handler}");
+            Console.WriteLine($"Received: {msg}");
         });
         Thread.Sleep(1000);
     }

@@ -1,8 +1,10 @@
 ﻿using NanoRabbit.Connection;
-using NanoRabbit.Logging;
 
-var logger = GlobalLogger.CreateLogger<RabbitPool>();
-var pool = new RabbitPool(logger);
+var pool = new RabbitPool(config =>
+{
+    config.EnableLogging = true;
+});
+
 pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
     option.ConnectConfig = new(config =>

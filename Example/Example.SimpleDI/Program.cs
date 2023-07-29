@@ -5,14 +5,18 @@ using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
 
-var loggerFactory = LoggerFactory.Create(builder => {
+var loggerFactory = LoggerFactory.Create(builder =>
+{
     builder.AddConsole();
 });
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitPool(c =>
+builder.Services.AddRabbitPool(globalConfig =>
+{
+    globalConfig.EnableLogging = true;
+}, c =>
 {
     c.Add(new ConnectOptions("Connection1", option =>
     {
