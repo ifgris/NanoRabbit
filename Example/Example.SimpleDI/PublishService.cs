@@ -6,10 +6,10 @@ namespace Example.SimpleDI
     public class PublishService : BackgroundService
     {
         private readonly ILogger<PublishService> _logger;
-        private readonly DataBasicQueueProducer _dataProducer;
-        private readonly HostBasicQueueProducer _hostProducer;
+        private readonly FooFirstQueueProducer _dataProducer;
+        private readonly BarFirstQueueProducer _hostProducer;
 
-        public PublishService(ILogger<PublishService> logger, DataBasicQueueProducer dataProducer, HostBasicQueueProducer hostProducer)
+        public PublishService(ILogger<PublishService> logger, FooFirstQueueProducer dataProducer, BarFirstQueueProducer hostProducer)
         {
             _logger = logger;
             _dataProducer = dataProducer;

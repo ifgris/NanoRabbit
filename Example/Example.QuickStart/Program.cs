@@ -13,22 +13,22 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
         config.Port = 5672;
         config.UserName = "admin";
         config.Password = "admin";
-        config.VirtualHost = "DATA";
+        config.VirtualHost = "FooHost";
     });
     option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("DataBasicQueueProducer", c =>
+        new ProducerConfig("FooFirstQueueProducer", c =>
         {
-            c.ExchangeName = "BASIC.TOPIC";
-            c.RoutingKey = "BASIC.KEY";
+            c.ExchangeName = "FooTopic";
+            c.RoutingKey = "FooFirstKey";
             c.Type = ExchangeType.Topic;
         })
     };
     option.ConsumerConfigs = new List<ConsumerConfig>
     {
-        new ConsumerConfig("DataBasicQueueConsumer", c =>
+        new ConsumerConfig("FooFirstQueueConsumer", c =>
         {
-            c.QueueName = "BASIC_QUEUE";
+            c.QueueName = "FooFirstQueue";
         })
     };
 }));
@@ -37,7 +37,7 @@ Thread publishThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish<string>("Connection1", "DataBasicQueueProducer", "Hello from SimplePublish<T>()!");
+        pool.SimplePublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
@@ -47,7 +47,7 @@ Thread consumeThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimpleReceive<string>("Connection1", "DataBasicQueueConsumer", msg =>
+        pool.SimpleReceive<string>("Connection1", "FooFirstQueueConsumer", msg =>
         {
             Console.WriteLine($"Received: {msg}");
         });

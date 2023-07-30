@@ -26,22 +26,22 @@ builder.Services.AddRabbitPool(globalConfig =>
             config.Port = 5672;
             config.UserName = "admin";
             config.Password = "admin";
-            config.VirtualHost = "DATA";
+            config.VirtualHost = "FooHost";
         });
         option.ProducerConfigs = new List<ProducerConfig>
         {
-            new ProducerConfig("DataBasicQueueProducer", c =>
+            new ProducerConfig("FooFirstQueueProducer", c =>
             {
-                c.ExchangeName = "BASIC.TOPIC";
-                c.RoutingKey = "BASIC.KEY";
+                c.ExchangeName = "FooTopic";
+                c.RoutingKey = "FooFirstKey";
                 c.Type = ExchangeType.Topic;
             })
         };
         option.ConsumerConfigs = new List<ConsumerConfig>
         {
-            new ConsumerConfig("DataBasicQueueConsumer", c =>
+            new ConsumerConfig("FooFirstQueueConsumer", c =>
             {
-                c.QueueName = "BASIC_QUEUE";
+                c.QueueName = "FooFirstQueue";
             })
         };
     }));
@@ -54,22 +54,22 @@ builder.Services.AddRabbitPool(globalConfig =>
             config.Port = 5672;
             config.UserName = "admin";
             config.Password = "admin";
-            config.VirtualHost = "HOST";
+            config.VirtualHost = "BarHost";
         });
         option.ProducerConfigs = new List<ProducerConfig>
         {
-            new ProducerConfig("HostBasicQueueProducer", c =>
+            new ProducerConfig("BarFirstQueueProducer", c =>
             {
-                c.ExchangeName = "BASIC.TOPIC";
-                c.RoutingKey = "BASIC.KEY";
-                c.Type = ExchangeType.Topic;
+                c.ExchangeName = "BarDirect";
+                c.RoutingKey = "BarFirstKey";
+                c.Type = ExchangeType.Direct;
             })
         };
         option.ConsumerConfigs = new List<ConsumerConfig>
         {
-            new ConsumerConfig("HostBasicQueueConsumer", c =>
+            new ConsumerConfig("BarFirstQueueConsumer", c =>
             {
-                c.QueueName = "BASIC_QUEUE";
+                c.QueueName = "BarFirstQueue";
             })
         };
     }));
@@ -77,13 +77,13 @@ builder.Services.AddRabbitPool(globalConfig =>
 
 builder.Logging.AddConsole();
 var logger = loggerFactory.CreateLogger<Program>();
-logger.LogInformation("Program");
+logger.LogInformation("Program init");
 
 // register the customize RabbitProducer
-builder.Services.AddProducer<DataBasicQueueProducer>("Connection1", "DataBasicQueueProducer");
-builder.Services.AddProducer<HostBasicQueueProducer>("Connection2", "HostBasicQueueProducer");
+builder.Services.AddProducer<FooFirstQueueProducer>("Connection1", "FooFirstQueueProducer");
+builder.Services.AddProducer<BarFirstQueueProducer>("Connection2", "BarFirstQueueProducer");
 
-builder.Services.AddConsumer<BasicConsumer, string>("Connection1", "DataBasicQueueConsumer");
+builder.Services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
 
 // register BackgroundService
 builder.Services.AddHostedService<PublishService>();
