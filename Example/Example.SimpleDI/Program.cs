@@ -13,67 +13,69 @@ var loggerFactory = LoggerFactory.Create(builder =>
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitPool(globalConfig =>
-{
-    globalConfig.EnableLogging = true;
-}, c =>
-{
-    c.Add(new ConnectOptions("Connection1", option =>
+builder.Services.AddRabbitPool(
+    globalConfig =>
     {
-        option.ConnectConfig = new(config =>
+        globalConfig.EnableLogging = true;
+    }, 
+    c =>
+    {
+        c.Add(new ConnectOptions("Connection1", option =>
         {
-            config.HostName = "localhost";
-            config.Port = 5672;
-            config.UserName = "admin";
-            config.Password = "admin";
-            config.VirtualHost = "FooHost";
-        });
-        option.ProducerConfigs = new List<ProducerConfig>
-        {
-            new ProducerConfig("FooFirstQueueProducer", c =>
+            option.ConnectConfig = new(config =>
             {
-                c.ExchangeName = "FooTopic";
-                c.RoutingKey = "FooFirstKey";
-                c.Type = ExchangeType.Topic;
-            })
-        };
-        option.ConsumerConfigs = new List<ConsumerConfig>
-        {
-            new ConsumerConfig("FooFirstQueueConsumer", c =>
+                config.HostName = "localhost";
+                config.Port = 5672;
+                config.UserName = "admin";
+                config.Password = "admin";
+                config.VirtualHost = "FooHost";
+            });
+            option.ProducerConfigs = new List<ProducerConfig>
             {
-                c.QueueName = "FooFirstQueue";
-            })
-        };
-    }));
+                new ProducerConfig("FooFirstQueueProducer", c =>
+                {
+                    c.ExchangeName = "FooTopic";
+                    c.RoutingKey = "FooFirstKey";
+                    c.Type = ExchangeType.Topic;
+                })
+            };
+            option.ConsumerConfigs = new List<ConsumerConfig>
+            {
+                new ConsumerConfig("FooFirstQueueConsumer", c =>
+                {
+                    c.QueueName = "FooFirstQueue";
+                })
+            };
+        }));
 
-    c.Add(new ConnectOptions("Connection2", option =>
-    {
-        option.ConnectConfig = new(config =>
+        c.Add(new ConnectOptions("Connection2", option =>
         {
-            config.HostName = "localhost";
-            config.Port = 5672;
-            config.UserName = "admin";
-            config.Password = "admin";
-            config.VirtualHost = "BarHost";
-        });
-        option.ProducerConfigs = new List<ProducerConfig>
-        {
-            new ProducerConfig("BarFirstQueueProducer", c =>
+            option.ConnectConfig = new(config =>
             {
-                c.ExchangeName = "BarDirect";
-                c.RoutingKey = "BarFirstKey";
-                c.Type = ExchangeType.Direct;
-            })
-        };
-        option.ConsumerConfigs = new List<ConsumerConfig>
-        {
-            new ConsumerConfig("BarFirstQueueConsumer", c =>
+                config.HostName = "localhost";
+                config.Port = 5672;
+                config.UserName = "admin";
+                config.Password = "admin";
+                config.VirtualHost = "BarHost";
+            });
+            option.ProducerConfigs = new List<ProducerConfig>
             {
-                c.QueueName = "BarFirstQueue";
-            })
-        };
-    }));
-});
+                new ProducerConfig("BarFirstQueueProducer", c =>
+                {
+                    c.ExchangeName = "BarDirect";
+                    c.RoutingKey = "BarFirstKey";
+                    c.Type = ExchangeType.Direct;
+                })
+            };
+            option.ConsumerConfigs = new List<ConsumerConfig>
+            {
+                new ConsumerConfig("BarFirstQueueConsumer", c =>
+                {
+                    c.QueueName = "BarFirstQueue";
+                })
+            };
+        }));
+    });
 
 builder.Logging.AddConsole();
 var logger = loggerFactory.CreateLogger<Program>();

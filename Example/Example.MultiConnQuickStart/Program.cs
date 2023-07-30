@@ -1,13 +1,10 @@
 ﻿using NanoRabbit.Connection;
 
-var pool = new RabbitPool(config =>
-{
-    config.EnableLogging = true;
-});
+var pool = new RabbitPool(config => { config.EnableLogging = true; });
 
 pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
-    option.ConnectConfig = new(config =>
+    option.ConnectConfig = new ConnectConfig(config =>
     {
         config.HostName = "localhost";
         config.Port = 5672;
@@ -17,13 +14,13 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
     });
     option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("FooFirstQueueProducer", c =>
+        new("FooFirstQueueProducer", c =>
         {
             c.ExchangeName = "FooTopic";
             c.RoutingKey = "FooFirstKey";
             c.Type = ExchangeType.Topic;
         }),
-        new ProducerConfig("FooSecondQueueProducer", c =>
+        new("FooSecondQueueProducer", c =>
         {
             c.ExchangeName = "FooTopic";
             c.RoutingKey = "FooSecondKey";
@@ -37,7 +34,7 @@ pool.RegisterConnection(new ConnectOptions("Connection2", option =>
     option.ConnectUri = new ConnectUri("amqp://admin:admin@localhost:5672/BarHost");
     option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("BarFirstQueueProducer", c =>
+        new("BarFirstQueueProducer", c =>
         {
             c.ExchangeName = "BarDirect";
             c.RoutingKey = "BarFirstKey";
@@ -46,7 +43,7 @@ pool.RegisterConnection(new ConnectOptions("Connection2", option =>
     };
 }));
 
-Thread fooFirstThread = new Thread(() =>
+var fooFirstThread = new Thread(() =>
 {
     while (true)
     {
@@ -56,7 +53,7 @@ Thread fooFirstThread = new Thread(() =>
     }
 });
 
-Thread fooSecondThread = new Thread(() =>
+var fooSecondThread = new Thread(() =>
 {
     while (true)
     {
@@ -66,7 +63,7 @@ Thread fooSecondThread = new Thread(() =>
     }
 });
 
-Thread barFirstThread = new Thread(() =>
+var barFirstThread = new Thread(() =>
 {
     while (true)
     {

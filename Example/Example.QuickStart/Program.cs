@@ -1,9 +1,6 @@
 ﻿using NanoRabbit.Connection;
 
-var pool = new RabbitPool(config =>
-{
-    config.EnableLogging = true;
-});
+var pool = new RabbitPool(config => { config.EnableLogging = true; });
 
 pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
@@ -26,10 +23,7 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
     };
     option.ConsumerConfigs = new List<ConsumerConfig>
     {
-        new ConsumerConfig("FooFirstQueueConsumer", c =>
-        {
-            c.QueueName = "FooFirstQueue";
-        })
+        new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
     };
 }));
 
@@ -47,10 +41,8 @@ Thread consumeThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimpleReceive<string>("Connection1", "FooFirstQueueConsumer", msg =>
-        {
-            Console.WriteLine($"Received: {msg}");
-        });
+        pool.SimpleReceive<string>("Connection1", "FooFirstQueueConsumer",
+            msg => { Console.WriteLine($"Received: {msg}"); });
         Thread.Sleep(1000);
     }
 });
