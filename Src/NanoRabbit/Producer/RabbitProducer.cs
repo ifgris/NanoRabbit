@@ -22,7 +22,8 @@ namespace NanoRabbit.Producer
         private readonly ConcurrentQueue<object> _cacheQueue = new();
         private readonly Thread _publishThread;
 
-        public RabbitProducer(string connectionName, string producerName, IRabbitPool pool, ILogger<RabbitProducer>? logger)
+        public RabbitProducer(string connectionName, string producerName, IRabbitPool pool,
+            ILogger<RabbitProducer>? logger)
         {
             _pool = pool;
             _producerConfig = _pool.GetProducer(producerName);
@@ -31,7 +32,7 @@ namespace NanoRabbit.Producer
             _publishThread = new Thread(PublishTask);
             _publishThread.Start();
             _logger = logger;
-            if (RabbitPoolExtensions._globalConfig!=null && !RabbitPoolExtensions._globalConfig.EnableLogging)
+            if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
                 _logger = null;
             }
@@ -42,7 +43,7 @@ namespace NanoRabbit.Producer
         /// </summary>
         public void PublishTask()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -53,13 +54,15 @@ namespace NanoRabbit.Producer
                         if (message is string str)
                         {
                             var body = Encoding.UTF8.GetBytes(str);
-                            _channel.BasicPublish(exchange: _producerConfig.ExchangeName, routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
+                            _channel.BasicPublish(exchange: _producerConfig.ExchangeName,
+                                routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
                         }
                         // serialize other type of data and publish
                         else
                         {
                             var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-                            _channel.BasicPublish(exchange: _producerConfig.ExchangeName, routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
+                            _channel.BasicPublish(exchange: _producerConfig.ExchangeName,
+                                routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
                         }
 
                         _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");
@@ -102,14 +105,16 @@ namespace NanoRabbit.Producer
             {
                 using (var channel = _connection.CreateModel())
                 {
-                    channel.ExchangeDeclare(_producerConfig.ExchangeName, _producerConfig.Type, durable: _producerConfig.Durable);
+                    channel.ExchangeDeclare(_producerConfig.ExchangeName, _producerConfig.Type,
+                        durable: _producerConfig.Durable);
                     var properties = channel.CreateBasicProperties();
                     properties.Persistent = true;
 
                     var messageString = JsonConvert.SerializeObject(message);
                     var messageBytes = Encoding.UTF8.GetBytes(messageString);
 
-                    channel.BasicPublish(_producerConfig.ExchangeName, _producerConfig.RoutingKey, properties, messageBytes);
+                    channel.BasicPublish(_producerConfig.ExchangeName, _producerConfig.RoutingKey, properties,
+                        messageBytes);
                 }
 
                 _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");

@@ -6,30 +6,23 @@ namespace NanoRabbit.DependencyInjection
 {
     public static class RabbitPoolExtensions
     {
-        public static GlobalConfig? _globalConfig;
+        public static GlobalConfig? GlobalConfig;
         public static IServiceCollection AddRabbitPool(this IServiceCollection services, Action<GlobalConfig> setupGlobalConfig, Action<List<ConnectOptions>> setupAction)
         {
-            _globalConfig = new GlobalConfig();
-            setupGlobalConfig(_globalConfig);
+            GlobalConfig = new GlobalConfig();
+            setupGlobalConfig(GlobalConfig);
 
             var options = new List<ConnectOptions>();
             setupAction(options);
 
-            //var pool = new RabbitPool(config =>
-            //{
-            //    config.EnableLogging = globalConfig.EnableLogging;
-            //});
+            var pool = new RabbitPool(config =>
+            {
+                config.EnableLogging = GlobalConfig.EnableLogging;
+            });
 
-            ILogger<RabbitPool>? logger;
-            if (_globalConfig.EnableLogging)
-            {
-                logger = services.BuildServiceProvider().GetRequiredService<ILogger<RabbitPool>>();
-            }
-            else
-            {
-                logger = null;
-            }
-            var pool = new RabbitPool(logger);
+            // ILogger<RabbitPool>? logger;
+            // logger = GlobalConfig.EnableLogging ? services.BuildServiceProvider().GetRequiredService<ILogger<RabbitPool>>() : null;
+            // var pool = new RabbitPool(logger);
 
             //var pool = new RabbitPool(logger, config =>
             //{
