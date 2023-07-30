@@ -12,13 +12,12 @@ namespace NanoRabbit.Consumer
     /// RabbitConsumer, can be inherited by custom Consumer
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class RabbitConsumer<T> : IRabbitConsumer<T>
+    public abstract class RabbitConsumer<T> : IRabbitConsumer
     {
         private readonly IModel _channel;
         private readonly IRabbitPool _pool;
         private readonly ConsumerConfig _consumerConfig;
         private readonly ILogger<RabbitConsumer<T>>? _logger;
-
         private readonly Thread _consumeThread;
 
         public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<T>>? logger)
@@ -27,7 +26,7 @@ namespace NanoRabbit.Consumer
             _channel = _pool.GetConnection(connectionName).CreateModel();
             _consumerConfig = _pool.GetConsumer(consumerName);
             _consumeThread = new Thread(ReceiveTask);
-            _consumeThread.Start();
+            // _consumeThread.Start();
             _logger = logger;
             if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
@@ -93,7 +92,7 @@ namespace NanoRabbit.Consumer
         /// Handle with the received message.
         /// </summary>
         /// <param name="message"></param>
-        public abstract void MessageHandler(T message);
+        public abstract void MessageHandler(object message);
 
         public void StartSubscribing()
         {

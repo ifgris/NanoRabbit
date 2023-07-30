@@ -85,11 +85,12 @@ logger.LogInformation("Program init");
 builder.Services.AddProducer<FooFirstQueueProducer>("Connection1", "FooFirstQueueProducer");
 builder.Services.AddProducer<BarFirstQueueProducer>("Connection2", "BarFirstQueueProducer");
 
+// register the customize RabbitConsumer
 builder.Services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
 
 // register BackgroundService
 builder.Services.AddHostedService<PublishService>();
-builder.Services.AddHostedService<ConsumeService>();
+// builder.Services.AddHostedService<ConsumeService>();
 
 using IHost host = builder.Build();
 

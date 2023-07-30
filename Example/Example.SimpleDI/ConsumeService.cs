@@ -15,13 +15,21 @@ namespace Example.SimpleDI
             _consumer = consumer;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                // _consumer.StartSubscribing();
-                await Task.Delay(1000, stoppingToken);
-            }
+            return Task.CompletedTask;
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _consumer.StartSubscribing();
+            return base.StartAsync(cancellationToken);
+        }
+
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            _consumer.Dispose();
+            return base.StartAsync(cancellationToken);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Example.SimpleDI
             _logger = logger;
         }
 
-        public override void MessageHandler(string message)
+        public override void MessageHandler(object message)
         {
             _logger.LogInformation($"ConsumerLogging: Receive: {message}");
         }
