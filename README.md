@@ -7,6 +7,8 @@
 
 NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
 
+> NanoRabbit is under development! Please note that some APIs may change their names or usage!
+
 ## Features
 
 - Customize the name of connections, producers, consumers.
