@@ -29,7 +29,7 @@ namespace NanoRabbit.Consumer
             _consumeThread = new Thread(ReceiveTask);
             _consumeThread.Start();
             _logger = logger;
-            if (RabbitPoolExtensions._globalConfig != null && !RabbitPoolExtensions._globalConfig.EnableLogging)
+            if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
                 _logger = null;
             }
@@ -94,6 +94,11 @@ namespace NanoRabbit.Consumer
         /// </summary>
         /// <param name="message"></param>
         public abstract void MessageHandler(T message);
+
+        public void StartSubscribing()
+        {
+            _consumeThread.Start();
+        }
 
         public void Dispose()
         {

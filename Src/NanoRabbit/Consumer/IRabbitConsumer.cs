@@ -16,5 +16,10 @@
         /// </summary>
         /// <param name="message"></param>
         void MessageHandler(T message);
+
+        /// <summary>
+        /// Start Consuming Thread.
+        /// </summary>
+        void StartSubscribing();
     }
 }
