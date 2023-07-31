@@ -8,14 +8,11 @@ namespace NanoRabbit.DependencyInjection
 {
     public static class RabbitConsumerExtensions
     {
-        static RabbitConsumerExtensions()
-        {
-        }
-
         /// <summary>
         /// RabbitConsumer Dependency Injection Functions.
         /// </summary>
         /// <typeparam name="TConsumer"></typeparam>
+        /// <typeparam name="TMessage"></typeparam>
         /// <param name="services"></param>
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
@@ -28,16 +25,21 @@ namespace NanoRabbit.DependencyInjection
                 var logger = provider.GetRequiredService<ILogger<RabbitConsumer<TMessage>>>();
                 var consumer = ActivatorUtilities.CreateInstance<TConsumer>(provider, connectionName, consumerName, provider.GetRequiredService<IRabbitPool>(), logger);
                 
-                // Register the consumer as a background service
-                var backgroundService = new RabbitConsumerBackgroundService<TConsumer, TMessage>(consumer);
-                provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() => backgroundService.StartAsync(default));
+                // // Register the consumer as a background service
+                // var backgroundService = new RabbitConsumerBackgroundService<TConsumer, TMessage>(consumer);
+                // provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() => backgroundService.StartAsync(default));
                 
                 return consumer;
             });
             return services;
         }
-        
-        public class RabbitConsumerBackgroundService<T, TMsg> : BackgroundService where T : RabbitConsumer<TMsg>
+
+        /// <summary>
+        /// RabbitConsumer BackgroundService method
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TMsg"></typeparam>
+        private class RabbitConsumerBackgroundService<T, TMsg> : BackgroundService where T : RabbitConsumer<TMsg>
         {
             private readonly T _consumer;
 
