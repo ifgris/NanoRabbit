@@ -8,18 +8,22 @@ using System.Text;
 
 namespace NanoRabbit.Connection
 {
-
+    /// <summary>
+    /// RabbitPool, configured with the settings of RabbitMQ. All Configures in one.
+    /// </summary>
     public class RabbitPool : IRabbitPool
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
-
         private readonly ILogger<RabbitPool>? _logger;
-
-        public static GlobalConfig? GlobalConfig { get; private set; }
-
-
+        
+        private static GlobalConfig? GlobalConfig { get; set; }
+        
+        /// <summary>
+        /// RabbitPool constructor with GlobalConfig Action
+        /// </summary>
+        /// <param name="config"></param>
         public RabbitPool(Action<GlobalConfig> config)
         {
             GlobalConfig = new GlobalConfig();
@@ -33,6 +37,11 @@ namespace NanoRabbit.Connection
                 _logger = GlobalLogger.CreateLogger<RabbitPool>();
             }
         }
+        
+        /// <summary>
+        /// RabbitPool Constructor with Logger
+        /// </summary>
+        /// <param name="logger"></param>
         public RabbitPool(ILogger<RabbitPool> logger)
         {
             _logger = logger;
@@ -194,12 +203,12 @@ namespace NanoRabbit.Connection
         }
 
         /// <summary>
-        /// Receive message from queue.
+        /// Consume message from queue.
         /// </summary>
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
         /// <param name="messageHandler"></param>
-        public void SimpleReceive<T>(string connectionName, string consumerName, Action<T> messageHandler)
+        public void SimpleConsume<T>(string connectionName, string consumerName, Action<T> messageHandler)
         {
             try
             {

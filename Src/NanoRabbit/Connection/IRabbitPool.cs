@@ -56,6 +56,6 @@ namespace NanoRabbit.Connection
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
         /// <param name="messageHandler"></param>
-        public void SimpleReceive<T>(string connectionName, string consumerName, Action<T> messageHandler);
+        public void SimpleConsume<T>(string connectionName, string consumerName, Action<T> messageHandler);
     }
 }
