@@ -15,7 +15,6 @@ namespace Example.QuickStart
 
         public override void MessageHandler(object message)
         {
-            Console.WriteLine($"Receive: {message}");
             _logger.LogInformation($"ConsumerLogging: Receive: {message}");
         }
     }

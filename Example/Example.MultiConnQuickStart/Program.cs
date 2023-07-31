@@ -48,7 +48,6 @@ var fooFirstThread = new Thread(() =>
     while (true)
     {
         pool.SimplePublish("Connection1", "FooFirstQueueProducer", "Hello from conn1");
-        Console.WriteLine("FooFirstQueueProducer Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
 });
@@ -58,7 +57,6 @@ var fooSecondThread = new Thread(() =>
     while (true)
     {
         pool.SimplePublish("Connection1", "FooSecondQueueProducer", "Hello from conn1");
-        Console.WriteLine("FooSecondQueueProducer Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
 });
@@ -68,7 +66,6 @@ var barFirstThread = new Thread(() =>
     while (true)
     {
         pool.SimplePublish("Connection2", "BarFirstQueueProducer", "Hello from conn2");
-        Console.WriteLine("BarFirstQueueProducer Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
 });

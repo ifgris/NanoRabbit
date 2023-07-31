@@ -11,7 +11,6 @@ namespace Example.SimpleDI
         public ConsumeService(IRabbitPool pool, FooFirstQueueConsumer consumer)
         {
             _pool = pool;
-            // _consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", _pool);
             _consumer = consumer;
         }
 

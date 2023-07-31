@@ -5,19 +5,13 @@ using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
 
-var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder.AddConsole();
-});
+var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
 builder.Services.AddRabbitPool(
-    globalConfig =>
-    {
-        globalConfig.EnableLogging = true;
-    }, 
+    globalConfig => { globalConfig.EnableLogging = true; },
     c =>
     {
         c.Add(new ConnectOptions("Connection1", option =>
@@ -41,10 +35,7 @@ builder.Services.AddRabbitPool(
             };
             option.ConsumerConfigs = new List<ConsumerConfig>
             {
-                new ConsumerConfig("FooFirstQueueConsumer", c =>
-                {
-                    c.QueueName = "FooFirstQueue";
-                })
+                new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
             };
         }));
 
@@ -69,10 +60,7 @@ builder.Services.AddRabbitPool(
             };
             option.ConsumerConfigs = new List<ConsumerConfig>
             {
-                new ConsumerConfig("BarFirstQueueConsumer", c =>
-                {
-                    c.QueueName = "BarFirstQueue";
-                })
+                new ConsumerConfig("BarFirstQueueConsumer", c => { c.QueueName = "BarFirstQueue"; })
             };
         }));
     });
@@ -90,7 +78,7 @@ builder.Services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooF
 
 // register BackgroundService
 builder.Services.AddHostedService<PublishService>();
-// builder.Services.AddHostedService<ConsumeService>();
+builder.Services.AddHostedService<ConsumeService>();
 
 using IHost host = builder.Build();
 

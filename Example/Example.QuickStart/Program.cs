@@ -1,4 +1,7 @@
-﻿using NanoRabbit.Connection;
+﻿using Example.QuickStart;
+using NanoRabbit.Connection;
+using NanoRabbit.Consumer;
+using NanoRabbit.Logging;
 
 var pool = new RabbitPool(config => { config.EnableLogging = true; });
 
@@ -27,7 +30,7 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
     };
 }));
 
-Thread publishThread = new Thread(() =>
+var publishThread = new Thread(() =>
 {
     while (true)
     {
@@ -37,11 +40,11 @@ Thread publishThread = new Thread(() =>
     }
 });
 
-Thread consumeThread = new Thread(() =>
+var consumeThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimpleReceive<string>("Connection1", "FooFirstQueueConsumer",
+        pool.SimpleConsume<string>("Connection1", "FooFirstQueueConsumer",
             msg => { Console.WriteLine($"Received: {msg}"); });
         Thread.Sleep(1000);
     }
@@ -49,3 +52,7 @@ Thread consumeThread = new Thread(() =>
 
 publishThread.Start();
 consumeThread.Start();
+
+// var logger = GlobalLogger.CreateLogger<RabbitConsumer<string>>();
+// var consumer = new BasicConsumer("Connection1", "FooFirstQueueConsumer", pool, logger);
+// consumer.StartSubscribing();
