@@ -19,6 +19,7 @@
     <IncludeSymbols>True</IncludeSymbols>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageIcon>icon.png</PackageIcon>
+    <Version>0.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>

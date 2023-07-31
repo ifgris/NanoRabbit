@@ -25,7 +25,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 | NanoRabbit | RabbitMQ.Client |
 | :---: | :---: |
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4 | 6.5.0 |
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5 | 6.5.0 |
 
 ## Document
 
@@ -42,7 +42,7 @@ For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/m
 Register a RabbitMQ Connection by instantiating `RabbitPool`, and configure the producer and consumer.
 
 ```csharp
-var pool = new RabbitPool();
+var pool = new RabbitPool(config => { config.EnableLogging = true; });
 pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 {
     option.ConnectConfig = new(config =>
@@ -51,23 +51,20 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
         config.Port = 5672;
         config.UserName = "admin";
         config.Password = "admin";
-        config.VirtualHost = "DATA";
+        config.VirtualHost = "FooHost";
     });
     option.ProducerConfigs = new List<ProducerConfig>
     {
-        new ProducerConfig("DataBasicQueueProducer", c =>
+        new ProducerConfig("FooFirstQueueProducer", c =>
         {
-            c.ExchangeName = "BASIC.TOPIC";
-            c.RoutingKey = "BASIC.KEY";
+            c.ExchangeName = "FooTopic";
+            c.RoutingKey = "FooFirstKey";
             c.Type = ExchangeType.Topic;
         })
     };
     option.ConsumerConfigs = new List<ConsumerConfig>
     {
-        new ConsumerConfig("DataBasicQueueConsumer", c =>
-        {
-            c.QueueName = "BASIC_QUEUE";
-        })
+        new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
     };
 }));
 ```
@@ -77,51 +74,38 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 After registering the `RabbitPool`, you can simply publish a message by calling `SimplePublish<T>()`.
 
 ```csharp
-await Task.Run(async () =>
+var publishThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish<string>("Connection1", "DataBasicQueueProducer", "Hello from SimplePublish<T>()!");
+        pool.SimplePublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
-        await Task.Delay(1000);
+        Thread.Sleep(1000);
     }
 });
+publishThread.Start();
 ```
 
 There is also a easy-to-use `RabbitProducer`, which used to publish messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Producer).
 
-### Receive messages
+### Simple Consume
 
-Instantiate a consumer in Program.cs:
+After registering the `RabbitPool`, you can simply consume a message by calling `SimpleConsume<T>()`.
 
 ```csharp
-var consumer = new BasicConsumer("Connection1", "DataBasicQueueConsumer", pool);
-await Task.Run(async () =>
+var consumeThread = new Thread(() =>
 {
     while (true)
     {
-        Console.WriteLine("Start receiving...");
-        consumer.Receive();
-        await Task.Delay(1000);
+        pool.SimpleConsume<string>("Connection1", "FooFirstQueueConsumer",
+            msg => { Console.WriteLine($"Received: {msg}"); });
+        Thread.Sleep(1000);
     }
 });
+consumeThread.Start();
 ```
 
-Create your own consumer, for example: BasicConsumer.cs:
-
-```csharp
-public class BasicConsumer : RabbitConsumer<string>
-{
-    public BasicConsumer(string connectionName, string consumerName, IRabbitPool pool) : base(connectionName, consumerName, pool)
-    {
-    }
-
-    protected override void MessageHandler(string message)
-    {
-        Console.WriteLine($"Receive: {message}");
-    }
-}
-```
+There is also a easy-to-use `RabbitConsumer`, which used to consume messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Consumer).
 
 ### DependencyInjection
 
@@ -129,41 +113,43 @@ Register IRabbitPool in Program.cs:
 
 ```csharp
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddRabbitPool(c =>
-{
-    c.Add(new ConnectOptions("Connection1", option =>
-    {
-        option.ConnectConfig = new(config =>
-        {
-            config.HostName = "localhost";
-            config.Port = 5672;
-            config.UserName = "admin";
-            config.Password = "admin";
-            config.VirtualHost = "DATA";
-        });
-        option.ProducerConfigs = new List<ProducerConfig>
-        {
-            new ProducerConfig("DataBasicQueueProducer", c =>
-            {
-                c.ExchangeName = "BASIC.TOPIC";
-                c.RoutingKey = "BASIC.KEY";
-                c.Type = ExchangeType.Topic;
-            })
-        };
-        option.ConsumerConfigs = new List<ConsumerConfig>
-        {
-            new ConsumerConfig("DataBasicQueueConsumer", c =>
-            {
-                c.QueueName = "BASIC_QUEUE";
-            })
-        };
-    }));
 
-    c.Add(new ConnectOptions("Connection2", option =>
+// Configure the RabbitMQ Connection
+builder.Services.AddRabbitPool(
+    globalConfig => { globalConfig.EnableLogging = true; },
+    c =>
     {
-        // ...
-    }));
-});
+        c.Add(new ConnectOptions("Connection1", option =>
+        {
+            option.ConnectConfig = new(config =>
+            {
+                config.HostName = "localhost";
+                config.Port = 5672;
+                config.UserName = "admin";
+                config.Password = "admin";
+                config.VirtualHost = "FooHost";
+            });
+            option.ProducerConfigs = new List<ProducerConfig>
+            {
+                new ProducerConfig("FooFirstQueueProducer", c =>
+                {
+                    c.ExchangeName = "FooTopic";
+                    c.RoutingKey = "FooFirstKey";
+                    c.Type = ExchangeType.Topic;
+                })
+            };
+            option.ConsumerConfigs = new List<ConsumerConfig>
+            {
+                new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
+            };
+        }));
+
+        c.Add(new ConnectOptions("Connection2", option =>
+        {
+            // ...
+        }));
+    });
+
 ```
 
 Then, you can use IRabbitPool at anywhere.
@@ -180,7 +166,7 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
-- [ ] Logging support
+- [x] Logging support
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
 
