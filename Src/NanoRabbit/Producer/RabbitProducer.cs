@@ -9,7 +9,7 @@ using NanoRabbit.DependencyInjection;
 namespace NanoRabbit.Producer
 {
     /// <summary>
-    /// RabbitProsucer, can be inherited by custom Producer.
+    /// RabbitProducer, can be inherited by custom Producer.
     /// </summary>
     public class RabbitProducer : IRabbitProducer
     {
@@ -20,18 +20,17 @@ namespace NanoRabbit.Producer
         private readonly ILogger<RabbitProducer>? _logger;
 
         private readonly ConcurrentQueue<object> _cacheQueue = new();
-        private readonly Thread _publishThread;
 
-        public RabbitProducer(string connectionName, string producerName, IRabbitPool pool,
+        protected RabbitProducer(string connectionName, string producerName, IRabbitPool pool,
             ILogger<RabbitProducer>? logger)
         {
             _pool = pool;
             _producerConfig = _pool.GetProducer(producerName);
             _connection = _pool.GetConnection(connectionName);
             _channel = _connection.CreateModel();
-            _publishThread = new Thread(PublishTask);
-            _publishThread.Start();
             _logger = logger;
+            var publishThread = new Thread(PublishTask);
+            publishThread.Start();
             if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
                 _logger = null;

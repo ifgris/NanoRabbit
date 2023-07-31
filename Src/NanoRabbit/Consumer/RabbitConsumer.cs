@@ -15,16 +15,15 @@ namespace NanoRabbit.Consumer
     public abstract class RabbitConsumer<T> : IRabbitConsumer
     {
         private readonly IModel _channel;
-        private readonly IRabbitPool _pool;
         private readonly ConsumerConfig _consumerConfig;
         private readonly ILogger<RabbitConsumer<T>>? _logger;
         private readonly Thread _consumeThread;
 
-        public RabbitConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<T>>? logger)
+        protected RabbitConsumer(string connectionName, string consumerName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<T>>? logger)
         {
-            _pool = pool;
-            _channel = _pool.GetConnection(connectionName).CreateModel();
-            _consumerConfig = _pool.GetConsumer(consumerName);
+            var pool = rabbitPool;
+            _channel = pool.GetConnection(connectionName).CreateModel();
+            _consumerConfig = pool.GetConsumer(consumerName);
             _consumeThread = new Thread(ReceiveTask);
             // _consumeThread.Start();
             _logger = logger;
@@ -37,7 +36,7 @@ namespace NanoRabbit.Consumer
         /// <summary>
         /// ReceiveTask runs in ConsumeThread.
         /// </summary>
-        public void ReceiveTask()
+        private void ReceiveTask()
         {
             var consumer = new EventingBasicConsumer(_channel);
             while (true)
@@ -94,11 +93,17 @@ namespace NanoRabbit.Consumer
         /// <param name="message"></param>
         public abstract void MessageHandler(object message);
 
+        /// <summary>
+        /// Start consumer thread method
+        /// </summary>
         public void StartSubscribing()
         {
             _consumeThread.Start();
         }
 
+        /// <summary>
+        /// Dispose method
+        /// </summary>
         public void Dispose()
         {
             _channel.Dispose();
