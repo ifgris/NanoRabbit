@@ -34,7 +34,7 @@ var publishThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
+        pool.NanoPublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
@@ -44,7 +44,7 @@ var consumeThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimpleConsume<string>("Connection1", "FooFirstQueueConsumer",
+        pool.NanoConsume<string>("Connection1", "FooFirstQueueConsumer",
             msg => { Console.WriteLine($"Received: {msg}"); });
         Thread.Sleep(1000);
     }

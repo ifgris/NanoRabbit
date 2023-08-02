@@ -2,6 +2,9 @@
 
 namespace NanoRabbit.Connection
 {
+    /// <summary>
+    /// RabbitPool Interface
+    /// </summary>
     public interface IRabbitPool
     {
         /// <summary>
@@ -46,8 +49,8 @@ namespace NanoRabbit.Connection
         /// <typeparam name="T"></typeparam>
         /// <param name="connectionName"></param>
         /// <param name="producerName"></param>
-        /// <param name="Message"></param>
-        public void SimplePublish<T>(string connectionName, string producerName, T Message);
+        /// <param name="message"></param>
+        public void NanoPublish<T>(string connectionName, string producerName, T message);
 
         /// <summary>
         /// Receive message from queue.
@@ -56,6 +59,6 @@ namespace NanoRabbit.Connection
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
         /// <param name="messageHandler"></param>
-        public void SimpleConsume<T>(string connectionName, string consumerName, Action<T> messageHandler);
+        public void NanoConsume<T>(string connectionName, string consumerName, Action<T> messageHandler);
     }
 }

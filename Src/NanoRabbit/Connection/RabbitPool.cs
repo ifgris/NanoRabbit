@@ -68,7 +68,7 @@ namespace NanoRabbit.Connection
 
                     var connection = factory.CreateConnection();
                     _connections.Add(options.ConnectionName, connection);
-                    _logger?.LogInformation($"Connection - {options.ConnectionName} Registered");
+                    _logger?.LogInformation("Connection - {OptionsConnectionName} Registered", options.ConnectionName);
                 }
                 else if (options.ConnectUri != null)
                 {
@@ -183,7 +183,7 @@ namespace NanoRabbit.Connection
         /// <param name="connectionName"></param>
         /// <param name="producerName"></param>
         /// <param name="message"></param>
-        public void SimplePublish<T>(string connectionName, string producerName, T message)
+        public void NanoPublish<T>(string connectionName, string producerName, T message)
         {
             var producerConfig = GetProducer(producerName);
 
@@ -199,7 +199,7 @@ namespace NanoRabbit.Connection
                 channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
             }
 
-            _logger?.LogInformation($"Message published by {producerName} to {connectionName}");
+            _logger?.LogInformation("Message published by {ProducerName} to {ConnectionName}", producerName, connectionName);
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace NanoRabbit.Connection
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
         /// <param name="messageHandler"></param>
-        public void SimpleConsume<T>(string connectionName, string consumerName, Action<T> messageHandler)
+        public void NanoConsume<T>(string connectionName, string consumerName, Action<T> messageHandler)
         {
             try
             {
@@ -218,7 +218,7 @@ namespace NanoRabbit.Connection
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
                 {
-                    _logger?.LogInformation($"Received messages from {connectionName} - {consumerConfig.QueueName}");
+                    _logger?.LogInformation("Received messages from {ConnectionName} - {ConsumerConfigQueueName}", connectionName, consumerConfig.QueueName);
                     var body = Encoding.UTF8.GetString(ea.Body.ToArray());
                     var message = JsonConvert.DeserializeObject<T>(body);
                     if (message != null)
