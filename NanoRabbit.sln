@@ -16,13 +16,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{C0
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.MultiConnQuickStart", "Example\Example.MultiConnQuickStart\Example.MultiConnQuickStart.csproj", "{11865C15-5E2D-4687-A874-886E3F4DBC7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.MultiConnections", "Example\Example.MultiConnections\Example.MultiConnections.csproj", "{11865C15-5E2D-4687-A874-886E3F4DBC7E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.QuickStart", "Example\Example.QuickStart\Example.QuickStart.csproj", "{603676E0-EA56-4F03-8037-F96BE0F671C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.SimpleDI", "Example\Example.SimpleDI\Example.SimpleDI.csproj", "{CE34BE6F-E234-4938-B6E6-2F1333C8A435}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Autofac", "Example\Example.Autofac\Example.Autofac.csproj", "{9999306F-A81E-4C69-B7A0-21EA155AB93E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Serilog", "Example\Example.Serilog\Example.Serilog.csproj", "{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{603676E0-EA56-4F03-8037-F96BE0F671C7} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{CE34BE6F-E234-4938-B6E6-2F1333C8A435} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E} = {D187C758-604D-4325-9FEF-912DB32D6131}
+		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E} = {D187C758-604D-4325-9FEF-912DB32D6131}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EE19DFD-83A9-4A48-B245-5A1344E7865A}
