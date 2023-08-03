@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Autofac", "Example\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Serilog", "Example\Example.Serilog\Example.Serilog.csproj", "{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.NLog", "Example\Example.NLog\Example.NLog.csproj", "{8C957828-D46E-45FA-89DB-ADD3856F405B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{CE34BE6F-E234-4938-B6E6-2F1333C8A435} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{5EBCD1B4-71D6-4DB2-8420-73DEA2E4554E} = {D187C758-604D-4325-9FEF-912DB32D6131}
+		{8C957828-D46E-45FA-89DB-ADD3856F405B} = {D187C758-604D-4325-9FEF-912DB32D6131}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EE19DFD-83A9-4A48-B245-5A1344E7865A}
