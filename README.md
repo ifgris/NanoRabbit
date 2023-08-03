@@ -7,14 +7,14 @@
 
 NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
 
-> NanoRabbit is under development! Please note that some APIs may change their names or usage!
+> _NanoRabbit is under development! Please note that some APIs may change their names or usage!_
 
 ## Building
 
-| Branch |                                                                                 Building Status                                                                                 |
-| :--: |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) |
-| dev |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |
+| Branch |                                                                                 Building Status                                                                                 |                                            Last Commit                                            |
+|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------:|
+| master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) | ![GitHub last commit (master)](https://img.shields.io/github/last-commit/cgcel/NanoRabbit/master) |
+|  dev   |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |    ![GitHub last commit (dev)](https://img.shields.io/github/last-commit/cgcel/NanoRabbit/dev)    |
 
 ## Features
 
@@ -30,9 +30,9 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-| NanoRabbit | RabbitMQ.Client |
-| :---: | :---: |
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5 | 6.5.0 |
+|            NanoRabbit             | RabbitMQ.Client |
+|:---------------------------------:|:---------------:|
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5 |      6.5.0      |
 
 ## Document
 
@@ -40,7 +40,7 @@ The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRab
 
 ## QuickStart
 
-> NanoRabbit is designed as a library depends on **NAMING** Connections, Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Connections, Producers, Consumers.
+> _NanoRabbit is designed as a library depends on **NAMING** Connections, Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Connections, Producers, Consumers._
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
