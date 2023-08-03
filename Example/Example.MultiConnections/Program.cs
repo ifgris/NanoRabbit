@@ -47,7 +47,7 @@ var fooFirstThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish("Connection1", "FooFirstQueueProducer", "Hello from conn1");
+        pool.NanoPublish("Connection1", "FooFirstQueueProducer", "Hello from conn1");
         Thread.Sleep(1000);
     }
 });
@@ -56,7 +56,7 @@ var fooSecondThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish("Connection1", "FooSecondQueueProducer", "Hello from conn1");
+        pool.NanoPublish("Connection1", "FooSecondQueueProducer", "Hello from conn1");
         Thread.Sleep(1000);
     }
 });
@@ -65,7 +65,7 @@ var barFirstThread = new Thread(() =>
 {
     while (true)
     {
-        pool.SimplePublish("Connection2", "BarFirstQueueProducer", "Hello from conn2");
+        pool.NanoPublish("Connection2", "BarFirstQueueProducer", "Hello from conn2");
         Thread.Sleep(1000);
     }
 });
