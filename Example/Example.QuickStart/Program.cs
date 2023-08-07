@@ -1,7 +1,4 @@
-﻿using Example.QuickStart;
-using NanoRabbit.Connection;
-using NanoRabbit.Consumer;
-using NanoRabbit.Logging;
+﻿using NanoRabbit.Connection;
 
 var pool = new RabbitPool(config => { config.EnableLogging = true; });
 

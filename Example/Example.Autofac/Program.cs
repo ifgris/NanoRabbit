@@ -24,10 +24,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
-        services.AddRabbitPool(config =>
-        {
-            config.EnableLogging = true;
-        }, list =>
+        services.AddRabbitPool(config => { config.EnableLogging = true; }, list =>
         {
             list.Add(new ConnectOptions("Connection1", options =>
             {
@@ -50,10 +47,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 };
                 options.ConsumerConfigs = new List<ConsumerConfig>
                 {
-                    new ConsumerConfig("FooFirstQueueConsumer", c =>
-                    {
-                        c.QueueName = "FooFirstQueue";
-                    })
+                    new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
                 };
             }));
             list.Add(new ConnectOptions("Connection2", options =>
@@ -85,10 +79,10 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
         // register the customize RabbitProducer
         services.AddProducer<FooFirstQueueProducer>("Connection1", "FooFirstQueueProducer");
         services.AddProducer<BarFirstQueueProducer>("Connection2", "BarFirstQueueProducer");
-        
+
         // register the customize RabbitConsumer
         services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
-        
+
         // register BackgroundService
         services.AddHostedService<PublishService>();
         services.AddHostedService<ConsumeService>();
