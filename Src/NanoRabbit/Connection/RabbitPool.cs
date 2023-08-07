@@ -60,7 +60,7 @@ namespace NanoRabbit.Connection
                     var factory = new ConnectionFactory
                     {
                         HostName = options.ConnectConfig?.HostName,
-                        Port = (options.ConnectConfig != null) ? options.ConnectConfig.Port : 5672,
+                        Port = options.ConnectConfig?.Port ?? 5672,
                         UserName = options.ConnectConfig?.UserName,
                         Password = options.ConnectConfig?.Password,
                         VirtualHost = options.ConnectConfig?.VirtualHost
@@ -227,6 +227,46 @@ namespace NanoRabbit.Connection
                     }
                 };
                 channel.BasicConsume(queue: consumerConfig.QueueName, autoAck: true, consumer: consumer);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// Asynchronous Consume message from queue.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="consumerName"></param>
+        /// <param name="messageHandler"></param>
+        public async Task NanoConsumeAsync<T>(string connectionName, string consumerName, Action<T> messageHandler)
+        {
+            try
+            {
+                ConnectionFactory factory = new ConnectionFactory();
+                // ...
+                // use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations
+                factory.DispatchConsumersAsync = true;
+                
+                IModel channel = GetConnection(connectionName).CreateModel();
+                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.Received += async (ch, ea) =>
+                {
+                    _logger?.LogInformation("Received messages from {ConnectionName} - {ConsumerConfigQueueName}", connectionName, consumerConfig.QueueName);
+                    var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var message = JsonConvert.DeserializeObject<T>(body);
+                    if (message != null)
+                    {
+                        messageHandler(message);
+                    }
+
+                    await Task.Yield();
+                };
+                channel.BasicConsume(queue: consumerConfig.QueueName, autoAck: true, consumer: consumer);
+                await Task.Delay(2000);
             }
             catch (Exception ex)
             {

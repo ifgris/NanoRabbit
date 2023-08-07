@@ -53,12 +53,22 @@ namespace NanoRabbit.Connection
         public void NanoPublish<T>(string connectionName, string producerName, T message);
 
         /// <summary>
-        /// Receive message from queue.
+        /// Consume message from queue.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connectionName"></param>
         /// <param name="consumerName"></param>
         /// <param name="messageHandler"></param>
         public void NanoConsume<T>(string connectionName, string consumerName, Action<T> messageHandler);
+        /// <summary>
+        /// Asynchronous Consume message from queue.
+        /// </summary>
+        /// <param name="connectionName"></param>
+        /// <param name="consumerName"></param>
+        /// <param name="messageHandler"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+
+        public Task NanoConsumeAsync<T>(string connectionName, string consumerName, Action<T> messageHandler);
     }
 }
