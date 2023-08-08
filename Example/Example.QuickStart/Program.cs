@@ -27,7 +27,7 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
     };
 }));
 
-var publishThread = new Thread(() =>
+Task publishTask = Task.Run(() =>
 {
     while (true)
     {
@@ -36,8 +36,7 @@ var publishThread = new Thread(() =>
         Thread.Sleep(1000);
     }
 });
-
-var consumeThread = new Thread(() =>
+Task consumeTask = Task.Run(() =>
 {
     while (true)
     {
@@ -47,8 +46,7 @@ var consumeThread = new Thread(() =>
     }
 });
 
-publishThread.Start();
-consumeThread.Start();
+Task.WaitAll(publishTask, consumeTask);
 
 // var logger = GlobalLogger.CreateLogger<RabbitConsumer<string>>();
 // var consumer = new BasicConsumer("Connection1", "FooFirstQueueConsumer", pool, logger);

@@ -43,7 +43,7 @@ pool.RegisterConnection(new ConnectOptions("Connection2", option =>
     };
 }));
 
-var fooFirstThread = new Thread(() =>
+Task fooFirstTask = Task.Run(() =>
 {
     while (true)
     {
@@ -51,8 +51,7 @@ var fooFirstThread = new Thread(() =>
         Thread.Sleep(1000);
     }
 });
-
-var fooSecondThread = new Thread(() =>
+Task fooSecondTask = Task.Run(() =>
 {
     while (true)
     {
@@ -60,8 +59,7 @@ var fooSecondThread = new Thread(() =>
         Thread.Sleep(1000);
     }
 });
-
-var barFirstThread = new Thread(() =>
+Task barFirstTask = Task.Run(() =>
 {
     while (true)
     {
@@ -70,6 +68,4 @@ var barFirstThread = new Thread(() =>
     }
 });
 
-fooFirstThread.Start();
-fooSecondThread.Start();
-barFirstThread.Start();
+Task.WaitAll(fooFirstTask, fooSecondTask, barFirstTask);
