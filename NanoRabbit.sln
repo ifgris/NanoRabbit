@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Autofac", "Example\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.NLog", "Example\Example.NLog\Example.NLog.csproj", "{8C957828-D46E-45FA-89DB-ADD3856F405B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.ForwardMessage", "Example\Example.ForwardMessage\Example.ForwardMessage.csproj", "{E25CC5B6-51D1-44E5-9DC9-E0B155B05046}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C957828-D46E-45FA-89DB-ADD3856F405B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E25CC5B6-51D1-44E5-9DC9-E0B155B05046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E25CC5B6-51D1-44E5-9DC9-E0B155B05046}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E25CC5B6-51D1-44E5-9DC9-E0B155B05046}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E25CC5B6-51D1-44E5-9DC9-E0B155B05046}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{CE34BE6F-E234-4938-B6E6-2F1333C8A435} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{9999306F-A81E-4C69-B7A0-21EA155AB93E} = {D187C758-604D-4325-9FEF-912DB32D6131}
 		{8C957828-D46E-45FA-89DB-ADD3856F405B} = {D187C758-604D-4325-9FEF-912DB32D6131}
+		{E25CC5B6-51D1-44E5-9DC9-E0B155B05046} = {D187C758-604D-4325-9FEF-912DB32D6131}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EE19DFD-83A9-4A48-B245-5A1344E7865A}

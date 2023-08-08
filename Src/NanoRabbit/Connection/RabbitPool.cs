@@ -273,5 +273,40 @@ namespace NanoRabbit.Connection
                 _logger?.LogError(ex, ex.Message);
             }
         }
+
+        /// <summary>
+        /// Forward message method.
+        /// </summary>
+        /// <param name="fromConnectionName"></param>
+        /// <param name="fromComsumerName"></param>
+        /// <param name="toConnectionName"></param>
+        /// <param name="toProducerName"></param>
+        /// <typeparam name="T"></typeparam>
+        public void NanoForward<T>(string fromConnectionName, string fromComsumerName, string toConnectionName,
+            string toProducerName)
+        {
+            try
+            {
+                IModel channel = GetConnection(fromConnectionName).CreateModel();
+                ConsumerConfig consumerConfig = GetConsumer(fromComsumerName);
+
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (model, ea) =>
+                {
+                    _logger?.LogInformation("Received messages from {ConnectionName} - {ConsumerConfigQueueName}", fromConnectionName, consumerConfig.QueueName);
+                    var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var message = JsonConvert.DeserializeObject<T>(body);
+                    if (message != null)
+                    {
+                        NanoPublish<T>(toConnectionName, toProducerName, message); // publish message
+                    }
+                };
+                channel.BasicConsume(queue: consumerConfig.QueueName, autoAck: true, consumer: consumer);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, ex.Message);
+            }
+        }
     }
 }
