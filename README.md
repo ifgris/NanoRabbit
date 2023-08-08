@@ -11,10 +11,10 @@ NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6, which makes a simple
 
 ## Building
 
-| Branch |                                                                                 Building Status                                                                                 |                                            Last Commit                                            |
-|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------:|
-| master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) | ![GitHub last commit (master)](https://img.shields.io/github/last-commit/cgcel/NanoRabbit/master) |
-|  dev   |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |    ![GitHub last commit (dev)](https://img.shields.io/github/last-commit/cgcel/NanoRabbit/dev)    |
+| Branch |                                                                                 Building Status                                                                                 |
+|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) | 
+|  dev   |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |  
 
 ## Features
 
@@ -30,9 +30,9 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-|            NanoRabbit             | RabbitMQ.Client |
-|:---------------------------------:|:---------------:|
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5 |      6.5.0      |
+|                NanoRabbit                | RabbitMQ.Client |
+|:----------------------------------------:|:---------------:|
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |
 
 ## Document
 
@@ -78,41 +78,57 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
 
 ### Simple Publish
 
-After registering the `RabbitPool`, you can simply publish a message by calling `SimplePublish<T>()`.
+After registering the `RabbitPool`, you can simply publish a message by calling `NanoPublish<T>()`.
 
 ```csharp
-var publishThread = new Thread(() =>
+Task publishTask = Task.Run(() =>
 {
     while (true)
     {
-        pool.SimplePublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
+        pool.NanoPublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
         Console.WriteLine("Sent to RabbitMQ");
         Thread.Sleep(1000);
     }
 });
-publishThread.Start();
+Task.WaitAll(publishTask);
 ```
 
 There is also a easy-to-use `RabbitProducer`, which used to publish messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Producer).
 
 ### Simple Consume
 
-After registering the `RabbitPool`, you can simply consume a message by calling `SimpleConsume<T>()`.
+After registering the `RabbitPool`, you can simply consume a message by calling `NanoConsume<T>()`.
 
 ```csharp
-var consumeThread = new Thread(() =>
+Task consumeTask = Task.Run(() =>
 {
     while (true)
     {
-        pool.SimpleConsume<string>("Connection1", "FooFirstQueueConsumer",
+        pool.NanoConsume<string>("Connection1", "FooFirstQueueConsumer",
             msg => { Console.WriteLine($"Received: {msg}"); });
         Thread.Sleep(1000);
     }
 });
-consumeThread.Start();
+Task.WaitAll(consumeTask);
 ```
 
 There is also a easy-to-use `RabbitConsumer`, which used to consume messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Consumer).
+
+### Forward messages
+
+Sometimes we have to consume messages from Foo RabbitMQ and publish the same message to Bar RabbitMQ, NanoRabbit provides a simple method to forward message, using the method called `NanoForward<T>()`.
+
+```csharp
+Task forwardTask = Task.Run(() =>
+{
+     while (true)
+     {
+         pool.NanoForward<string>("Connection1", "FooFirstQueueConsumer", "Connection2", "FooQueueProducer");
+         Thread.Sleep(1000);
+     }
+});
+Task.WaitAll(forwardTask);
+```
 
 ### DependencyInjection
 
@@ -174,6 +190,8 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
 - [x] Logging support
+- [x] Forward messages
+- [x] Using Task in Consumers and Producers
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
 
