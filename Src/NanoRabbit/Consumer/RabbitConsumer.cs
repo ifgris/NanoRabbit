@@ -17,14 +17,14 @@ namespace NanoRabbit.Consumer
         private readonly IModel _channel;
         private readonly ConsumerConfig _consumerConfig;
         private readonly ILogger<RabbitConsumer<T>>? _logger;
-        private readonly Thread _consumeThread;
+        // private readonly Thread _consumeThread;
 
         protected RabbitConsumer(string connectionName, string consumerName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<T>>? logger)
         {
             var pool = rabbitPool;
             _channel = pool.GetConnection(connectionName).CreateModel();
             _consumerConfig = pool.GetConsumer(consumerName);
-            _consumeThread = new Thread(ReceiveTask);
+            // _consumeThread = new Thread(ReceiveTask);
             // _consumeThread.Start();
             _logger = logger;
             if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
@@ -34,9 +34,9 @@ namespace NanoRabbit.Consumer
         }
 
         /// <summary>
-        /// ReceiveTask runs in ConsumeThread.
+        /// ConsumeTask runs in ConsumeThread.
         /// </summary>
-        private void ReceiveTask()
+        private void ConsumeTask()
         {
             var consumer = new EventingBasicConsumer(_channel);
             while (true)
@@ -98,7 +98,7 @@ namespace NanoRabbit.Consumer
         /// </summary>
         public void StartSubscribing()
         {
-            _consumeThread.Start();
+            Task.Run(ConsumeTask);
         }
 
         /// <summary>

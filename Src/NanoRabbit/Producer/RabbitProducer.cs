@@ -29,8 +29,8 @@ namespace NanoRabbit.Producer
             _connection = _pool.GetConnection(connectionName);
             _channel = _connection.CreateModel();
             _logger = logger;
-            var publishThread = new Thread(PublishTask);
-            publishThread.Start();
+            // Start PublishTask
+            Task.Run(PublishTask);
             if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
                 _logger = null;
@@ -40,7 +40,7 @@ namespace NanoRabbit.Producer
         /// <summary>
         /// PublishTask runs in PublishThread.
         /// </summary>
-        public void PublishTask()
+        private void PublishTask()
         {
             while (true)
             {
