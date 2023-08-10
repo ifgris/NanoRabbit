@@ -19,20 +19,38 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="producerName"></param>
         /// <returns></returns>
-        public ProducerConfig GetProducer(string producerName);
+        public ProducerConfig GetProducerConfig(string producerName);
         
         /// <summary>
         /// Get registered consumerConfig by consumerName.
         /// </summary>
         /// <param name="consumerName"></param>
         /// <returns></returns>
-        public ConsumerConfig GetConsumer(string consumerName);
+        public ConsumerConfig GetConsumerConfig(string consumerName);
         
         /// <summary>
         /// Register connection by connect options.
         /// </summary>
         /// <param name="options"></param>
         public void RegisterConnection(ConnectOptions options);
+
+        /// <summary>
+        /// Get all Connection configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<IConnection> GetAllConnection();
+
+        /// <summary>
+        /// Get all consumer configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ConsumerConfig> GetAllConsumerConfig();
+
+        /// <summary>
+        /// Get all producer configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ProducerConfig> GetAllProducerConfig();
         
         /// <summary>
         /// Close All Connections.

@@ -105,11 +105,37 @@ namespace NanoRabbit.Connection
         }
 
         /// <summary>
+        /// Get all Connection configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<IConnection> GetAllConnection()
+        {
+            return default;
+        }
+
+        /// <summary>
+        /// Get all consumer configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ConsumerConfig> GetAllConsumerConfig()
+        {
+            return default;
+        }
+
+        /// <summary>
+        /// Get all producer configs
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ProducerConfig> GetAllProducerConfig()
+        {
+            return default;
+        }
+
+        /// <summary>
         /// Get registered connection by connectionName.
         /// </summary>
         /// <param name="connectionName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
         public IConnection GetConnection(string connectionName)
         {
             if (!_connections.ContainsKey(connectionName))
@@ -125,8 +151,7 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="producerName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ProducerConfig GetProducer(string producerName)
+        public ProducerConfig GetProducerConfig(string producerName)
         {
             if (!_producerConfig.ContainsKey(producerName))
             {
@@ -141,8 +166,7 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="consumerName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ConsumerConfig GetConsumer(string consumerName)
+        public ConsumerConfig GetConsumerConfig(string consumerName)
         {
             if (!_consumerConfig.ContainsKey(consumerName))
             {
@@ -185,7 +209,7 @@ namespace NanoRabbit.Connection
         /// <param name="message"></param>
         public void NanoPublish<T>(string connectionName, string producerName, T message)
         {
-            var producerConfig = GetProducer(producerName);
+            var producerConfig = GetProducerConfig(producerName);
 
             using (var channel = GetConnection(connectionName).CreateModel())
             {
@@ -213,7 +237,7 @@ namespace NanoRabbit.Connection
             try
             {
                 IModel channel = GetConnection(connectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(consumerName);
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
@@ -250,7 +274,7 @@ namespace NanoRabbit.Connection
                 factory.DispatchConsumersAsync = true;
                 
                 IModel channel = GetConnection(connectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(consumerName);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += async (ch, ea) =>
@@ -288,7 +312,7 @@ namespace NanoRabbit.Connection
             try
             {
                 IModel channel = GetConnection(fromConnectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(fromComsumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(fromComsumerName);
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>

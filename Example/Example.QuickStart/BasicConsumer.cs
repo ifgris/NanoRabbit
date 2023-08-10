@@ -13,7 +13,7 @@ namespace Example.QuickStart
             _logger = logger;
         }
 
-        public override void MessageHandler(object message)
+        public override void MessageHandler(string message)
         {
             _logger.LogInformation($"ConsumerLogging: Receive: {message}");
         }

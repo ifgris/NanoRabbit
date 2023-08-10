@@ -34,7 +34,7 @@ namespace NanoRabbit.Connection
     }
 
     /// <summary>
-    /// Conenction configurations
+    /// Connection configurations
     /// </summary>
     public class ConnectConfig
     {
