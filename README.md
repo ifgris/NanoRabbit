@@ -205,4 +205,4 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 
 ## License
 
-NanoRabbit is licensed under the Apache-2.0 license.
+NanoRabbit is licensed under the MIT license.
