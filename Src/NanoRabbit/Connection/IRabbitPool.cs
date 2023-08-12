@@ -35,22 +35,11 @@ namespace NanoRabbit.Connection
         public void RegisterConnection(ConnectOptions options);
 
         /// <summary>
-        /// Get all Connection configs
+        /// Get connection name and consumer config name by queue name.
         /// </summary>
+        /// <param name="queueName"></param>
         /// <returns></returns>
-        public IEnumerable<IConnection> GetAllConnection();
-
-        /// <summary>
-        /// Get all consumer configs
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ConsumerConfig> GetAllConsumerConfig();
-
-        /// <summary>
-        /// Get all producer configs
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ProducerConfig> GetAllProducerConfig();
+        public IDictionary<string, string> GetConfigsByQueueName(string queueName);
         
         /// <summary>
         /// Close All Connections.

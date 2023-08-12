@@ -14,6 +14,7 @@ namespace NanoRabbit.Connection
     public class RabbitPool : IRabbitPool
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
+        private readonly IList<ConnectOptions> _options = new List<ConnectOptions>();
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
         private readonly ILogger<RabbitPool>? _logger;
@@ -96,6 +97,8 @@ namespace NanoRabbit.Connection
                         _consumerConfig.Add(consumerConfig.ConsumerName, consumerConfig);
                     }
                 }
+                
+                _options.Add(options);
             }
             catch (Exception ex)
             {
@@ -105,30 +108,21 @@ namespace NanoRabbit.Connection
         }
 
         /// <summary>
-        /// Get all Connection configs
+        /// Get connection name and consumer config name by queue name.
         /// </summary>
+        /// <param name="queueName"></param>
         /// <returns></returns>
-        public IEnumerable<IConnection> GetAllConnection()
+        public IDictionary<string, string> GetConfigsByQueueName(string queueName)
         {
-            return default;
-        }
+            var returnDic = new Dictionary<string, string>();
+            var connectionName = _options.First(x =>
+                    x.ConsumerConfigs.First(y => y.QueueName == queueName).QueueName ==
+                    queueName).ConnectionName;
+            var consumerConfigName = _options.First(x => x.ConnectionName == connectionName).ConsumerConfigs
+                .First(y => y.QueueName == queueName).ConsumerName;
 
-        /// <summary>
-        /// Get all consumer configs
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ConsumerConfig> GetAllConsumerConfig()
-        {
-            return default;
-        }
-
-        /// <summary>
-        /// Get all producer configs
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ProducerConfig> GetAllProducerConfig()
-        {
-            return default;
+            returnDic.Add(connectionName, consumerConfigName);
+            return returnDic;
         }
 
         /// <summary>
@@ -155,7 +149,7 @@ namespace NanoRabbit.Connection
         {
             if (!_producerConfig.ContainsKey(producerName))
             {
-                throw new ArgumentException($"Connection {producerName} not found.");
+                throw new ArgumentException($"ProducerConfig {producerName} not found.");
             }
 
             return _producerConfig[producerName];
@@ -170,7 +164,7 @@ namespace NanoRabbit.Connection
         {
             if (!_consumerConfig.ContainsKey(consumerName))
             {
-                throw new ArgumentException($"Connection {consumerName} not found.");
+                throw new ArgumentException($"ConsumerConfig {consumerName} not found.");
             }
 
             return _consumerConfig[consumerName];
