@@ -47,7 +47,3 @@ Task consumeTask = Task.Run(() =>
 });
 
 Task.WaitAll(publishTask, consumeTask);
-
-// var logger = GlobalLogger.CreateLogger<RabbitConsumer<string>>();
-// var consumer = new BasicConsumer("Connection1", "FooFirstQueueConsumer", pool, logger);
-// consumer.StartSubscribing();

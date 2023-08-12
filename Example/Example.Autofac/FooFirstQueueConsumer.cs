@@ -4,11 +4,19 @@ using NanoRabbit.Consumer;
 
 namespace Example.Autofac
 {
+    /// <summary>
+    /// FooFirstQueueConsumer Class
+    /// </summary>
     public class FooFirstQueueConsumer : RabbitConsumer<string>
     {
         private readonly ILogger _logger;
 
-        public FooFirstQueueConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<string>> logger) : base(connectionName, consumerName, pool, logger)
+        // public FooFirstQueueConsumer(string connectionName, string consumerName, IRabbitPool pool, ILogger<RabbitConsumer<string>> logger) : base(connectionName, consumerName, pool, logger)
+        // {
+        //     _logger = logger;
+        // }
+
+        public FooFirstQueueConsumer(string queueName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<string>> logger) : base(queueName, rabbitPool, logger)
         {
             _logger = logger;
         }

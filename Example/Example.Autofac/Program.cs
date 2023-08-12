@@ -81,7 +81,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
         services.AddProducer<BarFirstQueueProducer>("Connection2", "BarFirstQueueProducer");
 
         // register the customize RabbitConsumer
-        services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
+        // services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
+        services.AddConsumer<FooFirstQueueConsumer, string>("FooFirstQueue");
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
