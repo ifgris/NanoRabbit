@@ -39,7 +39,7 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        public IDictionary<string, string> GetConfigsByQueueName(string queueName);
+        public (string, string) GetConfigsByQueueName(string queueName);
         
         /// <summary>
         /// Close All Connections.

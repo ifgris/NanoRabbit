@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Logging;
-using NanoRabbit.Producer;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -112,17 +111,20 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        public IDictionary<string, string> GetConfigsByQueueName(string queueName)
+        public (string, string) GetConfigsByQueueName(string queueName)
         {
-            var returnDic = new Dictionary<string, string>();
             var connectionName = _options.First(x =>
-                    x.ConsumerConfigs.First(y => y.QueueName == queueName).QueueName ==
+                    x.ConsumerConfigs != null && x.ConsumerConfigs.First(y => y.QueueName == queueName).QueueName ==
                     queueName).ConnectionName;
-            var consumerConfigName = _options.First(x => x.ConnectionName == connectionName).ConsumerConfigs
-                .First(y => y.QueueName == queueName).ConsumerName;
+            var consumerConfigs = _options.First(x => x.ConnectionName == connectionName).ConsumerConfigs;
+            if (consumerConfigs != null)
+            {
+                var consumerConfigName = consumerConfigs
+                    .First(y => y.QueueName == queueName).ConsumerName;
 
-            returnDic.Add(connectionName, consumerConfigName);
-            return returnDic;
+                return (connectionName, consumerConfigName);
+            }
+            throw new ArgumentException($"Configs for {queueName} not found.");
         }
 
         /// <summary>
