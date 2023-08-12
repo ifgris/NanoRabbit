@@ -9,7 +9,7 @@ namespace NanoRabbit.DependencyInjection
     public static class RabbitConsumerExtensions
     {
         /// <summary>
-        /// RabbitConsumer Dependency Injection Functions.
+        /// RabbitConsumer Dependency Injection Method (ConnectionName, ConsumerName)
         /// </summary>
         /// <typeparam name="TConsumer"></typeparam>
         /// <typeparam name="TMessage"></typeparam>
@@ -25,9 +25,27 @@ namespace NanoRabbit.DependencyInjection
                 var logger = provider.GetRequiredService<ILogger<RabbitConsumer<TMessage>>>();
                 var consumer = ActivatorUtilities.CreateInstance<TConsumer>(provider, connectionName, consumerName, provider.GetRequiredService<IRabbitPool>(), logger);
                 
-                // // Register the consumer as a background service
-                // var backgroundService = new RabbitConsumerBackgroundService<TConsumer, TMessage>(consumer);
-                // provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() => backgroundService.StartAsync(default));
+                return consumer;
+            });
+            return services;
+        }
+
+        /// <summary>
+        /// RabbitConsumer Dependency Injection Method (QueueName)
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="queueName"></param>
+        /// <typeparam name="TConsumer"></typeparam>
+        /// <typeparam name="TMessage"></typeparam>
+        /// <returns></returns>
+        public static IServiceCollection AddConsumer<TConsumer, TMessage>(this IServiceCollection services,
+            string queueName)
+            where TConsumer : RabbitConsumer<TMessage>
+        {
+            services.AddSingleton<TConsumer>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger<RabbitConsumer<TMessage>>>();
+                var consumer = ActivatorUtilities.CreateInstance<TConsumer>(provider, queueName, provider.GetRequiredService<IRabbitPool>(), logger);
                 
                 return consumer;
             });

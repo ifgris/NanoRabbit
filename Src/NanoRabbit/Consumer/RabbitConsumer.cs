@@ -29,6 +29,19 @@ namespace NanoRabbit.Consumer
                 _logger = null;
             }
         }
+        
+        protected RabbitConsumer(string queueName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<T>>? logger)
+        {
+            var pool = rabbitPool;
+            (string connectionName, string consumerConfigName) = pool.GetConfigsByQueueName(queueName); 
+            _channel = pool.GetConnection(connectionName).CreateModel();
+            _consumerConfig = pool.GetConsumerConfig(consumerConfigName);
+            _logger = logger;
+            if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
+            {
+                _logger = null;
+            }
+        }
 
         /// <summary>
         /// ConsumeTask runs in ConsumeThread.
