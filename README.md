@@ -194,6 +194,8 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 - [x] Using Task in Consumers and Producers
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
+- [ ] .NET 7 support
+- [ ] .NET 8 support
 
 ## Thanks
 
