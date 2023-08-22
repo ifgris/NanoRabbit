@@ -21,7 +21,7 @@ namespace Example.SimpleDI
 
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            _consumer.StartSubscribing();
+            _consumer.StartConsuming();
             return base.StartAsync(cancellationToken);
         }
 

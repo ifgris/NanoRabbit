@@ -3,7 +3,7 @@
     /// <summary>
     /// IRabbitConsumer
     /// </summary>
-    public interface IRabbitConsumer : IDisposable
+    public interface IRabbitConsumer<T> : IDisposable
     {
         /// <summary>
         /// Receive from Queue.
@@ -14,11 +14,11 @@
         /// Handle the received message.
         /// </summary>
         /// <param name="message"></param>
-        void MessageHandler(object message);
+        void MessageHandler(T message);
 
         /// <summary>
         /// Start consumer thread
         /// </summary>
-        void StartSubscribing();
+        void StartConsuming();
     }
 }

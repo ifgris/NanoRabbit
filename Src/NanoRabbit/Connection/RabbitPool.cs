@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Logging;
-using NanoRabbit.Producer;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -14,6 +13,7 @@ namespace NanoRabbit.Connection
     public class RabbitPool : IRabbitPool
     {
         private readonly IDictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
+        private readonly IList<ConnectOptions> _options = new List<ConnectOptions>();
         private readonly IDictionary<string, ProducerConfig> _producerConfig = new Dictionary<string, ProducerConfig>();
         private readonly IDictionary<string, ConsumerConfig> _consumerConfig = new Dictionary<string, ConsumerConfig>();
         private readonly ILogger<RabbitPool>? _logger;
@@ -96,6 +96,8 @@ namespace NanoRabbit.Connection
                         _consumerConfig.Add(consumerConfig.ConsumerName, consumerConfig);
                     }
                 }
+                
+                _options.Add(options);
             }
             catch (Exception ex)
             {
@@ -105,11 +107,31 @@ namespace NanoRabbit.Connection
         }
 
         /// <summary>
+        /// Get connection name and consumer config name by queue name.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
+        public (string, string) GetConfigsByQueueName(string queueName)
+        {
+            var connectionName = _options.First(x =>
+                    x.ConsumerConfigs != null && x.ConsumerConfigs.First(y => y.QueueName == queueName).QueueName ==
+                    queueName).ConnectionName;
+            var consumerConfigs = _options.First(x => x.ConnectionName == connectionName).ConsumerConfigs;
+            if (consumerConfigs != null)
+            {
+                var consumerConfigName = consumerConfigs
+                    .First(y => y.QueueName == queueName).ConsumerName;
+
+                return (connectionName, consumerConfigName);
+            }
+            throw new ArgumentException($"Configs for {queueName} not found.");
+        }
+
+        /// <summary>
         /// Get registered connection by connectionName.
         /// </summary>
         /// <param name="connectionName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
         public IConnection GetConnection(string connectionName)
         {
             if (!_connections.ContainsKey(connectionName))
@@ -125,12 +147,11 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="producerName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ProducerConfig GetProducer(string producerName)
+        public ProducerConfig GetProducerConfig(string producerName)
         {
             if (!_producerConfig.ContainsKey(producerName))
             {
-                throw new ArgumentException($"Connection {producerName} not found.");
+                throw new ArgumentException($"ProducerConfig {producerName} not found.");
             }
 
             return _producerConfig[producerName];
@@ -141,12 +162,11 @@ namespace NanoRabbit.Connection
         /// </summary>
         /// <param name="consumerName"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public ConsumerConfig GetConsumer(string consumerName)
+        public ConsumerConfig GetConsumerConfig(string consumerName)
         {
             if (!_consumerConfig.ContainsKey(consumerName))
             {
-                throw new ArgumentException($"Connection {consumerName} not found.");
+                throw new ArgumentException($"ConsumerConfig {consumerName} not found.");
             }
 
             return _consumerConfig[consumerName];
@@ -185,7 +205,7 @@ namespace NanoRabbit.Connection
         /// <param name="message"></param>
         public void NanoPublish<T>(string connectionName, string producerName, T message)
         {
-            var producerConfig = GetProducer(producerName);
+            var producerConfig = GetProducerConfig(producerName);
 
             using (var channel = GetConnection(connectionName).CreateModel())
             {
@@ -213,7 +233,7 @@ namespace NanoRabbit.Connection
             try
             {
                 IModel channel = GetConnection(connectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(consumerName);
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
@@ -250,7 +270,7 @@ namespace NanoRabbit.Connection
                 factory.DispatchConsumersAsync = true;
                 
                 IModel channel = GetConnection(connectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(consumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(consumerName);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += async (ch, ea) =>
@@ -288,7 +308,7 @@ namespace NanoRabbit.Connection
             try
             {
                 IModel channel = GetConnection(fromConnectionName).CreateModel();
-                ConsumerConfig consumerConfig = GetConsumer(fromComsumerName);
+                ConsumerConfig consumerConfig = GetConsumerConfig(fromComsumerName);
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>

@@ -1,4 +1,7 @@
-﻿using NanoRabbit.Connection;
+﻿using Example.ConsumerQuickStart;
+using NanoRabbit.Connection;
+using NanoRabbit.Consumer;
+using NanoRabbit.Logging;
 
 var pool = new RabbitPool(config => { config.EnableLogging = true; });
 
@@ -27,23 +30,10 @@ pool.RegisterConnection(new ConnectOptions("Connection1", option =>
     };
 }));
 
-Task publishTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
-        Console.WriteLine("Sent to RabbitMQ");
-        Thread.Sleep(1000);
-    }
-});
-Task consumeTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoConsume<string>("Connection1", "FooFirstQueueConsumer",
-            msg => { Console.WriteLine($"Received: {msg}"); });
-        Thread.Sleep(1000);
-    }
-});
+var logger = GlobalLogger.CreateLogger<RabbitConsumer<string>>();
 
-Task.WaitAll(publishTask, consumeTask);
+var basicConsumer = new BasicConsumer("Connection1", "FooFirstQueueConsumer", pool, logger);
+// var queueNameConsumer = new QueueNameConsumer("FooFirstQueue", pool, logger);
+
+basicConsumer.StartConsuming();
+// queueNameConsumer.StartConsuming();

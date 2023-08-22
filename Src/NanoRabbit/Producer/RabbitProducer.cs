@@ -25,7 +25,7 @@ namespace NanoRabbit.Producer
             ILogger<RabbitProducer>? logger)
         {
             _pool = pool;
-            _producerConfig = _pool.GetProducer(producerName);
+            _producerConfig = _pool.GetProducerConfig(producerName);
             _connection = _pool.GetConnection(connectionName);
             _channel = _connection.CreateModel();
             _logger = logger;

@@ -12,20 +12,30 @@ namespace NanoRabbit.Consumer
     /// RabbitConsumer, can be inherited by custom Consumer
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class RabbitConsumer<T> : IRabbitConsumer
+    public abstract class RabbitConsumer<T> : IRabbitConsumer<T>
     {
         private readonly IModel _channel;
         private readonly ConsumerConfig _consumerConfig;
         private readonly ILogger<RabbitConsumer<T>>? _logger;
-        // private readonly Thread _consumeThread;
 
         protected RabbitConsumer(string connectionName, string consumerName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<T>>? logger)
         {
             var pool = rabbitPool;
             _channel = pool.GetConnection(connectionName).CreateModel();
-            _consumerConfig = pool.GetConsumer(consumerName);
-            // _consumeThread = new Thread(ReceiveTask);
-            // _consumeThread.Start();
+            _consumerConfig = pool.GetConsumerConfig(consumerName);
+            _logger = logger;
+            if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
+            {
+                _logger = null;
+            }
+        }
+        
+        protected RabbitConsumer(string queueName, IRabbitPool rabbitPool, ILogger<RabbitConsumer<T>>? logger)
+        {
+            var pool = rabbitPool;
+            (string connectionName, string consumerConfigName) = pool.GetConfigsByQueueName(queueName); 
+            _channel = pool.GetConnection(connectionName).CreateModel();
+            _consumerConfig = pool.GetConsumerConfig(consumerConfigName);
             _logger = logger;
             if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
             {
@@ -46,10 +56,10 @@ namespace NanoRabbit.Consumer
                     consumer.Received += (model, ea) =>
                     {
                         var body = Encoding.UTF8.GetString(ea.Body.ToArray());
-                        var message = JsonConvert.DeserializeObject<T>(body);
-                        if (message != null)
+                        var receiveObj = JsonConvert.DeserializeObject<T>(body);
+                        if (receiveObj != null)
                         {
-                            MessageHandler(message);
+                            MessageHandler(receiveObj);
                         }
                     };
                     _channel.BasicConsume(queue: _consumerConfig.QueueName, autoAck: true, consumer: consumer);
@@ -91,12 +101,12 @@ namespace NanoRabbit.Consumer
         /// Handle with the received message.
         /// </summary>
         /// <param name="message"></param>
-        public abstract void MessageHandler(object message);
+        public abstract void MessageHandler(T message);
 
         /// <summary>
         /// Start consumer thread method
         /// </summary>
-        public void StartSubscribing()
+        public void StartConsuming()
         {
             Task.Run(ConsumeTask);
         }

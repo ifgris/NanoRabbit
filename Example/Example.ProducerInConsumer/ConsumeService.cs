@@ -1,16 +1,14 @@
 ﻿using Microsoft.Extensions.Hosting;
 using NanoRabbit.Connection;
 
-namespace Example.Autofac
+namespace Example.ProducerInConsumer
 {
     public class ConsumeService : BackgroundService
     {
         private readonly FooFirstQueueConsumer _consumer;
-        private readonly IRabbitPool _pool;
 
-        public ConsumeService(IRabbitPool pool, FooFirstQueueConsumer consumer)
+        public ConsumeService(FooFirstQueueConsumer consumer)
         {
-            _pool = pool;
             _consumer = consumer;
         }
 
