@@ -67,6 +67,25 @@ namespace NanoRabbit.Connection
                     };
 
                     var connection = factory.CreateConnection();
+                    
+                    // register connection closed event
+                    connection.ConnectionShutdown += (sender, args) =>
+                    {
+                        // try to reconnect rabbitmq
+                        while (!connection.IsOpen)
+                        {
+                            try
+                            {
+                                connection = factory.CreateConnection();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger?.LogError(ex, ex.Message);
+                                Thread.Sleep(1000 * 10);
+                            }
+                        }
+                    };
+                    
                     _connections.Add(options.ConnectionName, connection);
                     _logger?.LogInformation("Connection - {OptionsConnectionName} Registered", options.ConnectionName);
                 }
@@ -78,6 +97,25 @@ namespace NanoRabbit.Connection
                     };
 
                     var connection = factory.CreateConnection();
+                    
+                    // register connection closed event
+                    connection.ConnectionShutdown += (sender, args) =>
+                    {
+                        // try to reconnect rabbitmq
+                        while (!connection.IsOpen)
+                        {
+                            try
+                            {
+                                connection = factory.CreateConnection();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger?.LogError(ex, ex.Message);
+                                Thread.Sleep(1000 * 10);
+                            }
+                        }
+                    };
+                    
                     _connections.Add(options.ConnectionName, connection);
                 }
 
@@ -102,7 +140,6 @@ namespace NanoRabbit.Connection
             catch (Exception ex)
             {
                 _logger?.LogError(ex, ex.Message);
-                throw;
             }
         }
 
@@ -205,21 +242,28 @@ namespace NanoRabbit.Connection
         /// <param name="message"></param>
         public void NanoPublish<T>(string connectionName, string producerName, T message)
         {
-            var producerConfig = GetProducerConfig(producerName);
-
-            using (var channel = GetConnection(connectionName).CreateModel())
+            try
             {
-                channel.ExchangeDeclare(producerConfig.ExchangeName, producerConfig.Type, durable: producerConfig.Durable, autoDelete: producerConfig.AutoDelete, arguments: producerConfig.Arguments);
-                var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-
-                var messageString = JsonConvert.SerializeObject(message);
-                var messageBytes = Encoding.UTF8.GetBytes(messageString);
-
-                channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
+                var producerConfig = GetProducerConfig(producerName);
+    
+                using (var channel = GetConnection(connectionName).CreateModel())
+                {
+                    channel.ExchangeDeclare(producerConfig.ExchangeName, producerConfig.Type, durable: producerConfig.Durable, autoDelete: producerConfig.AutoDelete, arguments: producerConfig.Arguments);
+                    var properties = channel.CreateBasicProperties();
+                    properties.Persistent = true;
+    
+                    var messageString = JsonConvert.SerializeObject(message);
+                    var messageBytes = Encoding.UTF8.GetBytes(messageString);
+    
+                    channel.BasicPublish(producerConfig.ExchangeName, producerConfig.RoutingKey, properties, messageBytes);
+                }
+    
+                _logger?.LogInformation("Message published by {ProducerName} to {ConnectionName}", producerName, connectionName);
             }
-
-            _logger?.LogInformation("Message published by {ProducerName} to {ConnectionName}", producerName, connectionName);
+            catch (Exception e)
+            {
+                _logger?.LogError(e, e.Message);
+            }
         }
 
         /// <summary>
