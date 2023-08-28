@@ -12,20 +12,26 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ windows-latest, ubuntu-latest ]
         dotnet-version: [ '6.0.x', '7.0.x', '8.0.x' ]
+    
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup build
+    
+    - name: Setup dotnet ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
+        
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      
+    - name: Build and Test ${{ matrix.dotnet-version }}
+      run: dotnet build --no-restore --configuration Release --framework ${{ matrix.dotnet-version }}
+
+    - name: Run Tests ${{ matrix.dotnet-version }}
+      run: dotnet test --no-build --verbosity normal --framework ${{ matrix.dotnet-version }}
