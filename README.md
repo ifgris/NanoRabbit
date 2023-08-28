@@ -194,6 +194,9 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 - [x] Using Task in Consumers and Producers
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
+- [x] .NET 7 support
+- [x] .NET 8 support
+- [x] RabbitMQ reconnecting
 
 ## Thanks
 
