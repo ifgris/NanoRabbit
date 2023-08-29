@@ -12,7 +12,6 @@ jobs:
       matrix:
         os: [ windows-latest, ubuntu-latest ]
         target-framework: [ 'net6.0', 'net7.0', 'net8.0']
-        dotnet-version: [ '6.0.x', '7.0.x', '8.0.x' ]
     
     runs-on: ${{ matrix.os }}
 
