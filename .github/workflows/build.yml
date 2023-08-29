@@ -37,9 +37,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
       
-    - name: Build and Test ${{ matrix.target-framework }}
+    - name: Build ${{ matrix.target-framework }}
       run: dotnet build --no-restore --configuration Release --framework ${{ matrix.target-framework }}
 
     - name: Run Tests ${{ matrix.target-framework }}
-      if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/test')
       run: dotnet test --no-build --verbosity normal --framework ${{ matrix.target-framework }}
