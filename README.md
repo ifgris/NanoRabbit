@@ -5,7 +5,7 @@
 
 ## About
 
-NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
+NanoRabbit, A **Lightweight** RabbitMQ .NET API for .NET 6 and up, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
 
 > _NanoRabbit is under development! Please note that some APIs may change their names or usage!_
 
@@ -30,9 +30,9 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-|                NanoRabbit                | RabbitMQ.Client |
-|:----------------------------------------:|:---------------:|
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |
+| NanoRabbit | RabbitMQ.Client | .NET |
+|:---:|:---:|:---:|
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 | 6.5.0 | 6.0, 7.0, 8.0 |
 
 ## Document
 
