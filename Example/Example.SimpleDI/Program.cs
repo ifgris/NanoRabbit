@@ -7,7 +7,7 @@ using NanoRabbit.DependencyInjection;
 
 var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
 builder.Services.AddRabbitPool(
@@ -16,7 +16,7 @@ builder.Services.AddRabbitPool(
     {
         c.Add(new ConnectOptions("Connection1", option =>
         {
-            option.ConnectConfig = new(config =>
+            option.ConnectConfig = new ConnectConfig(config =>
             {
                 config.HostName = "localhost";
                 config.Port = 5672;
@@ -41,7 +41,7 @@ builder.Services.AddRabbitPool(
 
         c.Add(new ConnectOptions("Connection2", option =>
         {
-            option.ConnectConfig = new(config =>
+            option.ConnectConfig = new ConnectConfig(config =>
             {
                 config.HostName = "localhost";
                 config.Port = 5672;
