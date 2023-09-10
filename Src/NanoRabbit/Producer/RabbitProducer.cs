@@ -47,7 +47,7 @@ public class RabbitProducer : IRabbitProducer
             try
             {
                 // Send message when _cacheQueue is not empty
-                if (_cacheQueue.TryDequeue(out object? message))
+                if (_cacheQueue.TryDequeue(out var message))
                 {
                     // publish string data directly
                     if (message is string str)
