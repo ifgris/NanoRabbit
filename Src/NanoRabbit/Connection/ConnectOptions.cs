@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using RabbitMQ.Client;
 
 namespace NanoRabbit.Connection;
 
@@ -177,4 +178,47 @@ public static class ExchangeType
     {
         return s_all;
     }
+}
+
+public interface IConnectionOption 
+{
+    IConnectionFactory ConnectionFactory { get; }
+
+    void ExchangeDeclare(string name, string type);
+
+    void QueueDeclare(string name);
+
+    void QueueBind(string queue, string exchange, string routingKey);
+
+    // Methods same with RabbitMQ API
+    // eg: Publish, Consume
+}
+
+public class ConnectionOption : IConnectionOption
+{
+    private readonly IConnectionFactory _factory;
+
+    public ConnectionOption(IConnectionFactory factory)
+    {
+        _factory = factory;
+    }
+
+    public IConnectionFactory ConnectionFactory => _factory;
+
+    public void ExchangeDeclare(string name, string type)
+    {
+        // ...
+    }
+
+    public void QueueDeclare(string name)
+    {
+        // ...
+    }
+
+    public void QueueBind(string queue, string exchange, string routingKey)
+    {
+        // ...
+    }
+
+    // ...
 }
