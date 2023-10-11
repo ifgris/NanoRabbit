@@ -1,34 +1,29 @@
 ﻿using Microsoft.Extensions.Hosting;
 using NanoRabbit.Connection;
+using NanoRabbit.Consumer;
 
-namespace Example.Autofac
+namespace Example.Autofac;
+
+public class ConsumeService : BackgroundService
 {
-    public class ConsumeService : BackgroundService
+    private readonly RabbitConsumer _consumer;
+
+    public ConsumeService(RabbitConsumer consumer)
     {
-        private readonly FooFirstQueueConsumer _consumer;
-        private readonly IRabbitPool _pool;
+        _consumer = consumer;
+    }
 
-        public ConsumeService(IRabbitPool pool, FooFirstQueueConsumer consumer)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _pool = pool;
-            _consumer = consumer;
+            _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine(message); });
+            await Task.Delay(1000, stoppingToken);
         }
+    }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public override Task StartAsync(CancellationToken cancellationToken)
-        {
-            _consumer.StartConsuming();
-            return base.StartAsync(cancellationToken);
-        }
-
-        public override Task StopAsync(CancellationToken cancellationToken)
-        {
-            _consumer.Dispose();
-            return base.StartAsync(cancellationToken);
-        }
+    public override Task StopAsync(CancellationToken cancellationToken)
+    {
+        return base.StartAsync(cancellationToken);
     }
 }

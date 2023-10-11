@@ -3,64 +3,59 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
+using NanoRabbit.Consumer;
 using NanoRabbit.DependencyInjection;
+using NanoRabbit.Producer;
 
 var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
 
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitPool(
-    globalConfig => { globalConfig.EnableLogging = true; },
-    c =>
+builder.Services.AddScoped<RabbitProducer>(_ =>
+{
+    var producer = new RabbitProducer(new[]
     {
-        c.Add(new ConnectOptions("Connection1", option =>
+        new ProducerOptions
         {
-            option.ConnectConfig = new(config =>
-            {
-                config.HostName = "localhost";
-                config.Port = 5672;
-                config.UserName = "admin";
-                config.Password = "admin";
-                config.VirtualHost = "FooHost";
-            });
-            option.ConsumerConfigs = new List<ConsumerConfig>
-            {
-                new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
-            };
-        }));
-
-        c.Add(new ConnectOptions("Connection2", option =>
-        {
-            option.ConnectConfig = new(config =>
-            {
-                config.HostName = "localhost";
-                config.Port = 5672;
-                config.UserName = "admin";
-                config.Password = "admin";
-                config.VirtualHost = "BarHost";
-            });
-            option.ProducerConfigs = new List<ProducerConfig>
-            {
-                new ProducerConfig("BarFirstQueueProducer", c =>
-                {
-                    c.ExchangeName = "BarDirect";
-                    c.RoutingKey = "BarFirstKey";
-                    c.Type = ExchangeType.Direct;
-                })
-            };
-        }));
+            ProducerName = "FooSecondQueueProducer",
+            HostName = "localhost",
+            Port = 5672,
+            UserName = "admin",
+            Password = "admin",
+            VirtualHost = "FooHost",
+            ExchangeName = "amq.topic",
+            RoutingKey = "FooSecondKey",
+            Type = ExchangeType.Topic,
+            Durable = true,
+            AutoDelete = false,
+            Arguments = null,
+        }
     });
+    return producer;
+});
+
+builder.Services.AddScoped<RabbitConsumer>(_ =>
+{
+    var consumer = new RabbitConsumer(new[]
+    {
+        new ConsumerOptions
+        {
+            ConsumerName = "BarFirstQueueConsumer",
+            HostName = "localhost",
+            Port = 5672,
+            UserName = "admin",
+            Password = "admin",
+            VirtualHost = "BarHost",
+            QueueName = "BarFirstQueue"
+        }
+    });
+    return consumer;
+});
 
 builder.Logging.AddConsole();
 var logger = loggerFactory.CreateLogger<Program>();
 logger.LogInformation("Program init");
-
-// register the customize RabbitProducer
-builder.Services.AddProducer<BarFirstQueueProducer>("Connection2", "BarFirstQueueProducer");
-
-// register the customize RabbitConsumer
-builder.Services.AddConsumer<FooFirstQueueConsumer, string>("Connection1", "FooFirstQueueConsumer");
 
 // register BackgroundService
 builder.Services.AddHostedService<ConsumeService>();

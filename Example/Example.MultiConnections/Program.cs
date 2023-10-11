@@ -1,71 +1,39 @@
 ﻿using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 
-var pool = new RabbitPool(config => { config.EnableLogging = true; });
-
-pool.RegisterConnection(new ConnectOptions("Connection1", option =>
+var producer = new RabbitProducer(new[]
 {
-    option.ConnectConfig = new ConnectConfig(config =>
+    new ProducerOptions
     {
-        config.HostName = "localhost";
-        config.Port = 5672;
-        config.UserName = "admin";
-        config.Password = "admin";
-        config.VirtualHost = "FooHost";
-    });
-    option.ProducerConfigs = new List<ProducerConfig>
+        ProducerName = "FooFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        ExchangeName = "amq.topic",
+        RoutingKey = "FooFirstKey",
+        Type = ExchangeType.Topic,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+    },
+    new ProducerOptions
     {
-        new("FooFirstQueueProducer", c =>
-        {
-            c.ExchangeName = "FooTopic";
-            c.RoutingKey = "FooFirstKey";
-            c.Type = ExchangeType.Topic;
-        }),
-        new("FooSecondQueueProducer", c =>
-        {
-            c.ExchangeName = "FooTopic";
-            c.RoutingKey = "FooSecondKey";
-            c.Type = ExchangeType.Topic;
-        })
-    };
-}));
-
-pool.RegisterConnection(new ConnectOptions("Connection2", option =>
-{
-    option.ConnectUri = new ConnectUri("amqp://admin:admin@localhost:5672/BarHost");
-    option.ProducerConfigs = new List<ProducerConfig>
-    {
-        new("BarFirstQueueProducer", c =>
-        {
-            c.ExchangeName = "BarDirect";
-            c.RoutingKey = "BarFirstKey";
-            c.Type = ExchangeType.Direct;
-        })
-    };
-}));
-
-Task fooFirstTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish("Connection1", "FooFirstQueueProducer", "Hello from conn1");
-        Thread.Sleep(1000);
-    }
-});
-Task fooSecondTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish("Connection1", "FooSecondQueueProducer", "Hello from conn1");
-        Thread.Sleep(1000);
-    }
-});
-Task barFirstTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish("Connection2", "BarFirstQueueProducer", "Hello from conn2");
-        Thread.Sleep(1000);
-    }
+        ProducerName = "BarFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "BarHost",
+        ExchangeName = "amq.direct",
+        RoutingKey = "BarFirstKey",
+        Type = ExchangeType.Direct,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+    },
 });
 
-Task.WaitAll(fooFirstTask, fooSecondTask, barFirstTask);
+producer.Publish("FooFirstQueueProducer", "Hello");
+producer.Publish("BarFirstQueueProducer", "Hello");

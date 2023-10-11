@@ -11,6 +11,72 @@ public class GlobalConfig
     public bool EnableLogging { get; set; } = true;
 }
 
+public class ProducerOptions
+{
+    public string ProducerName { get; set; }
+    /// <summary>
+    /// RabbitMQ HostName, default: localhost
+    /// </summary>
+    public string HostName { get; set; } = "localhost";
+
+    /// <summary>
+    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
+    /// </summary>
+    public int Port { get; set; } = 5672;
+
+    /// <summary>
+    /// RabbitMQ UserName, default: guest
+    /// </summary>
+    public string UserName { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ Password, default: guest
+    /// </summary>
+    public string Password { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ VirtualHost, default: "/"
+    /// </summary>
+    public string VirtualHost { get; set; } = "/";
+    public string? ExchangeName { get; set; }
+    public string? RoutingKey { get; set; }
+    public string Type { get; set; } = ExchangeType.Direct;
+    public bool Durable { get; set; } = true;
+    public bool AutoDelete { get; set; } = false;
+    public IDictionary<string, object>? Arguments { get; set; } = null;
+    // 其他相关配置项...
+}
+
+public class ConsumerOptions
+{
+    public string ConsumerName { get; set; }
+    /// <summary>
+    /// RabbitMQ HostName, default: localhost
+    /// </summary>
+    public string HostName { get; set; } = "localhost";
+
+    /// <summary>
+    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
+    /// </summary>
+    public int Port { get; set; } = 5672;
+
+    /// <summary>
+    /// RabbitMQ UserName, default: guest
+    /// </summary>
+    public string UserName { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ Password, default: guest
+    /// </summary>
+    public string Password { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ VirtualHost, default: "/"
+    /// </summary>
+    public string VirtualHost { get; set; } = "/";
+    public string? QueueName { get; set; } = null;
+}
+
 /// <summary>
 /// Connection options.
 /// </summary>

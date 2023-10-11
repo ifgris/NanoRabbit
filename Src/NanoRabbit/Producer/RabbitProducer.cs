@@ -11,125 +11,50 @@ namespace NanoRabbit.Producer;
 /// <summary>
 /// RabbitProducer, can be inherited by custom Producer.
 /// </summary>
-public class RabbitProducer : IRabbitProducer
+public class RabbitProducer
 {
-    private readonly IRabbitPool _pool;
-    private readonly ProducerConfig _producerConfig;
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
-    private readonly ILogger<RabbitProducer>? _logger;
+    private readonly IEnumerable<ProducerOptions> _producerOptionsList;
 
-    private readonly ConcurrentQueue<object> _cacheQueue = new();
-
-    protected RabbitProducer(string connectionName, string producerName, IRabbitPool pool,
-        ILogger<RabbitProducer>? logger)
+    public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList)
     {
-        _pool = pool;
-        _producerConfig = _pool.GetProducerConfig(producerName);
-        _connection = _pool.GetConnection(connectionName);
-        _channel = _connection.CreateModel();
-        _logger = logger;
-        // Start PublishTask
-        Task.Run(PublishTask);
-        if (RabbitPoolExtensions.GlobalConfig != null && !RabbitPoolExtensions.GlobalConfig.EnableLogging)
-        {
-            _logger = null;
-        }
+        _producerOptionsList = producerOptionsList;
     }
 
-    /// <summary>
-    /// PublishTask runs in PublishThread.
-    /// </summary>
-    private void PublishTask()
+    public void Publish(string name, string message)
     {
-        while (true)
+        var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == name);
+
+        if (connectionOption == null)
         {
-            try
-            {
-                // Send message when _cacheQueue is not empty
-                if (_cacheQueue.TryDequeue(out var message))
-                {
-                    // publish string data directly
-                    if (message is string str)
-                    {
-                        var body = Encoding.UTF8.GetBytes(str);
-                        _channel.BasicPublish(exchange: _producerConfig.ExchangeName,
-                            routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
-                    }
-                    // serialize other type of data and publish
-                    else
-                    {
-                        var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-                        _channel.BasicPublish(exchange: _producerConfig.ExchangeName,
-                            routingKey: _producerConfig.RoutingKey, basicProperties: null, body: body);
-                    }
-
-                    _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, ex.Message);
-            }
-
-            Thread.Sleep(1000);
+            // 没有找到指定名称的连接配置
+            // 可根据实际情况处理，例如抛出异常或记录日志
+            return;
         }
-    }
 
-    /// <summary>
-    /// Add message to the end of concurrent cache queue.
-    /// </summary>
-    /// <param name="message"></param>
-    public void Enqueue<T>(T message)
-    {
-        try
+        var factory = new ConnectionFactory
         {
-            _cacheQueue.Enqueue(message!);
-            _logger?.LogInformation("Message added to CacheQueue");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, ex.Message);
-        }
-    }
+            HostName = connectionOption.HostName,
+            Port = connectionOption.Port,
+            UserName = connectionOption.UserName,
+            Password = connectionOption.Password,
+            VirtualHost = connectionOption.VirtualHost
+        };
 
-    /// <summary>
-    /// Publish Any Types of message.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="message"></param>
-    public void Publish<T>(T message)
-    {
-        try
+        using (var connection = factory.CreateConnection())
         {
-            using (var channel = _connection.CreateModel())
+            using (var channel = connection.CreateModel())
             {
-                channel.ExchangeDeclare(_producerConfig.ExchangeName, _producerConfig.Type,
-                    durable: _producerConfig.Durable);
+                channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
                 var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
+                
+                var body = Encoding.UTF8.GetBytes(message);
 
-                var messageString = JsonConvert.SerializeObject(message);
-                var messageBytes = Encoding.UTF8.GetBytes(messageString);
-
-                channel.BasicPublish(_producerConfig.ExchangeName, _producerConfig.RoutingKey, properties,
-                    messageBytes);
+                channel.BasicPublish(
+                    exchange: connectionOption.ExchangeName,
+                    routingKey: connectionOption.RoutingKey,
+                    basicProperties: properties,
+                    body: body);
             }
-
-            _logger?.LogInformation($"Message sent by {_producerConfig.ProducerName}");
         }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Dispose connection.
-    /// </summary>
-    public void Dispose()
-    {
-        _channel.Close();
-        _connection.Close();
     }
 }

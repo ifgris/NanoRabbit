@@ -1,49 +1,23 @@
 ﻿using NanoRabbit.Connection;
+using NanoRabbit.Producer;
 
-var pool = new RabbitPool(config => { config.EnableLogging = true; });
-
-pool.RegisterConnection(new ConnectOptions("Connection1", option =>
+var producer = new RabbitProducer(new[]
 {
-    option.ConnectConfig = new(config =>
+    new ProducerOptions
     {
-        config.HostName = "localhost";
-        config.Port = 5672;
-        config.UserName = "admin";
-        config.Password = "admin";
-        config.VirtualHost = "FooHost";
-    });
-    option.ProducerConfigs = new List<ProducerConfig>
-    {
-        new ProducerConfig("FooFirstQueueProducer", c =>
-        {
-            c.ExchangeName = "FooTopic";
-            c.RoutingKey = "FooFirstKey";
-            c.Type = ExchangeType.Topic;
-        })
-    };
-    option.ConsumerConfigs = new List<ConsumerConfig>
-    {
-        new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
-    };
-}));
-
-Task publishTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
-        Console.WriteLine("Sent to RabbitMQ");
-        Thread.Sleep(1000);
-    }
-});
-Task consumeTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoConsume<string>("Connection1", "FooFirstQueueConsumer",
-            msg => { Console.WriteLine($"Received: {msg}"); });
-        Thread.Sleep(1000);
+        ProducerName = "FooFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        ExchangeName = "amq.topic",
+        RoutingKey = "FooFirstKey",
+        Type = ExchangeType.Topic,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
     }
 });
 
-Task.WaitAll(publishTask, consumeTask);
+producer.Publish("FooFirstQueueProducer", "Hello");
