@@ -57,6 +57,8 @@ public class RabbitConsumer
 
                     // 处理接收到的消息
                     messageHandler.Invoke(message);
+                    
+                    channel.BasicAck(ea.DeliveryTag, false);
                 };
 
                 channel.BasicConsume(

@@ -17,8 +17,8 @@ public class ConsumeService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine(message); });
-            await Task.Delay(1000, stoppingToken);
+            _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine($"Receive: {message}"); });
+            await Task.Delay(10 * 1000, stoppingToken);
         }
     }
 

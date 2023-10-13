@@ -77,6 +77,17 @@ public class ProducerOptions
 }
 
 /// <summary>
+/// Includes the list of ProducerOptions
+/// </summary>
+public class RabbitProducerOptions
+{
+    /// <summary>
+    /// List of ProducerOptions
+    /// </summary>
+    public List<ProducerOptions> Producers { get; set; }
+}
+
+/// <summary>
 /// NanoRabbit consumer connect options
 /// </summary>
 public class ConsumerOptions
@@ -115,6 +126,17 @@ public class ConsumerOptions
     /// Subscribe queue name
     /// </summary>
     public string? QueueName { get; set; } = null;
+}
+
+/// <summary>
+/// Includes the list of ConsumerOptions
+/// </summary>
+public class RabbitConsumerOptions
+{
+    /// <summary>
+    /// List of ConsumerOptions
+    /// </summary>
+    public List<ConsumerOptions> Consumers { get; set; }
 }
 
 /// <summary>
