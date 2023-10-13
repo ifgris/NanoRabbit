@@ -22,9 +22,14 @@ public class RabbitConsumer
         _consumerOptionsList = consumerOptionsList;
     }
 
-    public void Receive(string name, MessageHandler messageHandler)
+    /// <summary>
+    /// Receive messages from queue
+    /// </summary>
+    /// <param name="consumerName"></param>
+    /// <param name="messageHandler"></param>
+    public void Receive(string consumerName, MessageHandler messageHandler)
     {
-        var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == name);
+        var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == consumerName);
 
         if (connectionOption == null)
         {

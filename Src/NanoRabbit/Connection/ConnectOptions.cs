@@ -11,8 +11,14 @@ public class GlobalConfig
     public bool EnableLogging { get; set; } = true;
 }
 
+/// <summary>
+/// NanoRabbit producer connect options
+/// </summary>
 public class ProducerOptions
 {
+    /// <summary>
+    /// Customize producer name
+    /// </summary>
     public string ProducerName { get; set; }
     /// <summary>
     /// RabbitMQ HostName, default: localhost
@@ -38,18 +44,48 @@ public class ProducerOptions
     /// RabbitMQ VirtualHost, default: "/"
     /// </summary>
     public string VirtualHost { get; set; } = "/";
+    
+    /// <summary>
+    /// Exchange name
+    /// </summary>
     public string? ExchangeName { get; set; }
+    
+    /// <summary>
+    /// Publish routing-key
+    /// </summary>
     public string? RoutingKey { get; set; }
+    
+    /// <summary>
+    /// Exchange type
+    /// </summary>
     public string Type { get; set; } = ExchangeType.Direct;
+    
+    /// <summary>
+    /// Exchange durable
+    /// </summary>
     public bool Durable { get; set; } = true;
+    
+    /// <summary>
+    /// Exchange auto-delete
+    /// </summary>
     public bool AutoDelete { get; set; } = false;
+    
+    /// <summary>
+    /// Exchange additional arguments
+    /// </summary>
     public IDictionary<string, object>? Arguments { get; set; } = null;
-    // 其他相关配置项...
 }
 
+/// <summary>
+/// NanoRabbit consumer connect options
+/// </summary>
 public class ConsumerOptions
 {
+    /// <summary>
+    /// Customize consumer name
+    /// </summary>
     public string ConsumerName { get; set; }
+    
     /// <summary>
     /// RabbitMQ HostName, default: localhost
     /// </summary>
@@ -74,6 +110,10 @@ public class ConsumerOptions
     /// RabbitMQ VirtualHost, default: "/"
     /// </summary>
     public string VirtualHost { get; set; } = "/";
+    
+    /// <summary>
+    /// Subscribe queue name
+    /// </summary>
     public string? QueueName { get; set; } = null;
 }
 
