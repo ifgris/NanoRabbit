@@ -27,7 +27,7 @@ public class RabbitConsumer
     /// </summary>
     /// <param name="consumerName"></param>
     /// <param name="messageHandler"></param>
-    public void Receive(string consumerName, MessageHandler messageHandler)
+    public void Receive(string consumerName, Action<string> messageHandler)
     {
         var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == consumerName);
 
@@ -45,27 +45,38 @@ public class RabbitConsumer
             VirtualHost = connectionOption.VirtualHost
         };
 
-        using (var connection = factory.CreateConnection())
+        var connection = factory.CreateConnection();
+
+        var channel = connection.CreateModel();
+
+        var consumer = new EventingBasicConsumer(channel);
+
+        consumer.Received += (model, ea) =>
         {
-            using (var channel = connection.CreateModel())
+            var body = ea.Body.ToArray();
+            var message = Encoding.UTF8.GetString(body);
+
+            try
             {
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (model, ea) =>
-                {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-
-                    // 处理接收到的消息
-                    messageHandler.Invoke(message);
-                    
-                    channel.BasicAck(ea.DeliveryTag, false);
-                };
-
-                channel.BasicConsume(
-                    queue: connectionOption.QueueName,
-                    autoAck: true,
-                    consumer: consumer);
+                // 处理接收到的消息
+                messageHandler(message);
+                channel.BasicAck(ea.DeliveryTag, false);
             }
-        }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            // finally
+            // {
+            //     channel.BasicAck(ea.DeliveryTag, false);
+            // }
+        };
+
+        channel.BasicConsume(
+            queue: connectionOption.QueueName,
+            autoAck: false,
+            consumer: consumer);
+        // channel.Dispose();
+        // connection.Dispose();
     }
 }
