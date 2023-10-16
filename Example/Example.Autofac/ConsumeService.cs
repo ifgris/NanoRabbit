@@ -18,8 +18,8 @@ public class ConsumeService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine($"Receive: {message}"); });
-            await Task.Delay(10 * 1000, stoppingToken);
         }
+        await Task.Delay(10 * 1000, stoppingToken);
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)
