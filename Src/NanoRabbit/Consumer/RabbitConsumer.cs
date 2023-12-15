@@ -42,7 +42,8 @@ public class RabbitConsumer
             Port = connectionOption.Port,
             UserName = connectionOption.UserName,
             Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost
+            VirtualHost = connectionOption.VirtualHost,
+            AutomaticRecoveryEnabled = true
         };
 
         var connection = factory.CreateConnection();
