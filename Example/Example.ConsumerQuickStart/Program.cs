@@ -11,7 +11,8 @@ var consumer = new RabbitConsumer(new[]
         UserName = "admin",
         Password = "admin",
         VirtualHost = "FooHost",
-        QueueName = "FooSecondQueue"
+        QueueName = "FooSecondQueue",
+        AutomaticRecoveryEnabled = true
     }
 });
 

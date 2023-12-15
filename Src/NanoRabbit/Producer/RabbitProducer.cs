@@ -86,7 +86,8 @@ public class RabbitProducer
             Port = connectionOption.Port,
             UserName = connectionOption.UserName,
             Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost
+            VirtualHost = connectionOption.VirtualHost,
+            AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
         };
 
         using (var connection = factory.CreateConnection())

@@ -69,6 +69,11 @@ public class ProducerOptions
     /// Exchange auto-delete
     /// </summary>
     public bool AutoDelete { get; set; } = false;
+
+    /// <summary>
+    /// Set to false to disable automatic connection recovery. Defaults to true.
+    /// </summary>
+    public bool AutomaticRecoveryEnabled { get; set; } = true;
     
     /// <summary>
     /// Exchange additional arguments
@@ -126,6 +131,11 @@ public class ConsumerOptions
     /// Subscribe queue name
     /// </summary>
     public string? QueueName { get; set; } = null;
+    
+    /// <summary>
+    /// Set to false to disable automatic connection recovery. Defaults to true.
+    /// </summary>
+    public bool AutomaticRecoveryEnabled { get; set; } = true;
 }
 
 /// <summary>

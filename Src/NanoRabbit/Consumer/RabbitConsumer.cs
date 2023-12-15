@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Security.Authentication;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
 using Newtonsoft.Json;
@@ -43,7 +44,34 @@ public class RabbitConsumer
             UserName = connectionOption.UserName,
             Password = connectionOption.Password,
             VirtualHost = connectionOption.VirtualHost,
-            AutomaticRecoveryEnabled = true
+            AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+            // SocketFactory = null,
+            // AmqpUriSslProtocols = SslProtocols.None,
+            // AuthMechanisms = null,
+            // DispatchConsumersAsync = false,
+            // ConsumerDispatchConcurrency = 0,
+            // NetworkRecoveryInterval = default,
+            // MemoryPool = null,
+            // HandshakeContinuationTimeout = default,
+            // ContinuationTimeout = default,
+            // EndpointResolverFactory = null,
+            // RequestedConnectionTimeout = default,
+            // SocketReadTimeout = default,
+            // SocketWriteTimeout = default,
+            // Ssl = null,
+            // TopologyRecoveryEnabled = false,
+            // TopologyRecoveryFilter = null,
+            // TopologyRecoveryExceptionHandler = null,
+            // Endpoint = null,
+            // ClientProperties = null,
+            // CredentialsProvider = null,
+            // CredentialsRefresher = null,
+            // RequestedChannelMax = 0,
+            // RequestedFrameMax = 0,
+            // RequestedHeartbeat = default,
+            // MaxMessageSize = 0,
+            // Uri = null,
+            // ClientProvidedName = null
         };
 
         var connection = factory.CreateConnection();
@@ -75,7 +103,7 @@ public class RabbitConsumer
 
         channel.BasicConsume(
             queue: connectionOption.QueueName,
-            autoAck: false,
+            autoAck: true,
             consumer: consumer);
         // channel.Dispose();
         // connection.Dispose();
