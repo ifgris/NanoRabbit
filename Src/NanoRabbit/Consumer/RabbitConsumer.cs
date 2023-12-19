@@ -1,8 +1,4 @@
-﻿using System.Security.Authentication;
-using Microsoft.Extensions.Logging;
-using NanoRabbit.Connection;
-using NanoRabbit.DependencyInjection;
-using Newtonsoft.Json;
+﻿using NanoRabbit.Connection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -74,38 +70,40 @@ public class RabbitConsumer
             // ClientProvidedName = null
         };
 
-        var connection = factory.CreateConnection();
-
-        var channel = connection.CreateModel();
-
-        var consumer = new EventingBasicConsumer(channel);
-
-        consumer.Received += (model, ea) =>
+        using (var connection = factory.CreateConnection())
         {
-            var body = ea.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-
-            try
+            using (var channel = connection.CreateModel())
             {
-                // 处理接收到的消息
-                messageHandler(message);
-                channel.BasicAck(ea.DeliveryTag, false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            // finally
-            // {
-            //     channel.BasicAck(ea.DeliveryTag, false);
-            // }
-        };
+                var consumer = new EventingBasicConsumer(channel);
 
-        channel.BasicConsume(
-            queue: connectionOption.QueueName,
-            autoAck: true,
-            consumer: consumer);
-        // channel.Dispose();
-        // connection.Dispose();
+                consumer.Received += (_, ea) =>
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+
+                    try
+                    {
+                        // handle incoming message
+                        messageHandler(message);
+                        channel.BasicAck(ea.DeliveryTag, false);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                };
+
+                channel.BasicConsume(
+                    queue: connectionOption.QueueName,
+                    autoAck: false,
+                    consumer: consumer);
+                
+                // wait for message
+                while (true)
+                {
+                    Task.Delay(1000).Wait();
+                }
+            }
+        }
     }
 }
