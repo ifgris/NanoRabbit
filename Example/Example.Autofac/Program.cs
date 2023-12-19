@@ -37,6 +37,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 ExchangeName = "amq.topic",
                 RoutingKey = "FooFirstKey",
                 Type = ExchangeType.Topic,
+                AutomaticRecoveryEnabled = true,
                 Durable = true,
                 AutoDelete = false,
                 Arguments = null,
@@ -52,6 +53,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 ExchangeName = "amq.direct",
                 RoutingKey = "BarFirstKey",
                 Type = ExchangeType.Direct,
+                AutomaticRecoveryEnabled = true,
                 Durable = true,
                 AutoDelete = false,
                 Arguments = null,
@@ -68,7 +70,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 UserName = "admin",
                 Password = "admin",
                 VirtualHost = "FooHost",
-                QueueName = "FooFirstQueue"
+                QueueName = "FooFirstQueue",
+                AutomaticRecoveryEnabled = true
             });
             options.AddConsumer(new ConsumerOptions
             {
@@ -78,7 +81,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 UserName = "admin",
                 Password = "admin",
                 VirtualHost = "BarHost",
-                QueueName = "BarFirstQueue"
+                QueueName = "BarFirstQueue",
+                AutomaticRecoveryEnabled = true
             });
         });
 

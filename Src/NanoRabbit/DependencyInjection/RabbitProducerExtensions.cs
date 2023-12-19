@@ -11,13 +11,13 @@ public static class RabbitProducerExtensions
         var builder = new ProducerOptionsBuilder(services);
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
-
+    
         services.AddScoped<RabbitProducer>(_ =>
         {
             var producer = new RabbitProducer(options.Producers);
             return producer;
         });
-
+    
         return services;
     }
 }

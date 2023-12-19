@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using NanoRabbit.Connection;
 using NanoRabbit.Consumer;
 
 namespace Example.Autofac;

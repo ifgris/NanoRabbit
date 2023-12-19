@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using NanoRabbit.Connection;
+﻿using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using System.Collections.Concurrent;
 using System.Text;
-using NanoRabbit.DependencyInjection;
 
 namespace NanoRabbit.Producer;
 

@@ -11,13 +11,13 @@ public static class RabbitConsumerExtensions
         var builder = new ConsumerOptionsBuilder(services);
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
-
+    
         services.AddScoped<RabbitConsumer>(_ =>
         {
             var consumer = new RabbitConsumer(options.Consumers);
             return consumer;
         });
-
+    
         return services;
     }
 }
