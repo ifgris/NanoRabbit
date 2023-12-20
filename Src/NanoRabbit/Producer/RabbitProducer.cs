@@ -1,4 +1,5 @@
-﻿using NanoRabbit.Connection;
+﻿using System.Collections.Concurrent;
+using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
@@ -11,6 +12,7 @@ namespace NanoRabbit.Producer;
 public class RabbitProducer
 {
     private readonly IEnumerable<ProducerOptions> _producerOptionsList;
+    private ConcurrentDictionary<string, string> _resendMsgDic = new ();
 
     public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList)
     {
@@ -43,21 +45,28 @@ public class RabbitProducer
             AutomaticRecoveryEnabled = true
         };
 
-        using (var connection = factory.CreateConnection())
+        try
         {
-            using (var channel = connection.CreateModel())
+            using (var connection = factory.CreateConnection())
             {
-                channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
-                var properties = channel.CreateBasicProperties();
-
-                var body = Encoding.UTF8.GetBytes(message);
-
-                channel.BasicPublish(
-                    exchange: connectionOption.ExchangeName,
-                    routingKey: connectionOption.RoutingKey,
-                    basicProperties: properties,
-                    body: body);
+                using (var channel = connection.CreateModel())
+                {
+                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
+                    var properties = channel.CreateBasicProperties();
+    
+                    var body = Encoding.UTF8.GetBytes(message);
+    
+                    channel.BasicPublish(
+                        exchange: connectionOption.ExchangeName,
+                        routingKey: connectionOption.RoutingKey,
+                        basicProperties: properties,
+                        body: body);
+                }
             }
+        }
+        catch (Exception e)
+        {
+            _resendMsgDic.TryAdd(producerName, message);
         }
     }
     
