@@ -33,77 +33,85 @@ public class RabbitConsumer
             return;
         }
 
-        var factory = new ConnectionFactory
+        try
         {
-            HostName = connectionOption.HostName,
-            Port = connectionOption.Port,
-            UserName = connectionOption.UserName,
-            Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost,
-            AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
-            // SocketFactory = null,
-            // AmqpUriSslProtocols = SslProtocols.None,
-            // AuthMechanisms = null,
-            // DispatchConsumersAsync = false,
-            // ConsumerDispatchConcurrency = 0,
-            // NetworkRecoveryInterval = default,
-            // MemoryPool = null,
-            // HandshakeContinuationTimeout = default,
-            // ContinuationTimeout = default,
-            // EndpointResolverFactory = null,
-            // RequestedConnectionTimeout = default,
-            // SocketReadTimeout = default,
-            // SocketWriteTimeout = default,
-            // Ssl = null,
-            // TopologyRecoveryEnabled = false,
-            // TopologyRecoveryFilter = null,
-            // TopologyRecoveryExceptionHandler = null,
-            // Endpoint = null,
-            // ClientProperties = null,
-            // CredentialsProvider = null,
-            // CredentialsRefresher = null,
-            // RequestedChannelMax = 0,
-            // RequestedFrameMax = 0,
-            // RequestedHeartbeat = default,
-            // MaxMessageSize = 0,
-            // Uri = null,
-            // ClientProvidedName = null
-        };
-
-        using (var connection = factory.CreateConnection())
-        {
-            using (var channel = connection.CreateModel())
+            var factory = new ConnectionFactory
             {
-                var consumer = new EventingBasicConsumer(channel);
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost,
+                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+                // SocketFactory = null,
+                // AmqpUriSslProtocols = SslProtocols.None,
+                // AuthMechanisms = null,
+                // DispatchConsumersAsync = false,
+                // ConsumerDispatchConcurrency = 0,
+                // NetworkRecoveryInterval = default,
+                // MemoryPool = null,
+                // HandshakeContinuationTimeout = default,
+                // ContinuationTimeout = default,
+                // EndpointResolverFactory = null,
+                // RequestedConnectionTimeout = default,
+                // SocketReadTimeout = default,
+                // SocketWriteTimeout = default,
+                // Ssl = null,
+                // TopologyRecoveryEnabled = false,
+                // TopologyRecoveryFilter = null,
+                // TopologyRecoveryExceptionHandler = null,
+                // Endpoint = null,
+                // ClientProperties = null,
+                // CredentialsProvider = null,
+                // CredentialsRefresher = null,
+                // RequestedChannelMax = 0,
+                // RequestedFrameMax = 0,
+                // RequestedHeartbeat = default,
+                // MaxMessageSize = 0,
+                // Uri = null,
+                // ClientProvidedName = null
+            };
 
-                consumer.Received += (_, ea) =>
+            using (var connection = factory.CreateConnection())
+            {
+                using (var channel = connection.CreateModel())
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
+                    var consumer = new EventingBasicConsumer(channel);
 
-                    try
+                    consumer.Received += (_, ea) =>
                     {
-                        // handle incoming message
-                        messageHandler(message);
-                        channel.BasicAck(ea.DeliveryTag, false);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                };
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
 
-                channel.BasicConsume(
-                    queue: connectionOption.QueueName,
-                    autoAck: false,
-                    consumer: consumer);
-                
-                // wait for message
-                while (true)
-                {
-                    Task.Delay(1000).Wait();
+                        try
+                        {
+                            // handle incoming message
+                            messageHandler(message);
+                            channel.BasicAck(ea.DeliveryTag, false);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    };
+
+                    channel.BasicConsume(
+                        queue: connectionOption.QueueName,
+                        autoAck: false,
+                        consumer: consumer);
+
+                    // wait for message
+                    while (true)
+                    {
+                        Task.Delay(1000).Wait();
+                    }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            // throw;
         }
     }
 }
