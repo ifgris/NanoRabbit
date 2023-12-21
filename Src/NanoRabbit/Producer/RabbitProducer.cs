@@ -3,6 +3,7 @@ using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
+using NanoRabbit.Model;
 
 namespace NanoRabbit.Producer;
 
@@ -12,7 +13,7 @@ namespace NanoRabbit.Producer;
 public class RabbitProducer
 {
     private readonly IEnumerable<ProducerOptions> _producerOptionsList;
-    private ConcurrentDictionary<string, string> _resendMsgDic = new ();
+    private readonly ConcurrentDictionary<string, ResendMsgModel> _resendMsgDic = new();
 
     public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList)
     {
@@ -35,27 +36,29 @@ public class RabbitProducer
             return;
         }
 
-        var factory = new ConnectionFactory
-        {
-            HostName = connectionOption.HostName,
-            Port = connectionOption.Port,
-            UserName = connectionOption.UserName,
-            Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost,
-            AutomaticRecoveryEnabled = true
-        };
-
         try
         {
+            var factory = new ConnectionFactory
+            {
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost,
+                AutomaticRecoveryEnabled = true
+            };
+            
             using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
+                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
+                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
+                        arguments: connectionOption.Arguments);
                     var properties = channel.CreateBasicProperties();
-    
+
                     var body = Encoding.UTF8.GetBytes(message);
-    
+
                     channel.BasicPublish(
                         exchange: connectionOption.ExchangeName,
                         routingKey: connectionOption.RoutingKey,
@@ -66,10 +69,72 @@ public class RabbitProducer
         }
         catch (Exception e)
         {
-            _resendMsgDic.TryAdd(producerName, message);
+            if (TryAddResendMessage(producerName, message))
+            {
+            }
+            else
+            {
+            }
         }
     }
-    
+
+    /// <summary>
+    /// Try add resend message to concurrent dictionary
+    /// </summary>
+    /// <param name="producerName"></param>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    private bool TryAddResendMessage<T>(string producerName, T message)
+    {
+        bool tryFlag = false;
+
+        if (_resendMsgDic.TryGetValue(producerName, out var dicResult))
+        {
+            if (dicResult.MessageList != null)
+            {
+                foreach (var msgInfoObj in dicResult.MessageList)
+                {
+                    if (ReferenceEquals(msgInfoObj.Message, message))
+                    {
+                        msgInfoObj.RetryCount++;
+                        tryFlag = _resendMsgDic.TryUpdate(producerName, dicResult, dicResult);
+                    }
+                    else
+                    {
+                        var msgInfoModels = dicResult.MessageList.Append(new MsgInfoModel
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            GenerateTime = DateTime.Now,
+                            RetryCount = 0,
+                            Message = message
+                        });
+                        tryFlag = _resendMsgDic.TryUpdate(producerName, dicResult, dicResult);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Create message list if doesn't exists
+            var resendList = new ResendMsgModel
+            {
+                MessageList = new List<MsgInfoModel>
+                {
+                    new MsgInfoModel
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        GenerateTime = DateTime.Now,
+                        RetryCount = 0,
+                        Message = message
+                    }
+                }
+            };
+            tryFlag = _resendMsgDic.TryAdd(producerName, resendList);
+        }
+
+        return tryFlag;
+    }
+
     /// <summary>
     /// Publish message to queue(s)
     /// </summary>
@@ -86,35 +151,50 @@ public class RabbitProducer
             return;
         }
 
-        var factory = new ConnectionFactory
+        try
         {
-            HostName = connectionOption.HostName,
-            Port = connectionOption.Port,
-            UserName = connectionOption.UserName,
-            Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost,
-            AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
-        };
-
-        using (var connection = factory.CreateConnection())
-        {
-            using (var channel = connection.CreateModel())
+            var factory = new ConnectionFactory
             {
-                channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
-                var properties = channel.CreateBasicProperties();
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost,
+                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+            };
 
-                var messageStr = JsonConvert.SerializeObject(message);
-                var body = Encoding.UTF8.GetBytes(messageStr);
+            using (var connection = factory.CreateConnection())
+            {
+                using (var channel = connection.CreateModel())
+                {
+                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
+                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
+                        arguments: connectionOption.Arguments);
+                    var properties = channel.CreateBasicProperties();
 
-                channel.BasicPublish(
-                    exchange: connectionOption.ExchangeName,
-                    routingKey: connectionOption.RoutingKey,
-                    basicProperties: properties,
-                    body: body);
+                    var messageStr = JsonConvert.SerializeObject(message);
+                    var body = Encoding.UTF8.GetBytes(messageStr);
+
+                    channel.BasicPublish(
+                        exchange: connectionOption.ExchangeName,
+                        routingKey: connectionOption.RoutingKey,
+                        basicProperties: properties,
+                        body: body);
+                }
             }
         }
+        catch (Exception e)
+        {
+            if (TryAddResendMessage(producerName, message))
+            {
+            }
+            else
+            {
+            }
+        }
+       
     }
-    
+
     /// <summary>
     /// Publish batch messages to queue(s)
     /// </summary>
@@ -131,32 +211,50 @@ public class RabbitProducer
             return;
         }
 
-        var factory = new ConnectionFactory
+        try
         {
-            HostName = connectionOption.HostName,
-            Port = connectionOption.Port,
-            UserName = connectionOption.UserName,
-            Password = connectionOption.Password,
-            VirtualHost = connectionOption.VirtualHost
-        };
-
-        using (var connection = factory.CreateConnection())
-        {
-            using (var channel = connection.CreateModel())
+            var factory = new ConnectionFactory
             {
-                channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type, durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete, arguments: connectionOption.Arguments);
-                var properties = channel.CreateBasicProperties();
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost
+            };
 
-                foreach (var messageObj in messageList)
+            using (var connection = factory.CreateConnection())
+            {
+                using (var channel = connection.CreateModel())
                 {
-                    var messageStr = JsonConvert.SerializeObject(messageObj);
-                    var body = Encoding.UTF8.GetBytes(messageStr);
-    
-                    channel.BasicPublish(
-                        exchange: connectionOption.ExchangeName,
-                        routingKey: connectionOption.RoutingKey,
-                        basicProperties: properties,
-                        body: body);
+                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
+                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
+                        arguments: connectionOption.Arguments);
+                    var properties = channel.CreateBasicProperties();
+
+                    foreach (var messageObj in messageList)
+                    {
+                        var messageStr = JsonConvert.SerializeObject(messageObj);
+                        var body = Encoding.UTF8.GetBytes(messageStr);
+
+                        channel.BasicPublish(
+                            exchange: connectionOption.ExchangeName,
+                            routingKey: connectionOption.RoutingKey,
+                            basicProperties: properties,
+                            body: body);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            foreach (var message in messageList)
+            {
+                if (TryAddResendMessage(producerName, message))
+                {
+                }
+                else
+                {
                 }
             }
         }
