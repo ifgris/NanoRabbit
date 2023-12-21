@@ -28,5 +28,5 @@ public class MsgInfoModel
     /// <summary>
     /// Message object
     /// </summary>
-    public object? Message { get; set; }
+    public dynamic Message { get; set; }
 }

@@ -25,15 +25,13 @@ public class RabbitProducer
     /// </summary>
     /// <param name="producerName"></param>
     /// <param name="message"></param>
-    public void Publish(string producerName, string message)
+    public void Publish<T>(string producerName, T message)
     {
         var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
 
         if (connectionOption == null)
         {
-            // 没有找到指定名称的连接配置
-            // 可根据实际情况处理，例如抛出异常或记录日志
-            return;
+            throw new Exception($"Producer: {producerName} not found!");
         }
 
         try
@@ -45,9 +43,9 @@ public class RabbitProducer
                 UserName = connectionOption.UserName,
                 Password = connectionOption.Password,
                 VirtualHost = connectionOption.VirtualHost,
-                AutomaticRecoveryEnabled = true
+                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
             };
-            
+
             using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
@@ -57,7 +55,8 @@ public class RabbitProducer
                         arguments: connectionOption.Arguments);
                     var properties = channel.CreateBasicProperties();
 
-                    var body = Encoding.UTF8.GetBytes(message);
+                    var messageStr = JsonConvert.SerializeObject(message);
+                    var body = Encoding.UTF8.GetBytes(messageStr);
 
                     channel.BasicPublish(
                         exchange: connectionOption.ExchangeName,
@@ -74,6 +73,70 @@ public class RabbitProducer
             }
             else
             {
+            }
+        }
+       
+    }
+
+    /// <summary>
+    /// Publish batch messages to queue(s)
+    /// </summary>
+    /// <param name="producerName"></param>
+    /// <param name="messageList"></param>
+    public void PublishBatch<T>(string producerName, IEnumerable<T> messageList)
+    {
+        var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
+
+        if (connectionOption == null)
+        {
+            throw new Exception($"Producer: {producerName} not found!");
+        }
+
+        try
+        {
+            var factory = new ConnectionFactory
+            {
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost
+            };
+
+            using (var connection = factory.CreateConnection())
+            {
+                using (var channel = connection.CreateModel())
+                {
+                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
+                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
+                        arguments: connectionOption.Arguments);
+                    var properties = channel.CreateBasicProperties();
+
+                    foreach (var messageObj in messageList)
+                    {
+                        var messageStr = JsonConvert.SerializeObject(messageObj);
+                        var body = Encoding.UTF8.GetBytes(messageStr);
+
+                        channel.BasicPublish(
+                            exchange: connectionOption.ExchangeName,
+                            routingKey: connectionOption.RoutingKey,
+                            basicProperties: properties,
+                            body: body);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            foreach (var message in messageList)
+            {
+                if (TryAddResendMessage(producerName, message))
+                {
+                }
+                else
+                {
+                }
             }
         }
     }
@@ -134,127 +197,24 @@ public class RabbitProducer
 
         return tryFlag;
     }
-
+    
     /// <summary>
-    /// Publish message to queue(s)
+    /// Resend the failed messages
     /// </summary>
     /// <param name="producerName"></param>
-    /// <param name="message"></param>
-    public void Publish<T>(string producerName, T message)
+    private void ResendFailedMessage(string producerName)
     {
-        var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
-
-        if (connectionOption == null)
+        if (_resendMsgDic.Any())
         {
-            // 没有找到指定名称的连接配置
-            // 可根据实际情况处理，例如抛出异常或记录日志
-            return;
-        }
-
-        try
-        {
-            var factory = new ConnectionFactory
+            if (_resendMsgDic.TryGetValue(producerName, out var resultDic))
             {
-                HostName = connectionOption.HostName,
-                Port = connectionOption.Port,
-                UserName = connectionOption.UserName,
-                Password = connectionOption.Password,
-                VirtualHost = connectionOption.VirtualHost,
-                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
-            };
-
-            using (var connection = factory.CreateConnection())
-            {
-                using (var channel = connection.CreateModel())
+                if (resultDic.MessageList != null)
                 {
-                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
-                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
-                        arguments: connectionOption.Arguments);
-                    var properties = channel.CreateBasicProperties();
-
-                    var messageStr = JsonConvert.SerializeObject(message);
-                    var body = Encoding.UTF8.GetBytes(messageStr);
-
-                    channel.BasicPublish(
-                        exchange: connectionOption.ExchangeName,
-                        routingKey: connectionOption.RoutingKey,
-                        basicProperties: properties,
-                        body: body);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            if (TryAddResendMessage(producerName, message))
-            {
-            }
-            else
-            {
-            }
-        }
-       
-    }
-
-    /// <summary>
-    /// Publish batch messages to queue(s)
-    /// </summary>
-    /// <param name="producerName"></param>
-    /// <param name="messageList"></param>
-    public void PublishBatch<T>(string producerName, IEnumerable<T> messageList)
-    {
-        var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
-
-        if (connectionOption == null)
-        {
-            // 没有找到指定名称的连接配置
-            // 可根据实际情况处理，例如抛出异常或记录日志
-            return;
-        }
-
-        try
-        {
-            var factory = new ConnectionFactory
-            {
-                HostName = connectionOption.HostName,
-                Port = connectionOption.Port,
-                UserName = connectionOption.UserName,
-                Password = connectionOption.Password,
-                VirtualHost = connectionOption.VirtualHost
-            };
-
-            using (var connection = factory.CreateConnection())
-            {
-                using (var channel = connection.CreateModel())
-                {
-                    channel.ExchangeDeclare(connectionOption.ExchangeName, connectionOption.Type,
-                        durable: connectionOption.Durable, autoDelete: connectionOption.AutoDelete,
-                        arguments: connectionOption.Arguments);
-                    var properties = channel.CreateBasicProperties();
-
-                    foreach (var messageObj in messageList)
+                    foreach (var msgInfoObj in resultDic.MessageList)
                     {
-                        var messageStr = JsonConvert.SerializeObject(messageObj);
-                        var body = Encoding.UTF8.GetBytes(messageStr);
-
-                        channel.BasicPublish(
-                            exchange: connectionOption.ExchangeName,
-                            routingKey: connectionOption.RoutingKey,
-                            basicProperties: properties,
-                            body: body);
+                        Publish<dynamic>(producerName, msgInfoObj.Message);
+                        
                     }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            foreach (var message in messageList)
-            {
-                if (TryAddResendMessage(producerName, message))
-                {
-                }
-                else
-                {
                 }
             }
         }

@@ -30,7 +30,7 @@ public class RabbitConsumer
 
         if (connectionOption == null)
         {
-            return;
+            throw new Exception($"Consumer: {consumerName} not found!");
         }
 
         try
