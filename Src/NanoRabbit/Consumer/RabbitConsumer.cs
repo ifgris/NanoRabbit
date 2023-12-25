@@ -22,9 +22,18 @@ public class RabbitConsumer
     /// <summary>
     /// Receive messages from queue
     /// </summary>
-    /// <param name="consumerName"></param>
+    /// <param name="consumerName">Name of consumer</param>
     /// <param name="messageHandler"></param>
-    public void Receive(string consumerName, Action<string> messageHandler)
+    /// <param name="prefetchSize">BasicQos prefetchSize</param>
+    /// <param name="prefetchCount">BasicQos prefetchCount</param>
+    /// <param name="qosGlobal">BasicQos global</param>
+    public void Receive(
+        string consumerName,
+        Action<string> messageHandler,
+        uint prefetchSize = 0,
+        ushort prefetchCount = 0,
+        bool qosGlobal = false
+    )
     {
         var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == consumerName);
 
@@ -76,6 +85,8 @@ public class RabbitConsumer
             {
                 using (var channel = connection.CreateModel())
                 {
+                    // TODO: will move to params
+                    channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
                     var consumer = new EventingBasicConsumer(channel);
 
                     consumer.Received += (_, ea) =>
