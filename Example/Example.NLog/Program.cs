@@ -1,5 +1,4 @@
-﻿using NanoRabbit.DependencyInjection;
-using Autofac;
+﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Example.NLog;
 using Microsoft.Extensions.DependencyInjection;

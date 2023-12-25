@@ -92,6 +92,7 @@ public class RabbitProducer
             throw new Exception($"Producer: {producerName} not found!");
         }
 
+        var messageObjs = messageList.ToList();
         try
         {
             var factory = new ConnectionFactory
@@ -112,7 +113,7 @@ public class RabbitProducer
                         arguments: connectionOption.Arguments);
                     var properties = channel.CreateBasicProperties();
 
-                    foreach (var messageObj in messageList)
+                    foreach (var messageObj in messageObjs)
                     {
                         var messageStr = JsonConvert.SerializeObject(messageObj);
                         var body = Encoding.UTF8.GetBytes(messageStr);
@@ -129,7 +130,7 @@ public class RabbitProducer
         catch (Exception e)
         {
             Console.WriteLine(e);
-            foreach (var message in messageList)
+            foreach (var message in messageObjs)
             {
                 if (TryAddResendMessage(producerName, message))
                 {
@@ -164,13 +165,17 @@ public class RabbitProducer
                     }
                     else
                     {
-                        var msgInfoModels = dicResult.MessageList.Append(new MsgInfoModel
+                        if (message != null)
                         {
-                            Id = Guid.NewGuid().ToString(),
-                            GenerateTime = DateTime.Now,
-                            RetryCount = 0,
-                            Message = message
-                        });
+                            var msgInfoModels = dicResult.MessageList.Append(new MsgInfoModel
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                GenerateTime = DateTime.Now,
+                                RetryCount = 0,
+                                Message = message
+                            });
+                        }
+
                         tryFlag = _resendMsgDic.TryUpdate(producerName, dicResult, dicResult);
                     }
                 }
