@@ -11,14 +11,14 @@
     <RepositoryUrl>https://github.com/cgcel/NanoRabbit</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>NanoRabbit, a Lightweight RabbitMQ .NET API.</Description>
+    <Description>NanoRabbit, a Lightweight RabbitMQ .NET 3rd party library.</Description>
     <Optimize>True</Optimize>
     <DebugSymbols>true</DebugSymbols>
     <PackageTags>RabbitMQ;AMQP;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>0.0.7</Version>
+    <Version>0.0.8</Version>
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
   </PropertyGroup>
 

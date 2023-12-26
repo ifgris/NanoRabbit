@@ -5,7 +5,7 @@ namespace NanoRabbit.Connection;
 public class ProducerOptionsBuilder
 {
     private readonly IServiceCollection _services;
-    private List<ProducerOptions> _producers;
+    private readonly List<ProducerOptions> _producers;
 
     public ProducerOptionsBuilder(IServiceCollection services)
     {
@@ -30,7 +30,7 @@ public class ProducerOptionsBuilder
 public class ConsumerOptionsBuilder
 {
     private readonly IServiceCollection _services;
-    private List<ConsumerOptions> _consumers;
+    private readonly List<ConsumerOptions> _consumers;
 
     public ConsumerOptionsBuilder(IServiceCollection services)
     {
