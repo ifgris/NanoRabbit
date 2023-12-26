@@ -38,7 +38,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Document
 
-The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki). (Outdated, please be patient to wait for updates.)
+The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 ## QuickStart
 
@@ -98,7 +98,7 @@ var consumer = new RabbitConsumer(new[]
 [After](#rabbitproducer) creating the `RabbitProducer`, you can simply publish a message by calling `Publish<T>()`.
 
 ```csharp
-producer.Publish("FooFirstQueueProducer", "Hello");
+producer.Publish<string>("FooFirstQueueProducer", "Hello");
 ```
 
 ### Simple Consume
@@ -194,7 +194,7 @@ builder.Services.AddRabbitConsumer(options =>
 });
 ```
 
-#### 
+#### Using producer or consumer
 
 Then, you can use RabbitProducer and RabbitConsumer at anywhere.
 
@@ -222,7 +222,7 @@ public class PublishService : BackgroundService
 }
 ```
 
-More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection). (Outdated, please be patient to wait for updates.)
+More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
 
 ## Contributing
 
