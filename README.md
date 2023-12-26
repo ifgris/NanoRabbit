@@ -18,7 +18,7 @@ NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up,
 
 ## Features
 
-- Customize the name of connections, producers, consumers.
+- Customize the name of producers, consumers.
 - Dependency injection available.
 - Multiple connections, producers, and consumers can be created.
 
@@ -30,156 +30,199 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-|                NanoRabbit                | RabbitMQ.Client |     .NET      |
-|:----------------------------------------:|:---------------:|:-------------:|
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |      6.0      |
-|                  0.0.7                   |      6.5.0      | 6.0, 7.0, 8.0 |
-|                  0.0.8                   |  6.5.0, 6.6.0   | 6.0, 7.0, 8.0 |
+|                NanoRabbit                |   RabbitMQ.Client   |     .NET      |
+|:----------------------------------------:|:-------------------:|:-------------:|
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |        6.5.0        |      6.0      |
+|                  0.0.7                   |        6.5.0        | 6.0, 7.0, 8.0 |
+|                  0.0.8                   | 6.5.0, 6.6.0, 6.7.0 | 6.0, 7.0, 8.0 |
 
 ## Document
 
-The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
+The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki). (Outdated, please be patient to wait for updates.)
 
 ## QuickStart
 
-> _NanoRabbit is designed as a library depends on **NAMING** Connections, Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Connections, Producers, Consumers._
+> _NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Producers, Consumers._
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
-### Register a Connection
+### Create a RabbitProducer && RabbitConsumer
 
-Register a RabbitMQ Connection by instantiating `RabbitPool`, and configure the producer and consumer.
+#### RabbitProducer
+
+Register a RabbitMQ Producer by calling `RabbitProducer()`, and configure it.
 
 ```csharp
-var pool = new RabbitPool(config => { config.EnableLogging = true; });
-pool.RegisterConnection(new ConnectOptions("Connection1", option =>
+var producer = new RabbitProducer(new[]
 {
-    option.ConnectConfig = new(config =>
+    new ProducerOptions
     {
-        config.HostName = "localhost";
-        config.Port = 5672;
-        config.UserName = "admin";
-        config.Password = "admin";
-        config.VirtualHost = "FooHost";
-    });
-    option.ProducerConfigs = new List<ProducerConfig>
+        ProducerName = "FooFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        ExchangeName = "amq.topic",
+        RoutingKey = "FooFirstKey",
+        Type = ExchangeType.Topic,
+        Durable = true,
+        AutoDelete = false,
+        AutomaticRecoveryEnabled = true
+    }
+});
+```
+#### RabbitConsumer
+
+Register a RabbitMQ Consumer by calling `RabbitConsumer()`, and configure it.
+
+```csharp
+var consumer = new RabbitConsumer(new[]
+{
+    new ConsumerOptions
     {
-        new ProducerConfig("FooFirstQueueProducer", c =>
-        {
-            c.ExchangeName = "FooTopic";
-            c.RoutingKey = "FooFirstKey";
-            c.Type = ExchangeType.Topic;
-        })
-    };
-    option.ConsumerConfigs = new List<ConsumerConfig>
-    {
-        new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
-    };
-}));
+        ConsumerName = "FooSecondQueueConsumer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        QueueName = "FooSecondQueue",
+        AutomaticRecoveryEnabled = true
+    }
+});
 ```
 
 ### Simple Publish
 
-After registering the `RabbitPool`, you can simply publish a message by calling `NanoPublish<T>()`.
+[After](#rabbitproducer) creating the `RabbitProducer`, you can simply publish a message by calling `Publish<T>()`.
 
 ```csharp
-Task publishTask = Task.Run(() =>
-{
-    while (true)
-    {
-        pool.NanoPublish<string>("Connection1", "FooFirstQueueProducer", "Hello from SimplePublish<T>()!");
-        Console.WriteLine("Sent to RabbitMQ");
-        Thread.Sleep(1000);
-    }
-});
-Task.WaitAll(publishTask);
+producer.Publish("FooFirstQueueProducer", "Hello");
 ```
-
-There is also a easy-to-use `RabbitProducer`, which used to publish messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Producer).
 
 ### Simple Consume
 
-After registering the `RabbitPool`, you can simply consume a message by calling `NanoConsume<T>()`.
+[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by calling `Receive()`.
 
 ```csharp
-Task consumeTask = Task.Run(() =>
+while (true)
 {
-    while (true)
+    consumer.Receive("FooSecondQueueConsumer", message =>
     {
-        pool.NanoConsume<string>("Connection1", "FooFirstQueueConsumer",
-            msg => { Console.WriteLine($"Received: {msg}"); });
-        Thread.Sleep(1000);
-    }
-});
-Task.WaitAll(consumeTask);
+        Console.WriteLine(message);
+    });
+}
 ```
-
-There is also a easy-to-use `RabbitConsumer`, which used to consume messages without `ConnectionName` and `ProducerConfig`, for more, read [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Consumer).
 
 ### Forward messages
 
-Sometimes we have to consume messages from Foo RabbitMQ and publish the same message to Bar RabbitMQ, NanoRabbit provides a simple method to forward message, using the method called `NanoForward<T>()`.
-
-```csharp
-Task forwardTask = Task.Run(() =>
-{
-     while (true)
-     {
-         pool.NanoForward<string>("Connection1", "FooFirstQueueConsumer", "Connection2", "FooQueueProducer");
-         Thread.Sleep(1000);
-     }
-});
-Task.WaitAll(forwardTask);
-```
+> Working on it.
 
 ### DependencyInjection
 
-Register IRabbitPool in Program.cs:
+#### AddRabbitProducer
 
 ```csharp
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
-// Configure the RabbitMQ Connection
-builder.Services.AddRabbitPool(
-    globalConfig => { globalConfig.EnableLogging = true; },
-    c =>
+builder.Services.AddRabbitProducer(options =>
+{
+    options.AddProducer(new ProducerOptions
     {
-        c.Add(new ConnectOptions("Connection1", option =>
-        {
-            option.ConnectConfig = new(config =>
-            {
-                config.HostName = "localhost";
-                config.Port = 5672;
-                config.UserName = "admin";
-                config.Password = "admin";
-                config.VirtualHost = "FooHost";
-            });
-            option.ProducerConfigs = new List<ProducerConfig>
-            {
-                new ProducerConfig("FooFirstQueueProducer", c =>
-                {
-                    c.ExchangeName = "FooTopic";
-                    c.RoutingKey = "FooFirstKey";
-                    c.Type = ExchangeType.Topic;
-                })
-            };
-            option.ConsumerConfigs = new List<ConsumerConfig>
-            {
-                new ConsumerConfig("FooFirstQueueConsumer", c => { c.QueueName = "FooFirstQueue"; })
-            };
-        }));
-
-        c.Add(new ConnectOptions("Connection2", option =>
-        {
-            // ...
-        }));
+        ProducerName = "FooFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        ExchangeName = "amq.topic",
+        RoutingKey = "FooFirstKey",
+        Type = ExchangeType.Topic,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+        AutomaticRecoveryEnabled = true
     });
-
+    options.AddProducer(new ProducerOptions
+    {
+        ProducerName = "BarFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "BarHost",
+        ExchangeName = "amq.direct",
+        RoutingKey = "BarFirstKey",
+        Type = ExchangeType.Direct,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+        AutomaticRecoveryEnabled = true
+    });
+});
 ```
 
-Then, you can use IRabbitPool at anywhere.
+#### AddRabbitConsumer
 
-More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddRabbitConsumer(options =>
+{
+    options.AddConsumer(new ConsumerOptions
+    {
+        ConsumerName = "FooFirstQueueConsumer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        QueueName = "FooFirstQueue",
+        AutomaticRecoveryEnabled = true
+    });
+    options.AddConsumer(new ConsumerOptions
+    {
+        ConsumerName = "BarFirstQueueConsumer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "BarHost",
+        QueueName = "BarFirstQueue", AutomaticRecoveryEnabled = true
+    });
+});
+```
+
+#### 
+
+Then, you can use RabbitProducer and RabbitConsumer at anywhere.
+
+For example:
+
+```csharp
+public class PublishService : BackgroundService
+{
+    private readonly RabbitProducer _producer;
+
+    public PublishService(RabbitProducer producer)
+    {
+        _producer = producer;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            _producer.Publish("FooFirstQueueProducer", "Hello from conn1");
+            _producer.Publish("BarFirstQueueProducer", "Hello from conn2");
+            await Task.Delay(1000, stoppingToken);
+        }
+    }
+}
+```
+
+More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection). (Outdated, please be patient to wait for updates.)
 
 ## Contributing
 
@@ -191,14 +234,13 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
-- [x] Logging support
-- [x] Forward messages
-- [x] Using Task in Consumers and Producers
+- [ ] Logging support
+- [ ] Forward messages
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
 - [x] .NET 7 support
 - [x] .NET 8 support
-- [x] RabbitMQ reconnecting
+- [ ] Caching of failed sends
 
 ## Thanks
 
@@ -210,4 +252,4 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 
 ## License
 
-NanoRabbit is licensed under the MIT license.
+NanoRabbit is licensed under the [MIT](https://github.com/cgcel/NanoRabbit/blob/dev/LICENSE.txt) license.
