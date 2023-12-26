@@ -21,11 +21,6 @@ public class MsgInfoModel
     /// Failed-sending message generate time
     /// </summary>
     public DateTime GenerateTime { get; set; }
-
-    /// <summary>
-    /// Retry count
-    /// </summary>
-    public int RetryCount { get; set; } = 0;
     
     /// <summary>
     /// Message object
