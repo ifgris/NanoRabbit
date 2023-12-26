@@ -76,6 +76,11 @@ public class ProducerOptions
     public bool AutomaticRecoveryEnabled { get; set; } = true;
     
     /// <summary>
+    /// Set to true to enable automatic resend cached massages. Defaults to false.
+    /// </summary>
+    public bool AutomaticResend { get; set; } = false;
+    
+    /// <summary>
     /// Exchange additional arguments
     /// </summary>
     public IDictionary<string, object>? Arguments { get; set; } = null;
