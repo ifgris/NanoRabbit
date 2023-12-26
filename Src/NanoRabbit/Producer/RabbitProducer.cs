@@ -65,6 +65,12 @@ public class RabbitProducer
                         body: body);
                 }
             }
+            
+            // resend cached messages
+            if (connectionOption.AutomaticResend)
+            {
+                ResendCachedMessage(producerName);
+            }
         }
         catch (Exception e)
         {
@@ -100,7 +106,8 @@ public class RabbitProducer
                 Port = connectionOption.Port,
                 UserName = connectionOption.UserName,
                 Password = connectionOption.Password,
-                VirtualHost = connectionOption.VirtualHost
+                VirtualHost = connectionOption.VirtualHost,
+                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
             };
 
             using (var connection = factory.CreateConnection())
@@ -124,6 +131,12 @@ public class RabbitProducer
                             body: body);
                     }
                 }
+            }
+
+            // resend cached messages
+            if (connectionOption.AutomaticResend)
+            {
+                ResendCachedMessage(producerName);
             }
         }
         catch (Exception e)
@@ -161,7 +174,6 @@ public class RabbitProducer
                     {
                         Id = Guid.NewGuid().ToString(),
                         GenerateTime = DateTime.Now,
-                        RetryCount = 0,
                         Message = message
                     });
                     tryFlag = true;
@@ -179,7 +191,6 @@ public class RabbitProducer
             {
                 Id = Guid.NewGuid().ToString(),
                 GenerateTime = DateTime.Now,
-                RetryCount = 0,
                 Message = message
             });
             tryFlag = _resendMsgDic.TryAdd(producerName, resendList);
@@ -189,10 +200,10 @@ public class RabbitProducer
     }
 
     /// <summary>
-    /// Resend the failed messages
+    /// Resend the cached messages
     /// </summary>
     /// <param name="producerName"></param>
-    private void ResendFailedMessage(string producerName)
+    private void ResendCachedMessage(string producerName)
     {
         if (_resendMsgDic.Any())
         {
@@ -200,9 +211,9 @@ public class RabbitProducer
             {
                 if (resultDic.MessageList != null)
                 {
-                    foreach (var msgInfoObj in resultDic.MessageList)
+                    while (resultDic.MessageList.TryDequeue(out var item))
                     {
-                        Publish<dynamic>(producerName, msgInfoObj.Message);
+                        Publish<dynamic>(producerName, item);
                     }
                 }
             }
