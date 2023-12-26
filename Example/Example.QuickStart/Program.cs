@@ -16,7 +16,7 @@ var producer = new RabbitProducer(new[]
         Type = ExchangeType.Topic,
         Durable = true,
         AutoDelete = false,
-        Arguments = null,
+        AutomaticRecoveryEnabled = true
     }
 });
 

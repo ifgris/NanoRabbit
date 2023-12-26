@@ -3,78 +3,71 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
-using NanoRabbit.Consumer;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Producer;
 
 var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddScoped<RabbitProducer>(_ =>
+builder.Services.AddRabbitProducer(options =>
 {
-    var producer = new RabbitProducer(new[]
+    options.AddProducer(new ProducerOptions
     {
-        new ProducerOptions
-        {
-            ProducerName = "FooFirstQueueProducer",
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "FooHost",
-            ExchangeName = "amq.topic",
-            RoutingKey = "FooFirstKey",
-            Type = ExchangeType.Topic,
-            Durable = true,
-            AutoDelete = false,
-            Arguments = null,
-        },
-        new ProducerOptions
-        {
-            ProducerName = "BarFirstQueueProducer",
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "BarHost",
-            ExchangeName = "amq.direct",
-            RoutingKey = "BarFirstKey",
-            Type = ExchangeType.Direct,
-            Durable = true,
-            AutoDelete = false,
-            Arguments = null,
-        }
+        ProducerName = "FooFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        ExchangeName = "amq.topic",
+        RoutingKey = "FooFirstKey",
+        Type = ExchangeType.Topic,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+        AutomaticRecoveryEnabled = true
     });
-    return producer;
+    options.AddProducer(new ProducerOptions
+    {
+        ProducerName = "BarFirstQueueProducer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "BarHost",
+        ExchangeName = "amq.direct",
+        RoutingKey = "BarFirstKey",
+        Type = ExchangeType.Direct,
+        Durable = true,
+        AutoDelete = false,
+        Arguments = null,
+        AutomaticRecoveryEnabled = true
+    });
 });
 
-builder.Services.AddScoped<RabbitConsumer>(_ =>
+builder.Services.AddRabbitConsumer(options =>
 {
-    var consumer = new RabbitConsumer(new[]
+    options.AddConsumer(new ConsumerOptions
     {
-        new ConsumerOptions
-        {
-            ConsumerName = "FooFirstQueueConsumer",
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "FooHost",
-            QueueName = "FooFirstQueue"
-        },
-        new ConsumerOptions
-        {
-            ConsumerName = "BarFirstQueueConsumer",
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
-            VirtualHost = "BarHost",
-            QueueName = "BarFirstQueue"
-        }
+        ConsumerName = "FooFirstQueueConsumer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "FooHost",
+        QueueName = "FooFirstQueue",
+        AutomaticRecoveryEnabled = true
     });
-    return consumer;
+    options.AddConsumer(new ConsumerOptions
+    {
+        ConsumerName = "BarFirstQueueConsumer",
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "admin",
+        Password = "admin",
+        VirtualHost = "BarHost",
+        QueueName = "BarFirstQueue", AutomaticRecoveryEnabled = true
+    });
 });
 
 builder.Logging.AddConsole();
