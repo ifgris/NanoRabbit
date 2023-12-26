@@ -75,7 +75,6 @@ public class RabbitProducer
             {
             }
         }
-       
     }
 
     /// <summary>
@@ -156,28 +155,16 @@ public class RabbitProducer
         {
             if (dicResult.MessageList != null)
             {
-                foreach (var msgInfoObj in dicResult.MessageList)
+                if (message != null)
                 {
-                    if (ReferenceEquals(msgInfoObj.Message, message))
+                    dicResult.MessageList.Enqueue(new MsgInfoModel
                     {
-                        msgInfoObj.RetryCount++;
-                        tryFlag = _resendMsgDic.TryUpdate(producerName, dicResult, dicResult);
-                    }
-                    else
-                    {
-                        if (message != null)
-                        {
-                            var msgInfoModels = dicResult.MessageList.Append(new MsgInfoModel
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                GenerateTime = DateTime.Now,
-                                RetryCount = 0,
-                                Message = message
-                            });
-                        }
-
-                        tryFlag = _resendMsgDic.TryUpdate(producerName, dicResult, dicResult);
-                    }
+                        Id = Guid.NewGuid().ToString(),
+                        GenerateTime = DateTime.Now,
+                        RetryCount = 0,
+                        Message = message
+                    });
+                    tryFlag = true;
                 }
             }
         }
@@ -186,23 +173,21 @@ public class RabbitProducer
             // Create message list if doesn't exists
             var resendList = new ResendMsgModel
             {
-                MessageList = new List<MsgInfoModel>
-                {
-                    new MsgInfoModel
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        GenerateTime = DateTime.Now,
-                        RetryCount = 0,
-                        Message = message
-                    }
-                }
+                MessageList = new ConcurrentQueue<MsgInfoModel>()
             };
+            resendList.MessageList.Enqueue(new MsgInfoModel
+            {
+                Id = Guid.NewGuid().ToString(),
+                GenerateTime = DateTime.Now,
+                RetryCount = 0,
+                Message = message
+            });
             tryFlag = _resendMsgDic.TryAdd(producerName, resendList);
         }
 
         return tryFlag;
     }
-    
+
     /// <summary>
     /// Resend the failed messages
     /// </summary>
@@ -218,7 +203,6 @@ public class RabbitProducer
                     foreach (var msgInfoObj in resultDic.MessageList)
                     {
                         Publish<dynamic>(producerName, msgInfoObj.Message);
-                        
                     }
                 }
             }

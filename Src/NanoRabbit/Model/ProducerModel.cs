@@ -1,11 +1,13 @@
-﻿namespace NanoRabbit.Model;
+﻿using System.Collections.Concurrent;
+
+namespace NanoRabbit.Model;
 
 /// <summary>
 /// Resend message model
 /// </summary>
 public class ResendMsgModel
 {
-    public List<MsgInfoModel>? MessageList { get; set; }
+    public ConcurrentQueue<MsgInfoModel>? MessageList { get; set; }
 }
 
 public class MsgInfoModel
