@@ -12,7 +12,7 @@ public static class RabbitProducerExtensions
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
     
-        services.AddScoped<RabbitProducer>(_ =>
+        services.AddScoped<IRabbitProducer, RabbitProducer>(_ =>
         {
             var producer = new RabbitProducer(options.Producers);
             return producer;

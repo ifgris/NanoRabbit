@@ -12,7 +12,7 @@ public static class RabbitConsumerExtensions
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
     
-        services.AddScoped<RabbitConsumer>(_ =>
+        services.AddScoped<IRabbitConsumer, RabbitConsumer>(_ =>
         {
             var consumer = new RabbitConsumer(options.Consumers);
             return consumer;

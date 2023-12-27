@@ -7,10 +7,16 @@ using NanoRabbit.Model;
 
 namespace NanoRabbit.Producer;
 
+public interface IRabbitProducer
+{
+    public void Publish<T>(string producerName, T message);
+    public void PublishBatch<T>(string producerName, IEnumerable<T> messageList);
+}
+
 /// <summary>
 /// RabbitProducer, can be inherited by custom Producer.
 /// </summary>
-public class RabbitProducer
+public class RabbitProducer : IRabbitProducer
 {
     private readonly IEnumerable<ProducerOptions> _producerOptionsList;
     private readonly ConcurrentDictionary<string, ResendMsgModel> _resendMsgDic = new();
@@ -65,7 +71,7 @@ public class RabbitProducer
                         body: body);
                 }
             }
-            
+
             // resend cached messages
             if (connectionOption.AutomaticResend)
             {

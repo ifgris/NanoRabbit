@@ -5,10 +5,21 @@ using System.Text;
 
 namespace NanoRabbit.Consumer;
 
+public interface IRabbitConsumer
+{
+    void Receive(
+        string consumerName,
+        Action<string> messageHandler,
+        uint prefetchSize = 0,
+        ushort prefetchCount = 0,
+        bool qosGlobal = false
+    );
+}
+
 /// <summary>
 /// RabbitConsumer, can be inherited by custom Consumer
 /// </summary>
-public class RabbitConsumer
+public class RabbitConsumer : IRabbitConsumer
 {
     private readonly IEnumerable<ConsumerOptions> _consumerOptionsList;
 
