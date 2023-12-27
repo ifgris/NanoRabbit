@@ -7,7 +7,7 @@ namespace NanoRabbit.Consumer;
 
 public interface IRabbitConsumer
 {
-    void Receive(
+    Task Receive(
         string consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
@@ -38,7 +38,7 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="prefetchSize">BasicQos prefetchSize</param>
     /// <param name="prefetchCount">BasicQos prefetchCount</param>
     /// <param name="qosGlobal">BasicQos global</param>
-    public void Receive(
+    public async Task Receive(
         string consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
@@ -53,6 +53,8 @@ public class RabbitConsumer : IRabbitConsumer
             throw new Exception($"Consumer: {consumerName} not found!");
         }
 
+        var tcs = new TaskCompletionSource<object>();
+        
         try
         {
             var factory = new ConnectionFactory
@@ -63,33 +65,6 @@ public class RabbitConsumer : IRabbitConsumer
                 Password = connectionOption.Password,
                 VirtualHost = connectionOption.VirtualHost,
                 AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
-                // SocketFactory = null,
-                // AmqpUriSslProtocols = SslProtocols.None,
-                // AuthMechanisms = null,
-                // DispatchConsumersAsync = false,
-                // ConsumerDispatchConcurrency = 0,
-                // NetworkRecoveryInterval = default,
-                // MemoryPool = null,
-                // HandshakeContinuationTimeout = default,
-                // ContinuationTimeout = default,
-                // EndpointResolverFactory = null,
-                // RequestedConnectionTimeout = default,
-                // SocketReadTimeout = default,
-                // SocketWriteTimeout = default,
-                // Ssl = null,
-                // TopologyRecoveryEnabled = false,
-                // TopologyRecoveryFilter = null,
-                // TopologyRecoveryExceptionHandler = null,
-                // Endpoint = null,
-                // ClientProperties = null,
-                // CredentialsProvider = null,
-                // CredentialsRefresher = null,
-                // RequestedChannelMax = 0,
-                // RequestedFrameMax = 0,
-                // RequestedHeartbeat = default,
-                // MaxMessageSize = 0,
-                // Uri = null,
-                // ClientProvidedName = null
             };
 
             using (var connection = factory.CreateConnection())
@@ -122,11 +97,13 @@ public class RabbitConsumer : IRabbitConsumer
                         autoAck: false,
                         consumer: consumer);
 
+                    // // wait for message
+                    // while (true)
+                    // {
+                    //     Task.Delay(1000).Wait();
+                    // }
                     // wait for message
-                    while (true)
-                    {
-                        Task.Delay(1000).Wait();
-                    }
+                    await tcs.Task; // await for the TaskCompletionSource to be signaled
                 }
             }
         }
@@ -135,5 +112,7 @@ public class RabbitConsumer : IRabbitConsumer
             Console.WriteLine(e);
             // throw;
         }
+
+        // return Task.CompletedTask;
     }
 }
