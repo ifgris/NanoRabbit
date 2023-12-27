@@ -7,9 +7,9 @@ namespace Example.NLog;
 public class ConsumeService : BackgroundService
 {
     private readonly ILogger<ConsumeService> _logger;
-    private readonly RabbitConsumer _consumer;
+    private readonly IRabbitConsumer _consumer;
 
-    public ConsumeService(RabbitConsumer consumer, ILogger<ConsumeService> logger)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<ConsumeService> logger)
     {
         _consumer = consumer;
         _logger = logger;

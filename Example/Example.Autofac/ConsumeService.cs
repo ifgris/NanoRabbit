@@ -5,9 +5,9 @@ namespace Example.Autofac;
 
 public class ConsumeService : BackgroundService
 {
-    private readonly RabbitConsumer _consumer;
+    private readonly IRabbitConsumer _consumer;
 
-    public ConsumeService(RabbitConsumer consumer)
+    public ConsumeService(IRabbitConsumer consumer)
     {
         _consumer = consumer;
     }
@@ -16,7 +16,7 @@ public class ConsumeService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine($"Receive: {message}"); },
+            _consumer.Receive("FooFirstQueueConsumer", HandleMessage,
                 prefetchCount: 500);
         }
 
@@ -26,5 +26,10 @@ public class ConsumeService : BackgroundService
     public override Task StopAsync(CancellationToken cancellationToken)
     {
         return base.StartAsync(cancellationToken);
+    }
+
+    private void HandleMessage(string message)
+    {
+        Console.WriteLine(message);
     }
 }

@@ -7,9 +7,9 @@ namespace Example.SimpleDI;
 public class PublishService : BackgroundService
 {
     private readonly ILogger<PublishService> _logger;
-    private readonly RabbitProducer _producer;
+    private readonly IRabbitProducer _producer;
 
-    public PublishService(ILogger<PublishService> logger, RabbitProducer producer)
+    public PublishService(ILogger<PublishService> logger, IRabbitProducer producer)
     {
         _logger = logger;
         _producer = producer;

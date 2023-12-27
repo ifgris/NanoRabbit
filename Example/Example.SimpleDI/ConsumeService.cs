@@ -5,9 +5,9 @@ namespace Example.SimpleDI;
 
 public class ConsumeService : BackgroundService
 {
-    private readonly RabbitConsumer _consumer;
+    private readonly IRabbitConsumer _consumer;
 
-    public ConsumeService(RabbitConsumer consumer)
+    public ConsumeService(IRabbitConsumer consumer)
     {
         _consumer = consumer;
     }
