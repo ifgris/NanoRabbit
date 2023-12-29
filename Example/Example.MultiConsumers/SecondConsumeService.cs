@@ -17,7 +17,7 @@ public class SecondConsumeService : BackgroundService
         Console.WriteLine("FooSecondQueueConsumer running...");
         while (!stoppingToken.IsCancellationRequested)
         {
-            await _consumer.Receive("FooSecondQueueConsumer", message => { Console.WriteLine(message); });
+            _consumer.Receive("FooSecondQueueConsumer", message => { Console.WriteLine(message); });
             await Task.Delay(1000, stoppingToken);
         }
     }
