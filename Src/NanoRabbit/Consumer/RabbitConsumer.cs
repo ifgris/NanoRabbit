@@ -7,7 +7,17 @@ namespace NanoRabbit.Consumer;
 
 public interface IRabbitConsumer
 {
-    Task Receive(
+    public ConsumerOptions GetMe(string consumerName);
+    
+    public void Receive(
+        string consumerName,
+        Action<string> messageHandler,
+        uint prefetchSize = 0,
+        ushort prefetchCount = 0,
+        bool qosGlobal = false
+    );
+
+    public Task ReceiveAsync(
         string consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
@@ -31,6 +41,24 @@ public class RabbitConsumer : IRabbitConsumer
     }
 
     /// <summary>
+    /// Get ConsumerOptions.
+    /// </summary>
+    /// <param name="consumerName"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public ConsumerOptions GetMe(string consumerName)
+    {
+        var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == consumerName);
+
+        if (connectionOption == null)
+        {
+            throw new Exception($"Consumer: {consumerName} not found!");
+        }
+
+        return connectionOption;
+    }
+
+    /// <summary>
     /// Receive messages from queue
     /// </summary>
     /// <param name="consumerName">Name of consumer</param>
@@ -38,7 +66,80 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="prefetchSize">BasicQos prefetchSize</param>
     /// <param name="prefetchCount">BasicQos prefetchCount</param>
     /// <param name="qosGlobal">BasicQos global</param>
-    public async Task Receive(
+    public void Receive(
+        string consumerName,
+        Action<string> messageHandler,
+        uint prefetchSize = 0,
+        ushort prefetchCount = 0,
+        bool qosGlobal = false
+    )
+    {
+        var connectionOption = GetMe(consumerName);
+
+        try
+        {
+            Task.Run(() =>
+            {
+                var factory = new ConnectionFactory
+                {
+                    HostName = connectionOption.HostName,
+                    Port = connectionOption.Port,
+                    UserName = connectionOption.UserName,
+                    Password = connectionOption.Password,
+                    VirtualHost = connectionOption.VirtualHost,
+                    AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+                };
+    
+                using (var connection = factory.CreateConnection())
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
+                        var consumer = new EventingBasicConsumer(channel);
+    
+                        consumer.Received += (_, ea) =>
+                        {
+                            var body = ea.Body.ToArray();
+                            var message = Encoding.UTF8.GetString(body);
+    
+                            try
+                            {
+                                // handle incoming message
+                                messageHandler(message);
+                                channel.BasicAck(ea.DeliveryTag, false);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
+                        };
+    
+                        channel.BasicConsume(
+                            queue: connectionOption.QueueName,
+                            autoAck: false,
+                            consumer: consumer);
+                        
+                        Task.Delay(1000).Wait();
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            // throw;
+        }
+    }
+
+    /// <summary>
+    /// Receive messages from queue
+    /// </summary>
+    /// <param name="consumerName">Name of consumer</param>
+    /// <param name="messageHandler"></param>
+    /// <param name="prefetchSize">BasicQos prefetchSize</param>
+    /// <param name="prefetchCount">BasicQos prefetchCount</param>
+    /// <param name="qosGlobal">BasicQos global</param>
+    public async Task ReceiveAsync(
         string consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
@@ -54,7 +155,7 @@ public class RabbitConsumer : IRabbitConsumer
         }
 
         var tcs = new TaskCompletionSource<object>();
-        
+
         try
         {
             var factory = new ConnectionFactory
@@ -67,15 +168,17 @@ public class RabbitConsumer : IRabbitConsumer
                 AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
             };
 
+            // use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations
+            factory.DispatchConsumersAsync = true;
+
             using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
-                    // TODO: will move to params
                     channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
-                    var consumer = new EventingBasicConsumer(channel);
+                    var consumer = new AsyncEventingBasicConsumer(channel);
 
-                    consumer.Received += (_, ea) =>
+                    consumer.Received += async (_, ea) =>
                     {
                         var body = ea.Body.ToArray();
                         var message = Encoding.UTF8.GetString(body);
@@ -85,6 +188,7 @@ public class RabbitConsumer : IRabbitConsumer
                             // handle incoming message
                             messageHandler(message);
                             channel.BasicAck(ea.DeliveryTag, false);
+                            await Task.Yield();
                         }
                         catch (Exception e)
                         {
@@ -97,11 +201,6 @@ public class RabbitConsumer : IRabbitConsumer
                         autoAck: false,
                         consumer: consumer);
 
-                    // // wait for message
-                    // while (true)
-                    // {
-                    //     Task.Delay(1000).Wait();
-                    // }
                     // wait for message
                     await tcs.Task; // await for the TaskCompletionSource to be signaled
                 }
@@ -112,7 +211,5 @@ public class RabbitConsumer : IRabbitConsumer
             Console.WriteLine(e);
             // throw;
         }
-
-        // return Task.CompletedTask;
     }
 }
