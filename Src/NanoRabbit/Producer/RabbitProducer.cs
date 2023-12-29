@@ -9,7 +9,10 @@ namespace NanoRabbit.Producer;
 
 public interface IRabbitProducer
 {
+    public ProducerOptions GetMe(string producerName);
+    
     public void Publish<T>(string producerName, T message);
+    
     public void PublishBatch<T>(string producerName, IEnumerable<T> messageList);
 }
 
@@ -27,11 +30,11 @@ public class RabbitProducer : IRabbitProducer
     }
 
     /// <summary>
-    /// Publish message to queue(s)
+    /// Get ProducerOptions.
     /// </summary>
     /// <param name="producerName"></param>
-    /// <param name="message"></param>
-    public void Publish<T>(string producerName, T message)
+    /// <returns></returns>
+    public ProducerOptions GetMe(string producerName)
     {
         var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
 
@@ -39,6 +42,18 @@ public class RabbitProducer : IRabbitProducer
         {
             throw new Exception($"Producer: {producerName} not found!");
         }
+
+        return connectionOption;
+    }
+    
+    /// <summary>
+    /// Publish message to queue(s)
+    /// </summary>
+    /// <param name="producerName"></param>
+    /// <param name="message"></param>
+    public void Publish<T>(string producerName, T message)
+    {
+        var connectionOption = GetMe(producerName);
 
         try
         {
@@ -85,6 +100,7 @@ public class RabbitProducer : IRabbitProducer
             }
             else
             {
+                Console.WriteLine(e.Message);
             }
         }
     }
@@ -147,7 +163,6 @@ public class RabbitProducer : IRabbitProducer
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
             foreach (var message in messageObjs)
             {
                 if (TryAddResendMessage(producerName, message))
@@ -155,6 +170,7 @@ public class RabbitProducer : IRabbitProducer
                 }
                 else
                 {
+                    Console.WriteLine(e);
                 }
             }
         }
