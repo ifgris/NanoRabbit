@@ -3,6 +3,7 @@ using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Model;
 
 namespace NanoRabbit.Producer;
@@ -21,12 +22,14 @@ public interface IRabbitProducer
 /// </summary>
 public class RabbitProducer : IRabbitProducer
 {
+    private readonly ILogger<RabbitProducer> _logger;
     private readonly IEnumerable<ProducerOptions> _producerOptionsList;
     private readonly ConcurrentDictionary<string, ResendMsgModel> _resendMsgDic = new();
 
-    public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList)
+    public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList, ILogger<RabbitProducer> logger)
     {
         _producerOptionsList = producerOptionsList;
+        _logger = logger;
     }
 
     /// <summary>
@@ -84,6 +87,8 @@ public class RabbitProducer : IRabbitProducer
                         routingKey: connectionOption.RoutingKey,
                         basicProperties: properties,
                         body: body);
+                    
+                    _logger.LogInformation("Message sent.");
                 }
             }
 

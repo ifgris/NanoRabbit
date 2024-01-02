@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.Producer;
 
@@ -12,9 +13,10 @@ public static class RabbitProducerExtensions
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
     
-        services.AddScoped<IRabbitProducer, RabbitProducer>(_ =>
+        services.AddScoped<IRabbitProducer, RabbitProducer>(provider =>
         {
-            var producer = new RabbitProducer(options.Producers);
+            var logger = provider.GetRequiredService<ILogger<RabbitProducer>>();
+            var producer = new RabbitProducer(options.Producers, logger);
             return producer;
         });
     
