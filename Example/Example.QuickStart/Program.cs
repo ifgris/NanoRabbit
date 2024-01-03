@@ -1,5 +1,9 @@
-﻿using NanoRabbit.Connection;
+﻿using Microsoft.Extensions.Logging;
+using NanoRabbit.Connection;
 using NanoRabbit.Producer;
+
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+var logger = loggerFactory.CreateLogger<RabbitProducer>();
 
 var producer = new RabbitProducer(new[]
 {
@@ -18,6 +22,6 @@ var producer = new RabbitProducer(new[]
         AutoDelete = false,
         AutomaticRecoveryEnabled = true
     }
-});
+}, logger);
 
 producer.Publish("FooFirstQueueProducer", "Hello");
