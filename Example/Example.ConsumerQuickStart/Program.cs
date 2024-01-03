@@ -16,10 +16,14 @@ var consumer = new RabbitConsumer(new[]
     }
 });
 
+int count = 0;
 while (true)
 {
     consumer.Receive("FooSecondQueueConsumer", message =>
     {
+        count++;
+        Console.WriteLine(count);
         Console.WriteLine(message);
     });
+    Task.Delay(1000);
 }
