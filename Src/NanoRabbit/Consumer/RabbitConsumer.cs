@@ -108,13 +108,13 @@ public class RabbitConsumer : IRabbitConsumer
                             try
                             {
                                 // handle incoming message
-                                _logger?.LogInformation("Received message.");
+                                _logger?.LogDebug($"Received message: {message}");
                                 messageHandler(message);
                                 channel.BasicAck(ea.DeliveryTag, false);
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine(e);
+                                _logger?.LogError(e, e.Message);
                             }
                         };
 
@@ -130,8 +130,7 @@ public class RabbitConsumer : IRabbitConsumer
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            // throw;
+            _logger?.LogError(e, e.Message);
         }
     }
 
@@ -190,13 +189,14 @@ public class RabbitConsumer : IRabbitConsumer
                         try
                         {
                             // handle incoming message
+                            _logger?.LogDebug($"Received message: {message}");
                             messageHandler(message);
                             channel.BasicAck(ea.DeliveryTag, false);
                             await Task.Yield();
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e);
+                            _logger?.LogError(e, e.Message);
                         }
                     };
 
@@ -212,8 +212,7 @@ public class RabbitConsumer : IRabbitConsumer
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            // throw;
+            _logger?.LogError(e, e.Message);
         }
     }
 }

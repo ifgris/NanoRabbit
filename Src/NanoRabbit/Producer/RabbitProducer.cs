@@ -88,7 +88,7 @@ public class RabbitProducer : IRabbitProducer
                         basicProperties: properties,
                         body: body);
                     
-                    _logger?.LogInformation("Message sent.");
+                    _logger?.LogDebug($"Message sent: {messageStr}");
                 }
             }
 
@@ -105,7 +105,7 @@ public class RabbitProducer : IRabbitProducer
             }
             else
             {
-                Console.WriteLine(e.Message);
+                _logger?.LogError(e, e.Message);
             }
         }
     }
@@ -157,6 +157,8 @@ public class RabbitProducer : IRabbitProducer
                             basicProperties: properties,
                             body: body);
                     }
+                    
+                    _logger?.LogDebug($"Batch messages sent.");
                 }
             }
 
@@ -175,7 +177,7 @@ public class RabbitProducer : IRabbitProducer
                 }
                 else
                 {
-                    Console.WriteLine(e);
+                    _logger?.LogError(e, e.Message);
                 }
             }
         }
