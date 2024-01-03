@@ -12,9 +12,9 @@ public interface IRabbitProducer
 {
     public ProducerOptions GetMe(string producerName);
     
-    public void Publish<T>(string producerName, T message);
+    public void Publish<T>(string producerName, T? message);
     
-    public void PublishBatch<T>(string producerName, IEnumerable<T> messageList);
+    public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList);
 }
 
 /// <summary>
@@ -54,7 +54,7 @@ public class RabbitProducer : IRabbitProducer
     /// </summary>
     /// <param name="producerName"></param>
     /// <param name="message"></param>
-    public void Publish<T>(string producerName, T message)
+    public void Publish<T>(string producerName, T? message)
     {
         var connectionOption = GetMe(producerName);
 
@@ -115,7 +115,7 @@ public class RabbitProducer : IRabbitProducer
     /// </summary>
     /// <param name="producerName"></param>
     /// <param name="messageList"></param>
-    public void PublishBatch<T>(string producerName, IEnumerable<T> messageList)
+    public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList)
     {
         var connectionOption = _producerOptionsList.FirstOrDefault(o => o.ProducerName == producerName);
 
@@ -189,7 +189,7 @@ public class RabbitProducer : IRabbitProducer
     /// <param name="producerName"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    private bool TryAddResendMessage<T>(string producerName, T message)
+    private bool TryAddResendMessage<T>(string producerName, T? message)
     {
         bool tryFlag = false;
 

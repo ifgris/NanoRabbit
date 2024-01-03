@@ -12,7 +12,7 @@ public interface IRabbitConsumer
 
     public void Receive(
         string consumerName,
-        Action<string> messageHandler,
+        Action<string?> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
         bool qosGlobal = false
@@ -71,7 +71,7 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="qosGlobal">BasicQos global</param>
     public void Receive(
         string consumerName,
-        Action<string> messageHandler,
+        Action<string?> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
         bool qosGlobal = false
