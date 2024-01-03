@@ -79,7 +79,17 @@ public class RabbitProducer : IRabbitProducer
                         arguments: connectionOption.Arguments);
                     var properties = channel.CreateBasicProperties();
 
-                    var messageStr = JsonConvert.SerializeObject(message);
+                    string messageStr;
+                    
+                    if (typeof(T) == typeof(string))
+                    {
+                        messageStr = message.ToString();
+                    }
+                    else
+                    {
+                        messageStr = JsonConvert.SerializeObject(message);
+                    }
+                    
                     var body = Encoding.UTF8.GetBytes(messageStr);
 
                     channel.BasicPublish(
