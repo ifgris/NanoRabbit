@@ -5,9 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
-using NanoRabbit.Consumer;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Producer;
 using NLog;
 using NLog.Extensions.Logging;
 

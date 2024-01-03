@@ -66,7 +66,8 @@ builder.Services.AddRabbitConsumer(options =>
         UserName = "admin",
         Password = "admin",
         VirtualHost = "BarHost",
-        QueueName = "BarFirstQueue", AutomaticRecoveryEnabled = true
+        QueueName = "BarFirstQueue", 
+        AutomaticRecoveryEnabled = true
     });
 });
 
