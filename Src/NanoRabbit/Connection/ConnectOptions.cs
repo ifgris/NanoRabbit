@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using RabbitMQ.Client;
-
-namespace NanoRabbit.Connection;
+﻿namespace NanoRabbit.Connection;
 
 
 /// <summary>
@@ -68,11 +65,11 @@ public class ProducerOptions
     /// Set to false to disable automatic connection recovery. Defaults to true.
     /// </summary>
     public bool AutomaticRecoveryEnabled { get; set; } = true;
-    
+
     /// <summary>
     /// Set to true to enable automatic resend cached massages. Defaults to false.
     /// </summary>
-    public bool AutomaticResend => false;
+    public bool AutomaticResend { get; set; } = false;
 
     /// <summary>
     /// Exchange additional arguments
@@ -149,6 +146,21 @@ public class RabbitConsumerOptions
 }
 
 /// <summary>
+/// NanoRabbit configs in appsettings.json
+/// </summary>
+public class RabbitConfiguration
+{
+    /// <summary>
+    /// RabbitProducer configs
+    /// </summary>
+    public List<ProducerOptions>? Producers { get; set; }
+    /// <summary>
+    /// RabbitConsumer configs
+    /// </summary>
+    public List<ConsumerOptions>? Consumers { get; set; }
+}
+
+/// <summary>
 /// Convenience class providing compile-time names for standard exchange types.
 /// </summary>
 /// <remarks>
@@ -188,18 +200,4 @@ public static class ExchangeType
     {
         return s_all;
     }
-}
-
-public interface IConnectionOption 
-{
-    IConnectionFactory ConnectionFactory { get; }
-
-    void ExchangeDeclare(string name, string type);
-
-    void QueueDeclare(string name);
-
-    void QueueBind(string queue, string exchange, string routingKey);
-
-    // Methods same with RabbitMQ API
-    // eg: Publish, Consume
 }
