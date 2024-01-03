@@ -12,7 +12,7 @@ public interface IRabbitConsumer
 
     public void Receive(
         string consumerName,
-        Action<string?> messageHandler,
+        Action<string> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
         bool qosGlobal = false
@@ -71,7 +71,7 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="qosGlobal">BasicQos global</param>
     public void Receive(
         string consumerName,
-        Action<string?> messageHandler,
+        Action<string> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
         bool qosGlobal = false
@@ -79,54 +79,49 @@ public class RabbitConsumer : IRabbitConsumer
     {
         var connectionOption = GetMe(consumerName);
 
+            var factory = new ConnectionFactory
+            {
+                HostName = connectionOption.HostName,
+                Port = connectionOption.Port,
+                UserName = connectionOption.UserName,
+                Password = connectionOption.Password,
+                VirtualHost = connectionOption.VirtualHost,
+                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+            };
+
         try
         {
-            Task.Run(() =>
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
             {
-                var factory = new ConnectionFactory
+                channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
+                var consumer = new EventingBasicConsumer(channel);
+
+                consumer.Received += (_, ea) =>
                 {
-                    HostName = connectionOption.HostName,
-                    Port = connectionOption.Port,
-                    UserName = connectionOption.UserName,
-                    Password = connectionOption.Password,
-                    VirtualHost = connectionOption.VirtualHost,
-                    AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+
+                    try
+                    {
+                        // handle incoming message
+                        _logger?.LogDebug($"Received message: {message}");
+                        messageHandler(message);
+                        channel.BasicAck(ea.DeliveryTag, false);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger?.LogError(e, e.Message);
+                    }
                 };
 
-                using (var connection = factory.CreateConnection())
-                {
-                    using (var channel = connection.CreateModel())
-                    {
-                        channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
-                        var consumer = new EventingBasicConsumer(channel);
+                channel.BasicConsume(
+                    queue: connectionOption.QueueName,
+                    autoAck: false,
+                    consumer: consumer);
 
-                        consumer.Received += (_, ea) =>
-                        {
-                            var body = ea.Body.ToArray();
-                            var message = Encoding.UTF8.GetString(body);
-
-                            try
-                            {
-                                // handle incoming message
-                                _logger?.LogDebug($"Received message: {message}");
-                                messageHandler(message);
-                                channel.BasicAck(ea.DeliveryTag, false);
-                            }
-                            catch (Exception e)
-                            {
-                                _logger?.LogError(e, e.Message);
-                            }
-                        };
-
-                        channel.BasicConsume(
-                            queue: connectionOption.QueueName,
-                            autoAck: false,
-                            consumer: consumer);
-
-                        Task.Delay(1000).Wait();
-                    }
-                }
-            });
+                Task.Delay(1000).Wait();
+            }
         }
         catch (Exception e)
         {
@@ -175,39 +170,37 @@ public class RabbitConsumer : IRabbitConsumer
             factory.DispatchConsumersAsync = true;
 
             using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
             {
-                using (var channel = connection.CreateModel())
+                channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
+                var consumer = new AsyncEventingBasicConsumer(channel);
+
+                consumer.Received += async (_, ea) =>
                 {
-                    channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
-                    var consumer = new AsyncEventingBasicConsumer(channel);
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
 
-                    consumer.Received += async (_, ea) =>
+                    try
                     {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
+                        // handle incoming message
+                        _logger?.LogDebug($"Received message: {message}");
+                        messageHandler(message);
+                        channel.BasicAck(ea.DeliveryTag, false);
+                        await Task.Yield();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger?.LogError(e, e.Message);
+                    }
+                };
 
-                        try
-                        {
-                            // handle incoming message
-                            _logger?.LogDebug($"Received message: {message}");
-                            messageHandler(message);
-                            channel.BasicAck(ea.DeliveryTag, false);
-                            await Task.Yield();
-                        }
-                        catch (Exception e)
-                        {
-                            _logger?.LogError(e, e.Message);
-                        }
-                    };
+                channel.BasicConsume(
+                    queue: connectionOption.QueueName,
+                    autoAck: false,
+                    consumer: consumer);
 
-                    channel.BasicConsume(
-                        queue: connectionOption.QueueName,
-                        autoAck: false,
-                        consumer: consumer);
-
-                    // wait for message
-                    await tcs.Task; // await for the TaskCompletionSource to be signaled
-                }
+                // wait for message
+                await tcs.Task; // await for the TaskCompletionSource to be signaled
             }
         }
         catch (Exception e)
