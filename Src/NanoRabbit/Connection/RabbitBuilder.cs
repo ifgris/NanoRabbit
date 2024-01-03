@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace NanoRabbit.Connection;
 
@@ -49,5 +50,19 @@ public class ConsumerOptionsBuilder
         {
             Consumers = _consumers
         };
+    }
+}
+
+public static class ConfigurationExtensions
+{
+    /// <summary>
+    /// Read NanoRabbit configs in appsettings.json
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    public static RabbitConfiguration? ReadSettings(this IConfiguration configuration)
+    {
+        var rabbitConfig = configuration.GetSection("NanoRabbit").Get<RabbitConfiguration>();
+        return rabbitConfig;
     }
 }
