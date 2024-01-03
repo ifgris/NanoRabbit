@@ -22,11 +22,11 @@ public interface IRabbitProducer
 /// </summary>
 public class RabbitProducer : IRabbitProducer
 {
-    private readonly ILogger<RabbitProducer> _logger;
+    private readonly ILogger<RabbitProducer>? _logger;
     private readonly IEnumerable<ProducerOptions> _producerOptionsList;
     private readonly ConcurrentDictionary<string, ResendMsgModel> _resendMsgDic = new();
 
-    public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList, ILogger<RabbitProducer> logger)
+    public RabbitProducer(IEnumerable<ProducerOptions> producerOptionsList, ILogger<RabbitProducer>? logger = null)
     {
         _producerOptionsList = producerOptionsList;
         _logger = logger;
@@ -88,7 +88,7 @@ public class RabbitProducer : IRabbitProducer
                         basicProperties: properties,
                         body: body);
                     
-                    _logger.LogInformation("Message sent.");
+                    _logger?.LogInformation("Message sent.");
                 }
             }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.Consumer;
 
@@ -12,9 +13,10 @@ public static class RabbitConsumerExtensions
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
     
-        services.AddScoped<IRabbitConsumer, RabbitConsumer>(_ =>
+        services.AddScoped<IRabbitConsumer, RabbitConsumer>(provider =>
         {
-            var consumer = new RabbitConsumer(options.Consumers);
+            var logger = provider.GetRequiredService<ILogger<RabbitConsumer>>();
+            var consumer = new RabbitConsumer(options.Consumers, logger);
             return consumer;
         });
     

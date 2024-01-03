@@ -2,13 +2,14 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace NanoRabbit.Consumer;
 
 public interface IRabbitConsumer
 {
     public ConsumerOptions GetMe(string consumerName);
-    
+
     public void Receive(
         string consumerName,
         Action<string> messageHandler,
@@ -31,13 +32,15 @@ public interface IRabbitConsumer
 /// </summary>
 public class RabbitConsumer : IRabbitConsumer
 {
+    private readonly ILogger<RabbitConsumer>? _logger;
     private readonly IEnumerable<ConsumerOptions> _consumerOptionsList;
 
     public delegate void MessageHandler(string message);
 
-    public RabbitConsumer(IEnumerable<ConsumerOptions> consumerOptionsList)
+    public RabbitConsumer(IEnumerable<ConsumerOptions> consumerOptionsList, ILogger<RabbitConsumer>? logger = null)
     {
         _consumerOptionsList = consumerOptionsList;
+        _logger = logger;
     }
 
     /// <summary>
@@ -89,22 +92,23 @@ public class RabbitConsumer : IRabbitConsumer
                     VirtualHost = connectionOption.VirtualHost,
                     AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
                 };
-    
+
                 using (var connection = factory.CreateConnection())
                 {
                     using (var channel = connection.CreateModel())
                     {
                         channel.BasicQos(prefetchSize, prefetchCount, qosGlobal);
                         var consumer = new EventingBasicConsumer(channel);
-    
+
                         consumer.Received += (_, ea) =>
                         {
                             var body = ea.Body.ToArray();
                             var message = Encoding.UTF8.GetString(body);
-    
+
                             try
                             {
                                 // handle incoming message
+                                _logger?.LogInformation("Received message.");
                                 messageHandler(message);
                                 channel.BasicAck(ea.DeliveryTag, false);
                             }
@@ -113,12 +117,12 @@ public class RabbitConsumer : IRabbitConsumer
                                 Console.WriteLine(e);
                             }
                         };
-    
+
                         channel.BasicConsume(
                             queue: connectionOption.QueueName,
                             autoAck: false,
                             consumer: consumer);
-                        
+
                         Task.Delay(1000).Wait();
                     }
                 }
