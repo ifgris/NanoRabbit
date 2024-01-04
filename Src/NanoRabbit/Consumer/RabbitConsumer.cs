@@ -79,15 +79,15 @@ public class RabbitConsumer : IRabbitConsumer
     {
         var connectionOption = GetMe(consumerName);
 
-            var factory = new ConnectionFactory
-            {
-                HostName = connectionOption.HostName,
-                Port = connectionOption.Port,
-                UserName = connectionOption.UserName,
-                Password = connectionOption.Password,
-                VirtualHost = connectionOption.VirtualHost,
-                AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
-            };
+        var factory = new ConnectionFactory
+        {
+            HostName = connectionOption.HostName,
+            Port = connectionOption.Port,
+            UserName = connectionOption.UserName,
+            Password = connectionOption.Password,
+            VirtualHost = connectionOption.VirtualHost,
+            AutomaticRecoveryEnabled = connectionOption.AutomaticRecoveryEnabled
+        };
 
         try
         {

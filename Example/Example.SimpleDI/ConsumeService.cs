@@ -3,26 +3,18 @@ using NanoRabbit.Consumer;
 
 namespace Example.SimpleDI;
 
-public class ConsumeService : BackgroundService
+public class ConsumeService : RabbitSubscriber
 {
     private readonly IRabbitConsumer _consumer;
 
-    public ConsumeService(IRabbitConsumer consumer)
+    public ConsumeService(IRabbitConsumer consumer, string consumerName) : base(consumer, consumerName)
     {
         _consumer = consumer;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public override bool HandleMessage(string message)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _consumer.Receive("FooFirstQueueConsumer", message => { Console.WriteLine(message); });
-            await Task.Delay(1000, stoppingToken);
-        }
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        return base.StartAsync(cancellationToken);
+        Console.WriteLine(message);
+        return true;
     }
 }
