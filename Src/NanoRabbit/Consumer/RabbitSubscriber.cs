@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -8,16 +9,18 @@ namespace NanoRabbit.Consumer;
 
 public class RabbitSubscriber : IHostedService
 {
+    private readonly ILogger<RabbitSubscriber>? _logger;
     private readonly IConnection? _connection;
     private readonly IModel? _channel;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
 
 
-    public RabbitSubscriber(IRabbitConsumer consumer, string consumerName)
+    public RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger)
     {
         _consumer = consumer;
         _consumerName = consumerName;
+        _logger = logger;
         try
         {
             var consumerOptions = consumer.GetMe(consumerName);
@@ -36,7 +39,7 @@ public class RabbitSubscriber : IHostedService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"RabbitListener init error,ex:{ex.Message}");
+            _logger?.LogError($"RabbitSubscriber init error,ex:{ex.Message}");
         }
     }
 

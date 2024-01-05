@@ -19,7 +19,7 @@ public class ConsumeService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _consumer.Receive("BarFirstQueueConsumer", message => { _producer.Publish("FooSecondQueueProducer", message); });
+            await _consumer.ReceiveAsync("BarFirstQueueConsumer", message => { _producer.Publish("FooSecondQueueProducer", message); });
             await Task.Delay(1000, stoppingToken);
         }
     }
