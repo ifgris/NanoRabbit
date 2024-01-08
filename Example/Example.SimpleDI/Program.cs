@@ -56,7 +56,9 @@ builder.Services.AddRabbitConsumer(options =>
         Password = "admin",
         VirtualHost = "FooHost",
         QueueName = "FooFirstQueue",
-        AutomaticRecoveryEnabled = true
+        AutomaticRecoveryEnabled = true,
+        PrefetchCount = 500,
+        PrefetchSize = 0
     });
     options.AddConsumer(new ConsumerOptions
     {

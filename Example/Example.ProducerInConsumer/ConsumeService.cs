@@ -1,31 +1,22 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Consumer;
 using NanoRabbit.Producer;
 
 namespace Example.ProducerInConsumer;
 
-public class ConsumeService : BackgroundService
+public class ConsumeService : RabbitSubscriber
 {
-    private readonly RabbitConsumer _consumer;
-    private readonly RabbitProducer _producer;
+    private readonly IRabbitProducer _producer;
 
-    public ConsumeService(RabbitConsumer consumer, RabbitProducer producer)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, IRabbitProducer producer) : base(consumer, logger)
     {
-        _consumer = consumer;
         _producer = producer;
+        SetConsumer("BarFirstQueueConsumer");
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override bool HandleMessage(string message)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await _consumer.ReceiveAsync("BarFirstQueueConsumer", message => { _producer.Publish("FooSecondQueueProducer", message); });
-            await Task.Delay(1000, stoppingToken);
-        }
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        return base.StartAsync(cancellationToken);
+        _producer.Publish("FooSecondQueueProducer", message);
+        return true;
     }
 }

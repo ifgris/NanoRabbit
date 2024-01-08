@@ -1,24 +1,16 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Consumer;
 
 namespace Example.MultiConsumers;
 
-public class SecondConsumeService : BackgroundService
+public class SecondConsumeService : RabbitSubscriber
 {
     private readonly IRabbitConsumer _consumer;
 
-    public SecondConsumeService(IRabbitConsumer consumer)
+    public SecondConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
     {
         _consumer = consumer;
-    }
-    
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        Console.WriteLine("FooSecondQueueConsumer running...");
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _consumer.Receive("FooSecondQueueConsumer", message => { Console.WriteLine(message); });
-            await Task.Delay(1000, stoppingToken);
-        }
+        SetConsumer("FooSecondQueueConsumer");
     }
 }

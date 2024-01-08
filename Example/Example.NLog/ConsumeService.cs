@@ -1,31 +1,20 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Consumer;
 
 namespace Example.NLog;
 
-public class ConsumeService : BackgroundService
+public class ConsumeService : RabbitSubscriber
 {
-    private readonly ILogger<ConsumeService> _logger;
-    private readonly IRabbitConsumer _consumer;
-
-    public ConsumeService(IRabbitConsumer consumer, ILogger<ConsumeService> logger)
+    private readonly ILogger<RabbitSubscriber>? _logger;
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
     {
-        _consumer = consumer;
         _logger = logger;
+        SetConsumer("FooFirstQueueConsumer");
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override bool HandleMessage(string message)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _consumer.Receive("FooFirstQueueConsumer", message => { _logger.LogInformation(message); });
-            await Task.Delay(1000, stoppingToken);
-        }
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        return base.StartAsync(cancellationToken);
+        _logger?.LogInformation(message);
+        return true;
     }
 }

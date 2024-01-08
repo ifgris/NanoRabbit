@@ -1,20 +1,21 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Consumer;
 
 namespace Example.SimpleDI;
 
 public class ConsumeService : RabbitSubscriber
 {
-    private readonly IRabbitConsumer _consumer;
-
-    public ConsumeService(IRabbitConsumer consumer, string consumerName) : base(consumer, consumerName)
+    private readonly ILogger<RabbitSubscriber>? _logger;
+    
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
     {
-        _consumer = consumer;
+        _logger = logger;
+        SetConsumer("FooFirstQueueConsumer");
     }
 
-    public override bool HandleMessage(string message)
+    protected override bool HandleMessage(string message)
     {
-        Console.WriteLine(message);
+        _logger?.LogInformation(message);
         return true;
     }
 }

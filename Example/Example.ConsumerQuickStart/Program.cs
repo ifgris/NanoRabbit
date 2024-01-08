@@ -1,4 +1,5 @@
-﻿using NanoRabbit.Connection;
+﻿using Example.ConsumerQuickStart;
+using NanoRabbit.Connection;
 using NanoRabbit.Consumer;
 
 var consumer = new RabbitConsumer(new[]
@@ -16,14 +17,6 @@ var consumer = new RabbitConsumer(new[]
     }
 });
 
-int count = 0;
-while (true)
-{
-    consumer.Receive("FooSecondQueueConsumer", message =>
-    {
-        count++;
-        Console.WriteLine(count);
-        Console.WriteLine(message);
-    });
-    Task.Delay(1000);
-}
+var consumeService = new ConsumeService(consumer, null);
+
+consumeService.StartAsync(CancellationToken.None);
