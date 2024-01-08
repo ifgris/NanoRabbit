@@ -132,6 +132,16 @@ public class ConsumerOptions
     /// Set to false to disable automatic connection recovery. Defaults to true.
     /// </summary>
     public bool AutomaticRecoveryEnabled { get; set; } = true;
+
+    /// <summary>
+    /// BasicQos prefetchSize
+    /// </summary>
+    public uint PrefetchSize { get; set; } = 0;
+    
+    /// <summary>
+    /// BasicQos prefetchCount
+    /// </summary>
+    public ushort PrefetchCount { get; set; } = 0;
 }
 
 /// <summary>

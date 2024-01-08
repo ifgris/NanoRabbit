@@ -8,10 +8,10 @@ namespace NanoRabbit.Consumer;
 
 public interface IRabbitConsumer
 {
-    public ConsumerOptions GetMe(string consumerName);
+    public ConsumerOptions GetMe(string? consumerName);
 
     public void Receive(
-        string consumerName,
+        string? consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
@@ -49,7 +49,7 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="consumerName"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public ConsumerOptions GetMe(string consumerName)
+    public ConsumerOptions GetMe(string? consumerName)
     {
         var connectionOption = _consumerOptionsList.FirstOrDefault(x => x.ConsumerName == consumerName);
 
@@ -70,7 +70,7 @@ public class RabbitConsumer : IRabbitConsumer
     /// <param name="prefetchCount">BasicQos prefetchCount</param>
     /// <param name="qosGlobal">BasicQos global</param>
     public void Receive(
-        string consumerName,
+        string? consumerName,
         Action<string> messageHandler,
         uint prefetchSize = 0,
         ushort prefetchCount = 0,
