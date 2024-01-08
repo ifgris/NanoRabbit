@@ -1,11 +1,12 @@
 ﻿![NanoRabbit logo](https://raw.githubusercontent.com/cgcel/NanoRabbit/master/Img/logo.png)
 
-[![NuGet](https://img.shields.io/nuget/v/NanoRabbit.svg)](https://nuget.org/packages/NanoRabbit) [![Nuget Downloads](https://img.shields.io/nuget/dt/NanoRabbit)](https://www.nuget.org/packages/NanoRabbit) [![License](https://img.shields.io/github/license/cgcel/NanoRabbit)](https://github.com/cgcel/NanoRabbit) 
+[![NuGet](https://img.shields.io/nuget/v/NanoRabbit.svg)](https://nuget.org/packages/NanoRabbit) [![Nuget Downloads](https://img.shields.io/nuget/dt/NanoRabbit)](https://www.nuget.org/packages/NanoRabbit) [![License](https://img.shields.io/github/license/cgcel/NanoRabbit)](https://github.com/cgcel/NanoRabbit)
 [![codebeat badge](https://codebeat.co/badges/a37a04d9-dd8e-4177-9b4c-c17526910f7e)](https://codebeat.co/projects/github-com-cgcel-nanorabbit-master)
 
 ## About
 
-NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
+NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage *
+*Multiple** connections, producers, consumers, and easy to use.
 
 > _NanoRabbit is under development! Please note that some APIs may change their names or usage!_
 
@@ -14,7 +15,7 @@ NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up,
 | Branch |                                                                                 Building Status                                                                                 |
 |:------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) |
-|  dev   | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) |
+|  dev   |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |
 
 ## Features
 
@@ -24,17 +25,18 @@ NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up,
 
 ## Installation
 
-You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/packages/NanoRabbit) package. 
+You can get NanoRabbit by grabbing the latest [NuGet](https://www.nuget.org/packages/NanoRabbit) package.
 
 See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more details.
 
 ## Version
 
-|                NanoRabbit                |   RabbitMQ.Client   |     .NET      |
-|:----------------------------------------:|:-------------------:|:-------------:|
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |        6.5.0        |      6.0      |
-|                  0.0.7                   |        6.5.0        | 6.0, 7.0, 8.0 |
-|               0.0.8, 0.0.9               | 6.5.0, 6.6.0, 6.7.0 | 6.0, 7.0, 8.0 |
+|                NanoRabbit                | RabbitMQ.Client |     .NET      |
+|:----------------------------------------:|:---------------:|:-------------:|
+| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |      6.0      |
+|                  0.0.7                   |      6.5.0      | 6.0, 7.0, 8.0 |
+|               0.0.8, 0.0.9               |      6.7.0      | 6.0, 7.0, 8.0 |
+|                  0.1.0                   |      6.8.1      | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -42,7 +44,8 @@ The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRab
 
 ## QuickStart
 
-> _NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set a **UNIQUE NAME** for each Producers, Consumers._
+> _NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set
+a **UNIQUE NAME** for each Producers, Consumers._
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
@@ -72,6 +75,7 @@ var producer = new RabbitProducer(new[]
     }
 });
 ```
+
 #### RabbitConsumer
 
 Register a RabbitMQ Consumer by calling `RabbitConsumer()`, and configure it.
@@ -103,16 +107,26 @@ producer.Publish<string>("FooFirstQueueProducer", "Hello");
 
 ### Simple Consume
 
-[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by calling `Receive()`.
+[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by inheriting `RabbitSubscriber`.
 
 ```csharp
-while (true)
+public class ConsumeService : RabbitSubscriber
 {
-    consumer.Receive("FooSecondQueueConsumer", message =>
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
     {
-        Console.WriteLine(message);
-    });
+        SetConsumer("FooSecondQueueConsumer");
+    }
+
+    protected override bool HandleMessage(string message)
+    {
+        // ...
+        return true;
+    }
 }
+
+var consumeService = new ConsumeService(consumer, null);
+
+consumeService.StartAsync(CancellationToken.None);
 ```
 
 ### Forward messages
@@ -203,9 +217,9 @@ For example:
 ```csharp
 public class PublishService : BackgroundService
 {
-    private readonly RabbitProducer _producer;
+    private readonly IRabbitProducer _producer;
 
-    public PublishService(RabbitProducer producer)
+    public PublishService(IRabbitProducer producer)
     {
         _producer = producer;
     }
