@@ -26,9 +26,6 @@ public class RabbitSubscriber : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        // Register(_consumerName);
-        // return Task.CompletedTask;
-        
         _consumerThread.Start();
         return Task.CompletedTask;
     }
@@ -39,15 +36,6 @@ public class RabbitSubscriber : IHostedService
         _consumerThread.Join();
         return Task.CompletedTask;
     }
-
-    // /// <summary>
-    // /// Set consumer
-    // /// </summary>
-    // /// <param name="consumerName"></param>
-    // public void SetConsumer(string? consumerName)
-    // {
-    //     _consumerName = consumerName;
-    // }
 
     /// <summary>
     /// Handle messages
@@ -136,9 +124,6 @@ public class RabbitSubscriberAsync : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        // Register(_consumerName);
-        // return Task.CompletedTask;
-        
         _consumerThread.Start();
         return Task.CompletedTask;
     }
