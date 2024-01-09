@@ -8,19 +8,20 @@ namespace NanoRabbit.Consumer;
 
 public class RabbitSubscriber : IHostedService
 {
-    private readonly ILogger<RabbitSubscriber>? _logger;
+    private ILogger<RabbitSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
-    private string? _consumerName;
+    private readonly string _consumerName;
     private readonly ManualResetEventSlim _exitSignal;
     private readonly Thread _consumerThread;
 
 
-    public RabbitSubscriber(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger)
+    public RabbitSubscriber(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName)
     {
         _consumer = consumer;
         _logger = logger;
+        _consumerName = consumerName;
         _exitSignal = new ManualResetEventSlim();
-        _consumerThread = new Thread(() => Register(_exitSignal, _consumerName));
+        _consumerThread = new Thread(() => Register(_exitSignal));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -39,14 +40,14 @@ public class RabbitSubscriber : IHostedService
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Set consumer
-    /// </summary>
-    /// <param name="consumerName"></param>
-    public void SetConsumer(string? consumerName)
-    {
-        _consumerName = consumerName;
-    }
+    // /// <summary>
+    // /// Set consumer
+    // /// </summary>
+    // /// <param name="consumerName"></param>
+    // public void SetConsumer(string? consumerName)
+    // {
+    //     _consumerName = consumerName;
+    // }
 
     /// <summary>
     /// Handle messages
@@ -63,13 +64,11 @@ public class RabbitSubscriber : IHostedService
     /// Register a consumer
     /// </summary>
     /// <param name="exitSignal"></param>
-    /// <param name="consumerName"></param>
     private void Register(
-        ManualResetEventSlim exitSignal,
-        string? consumerName
+        ManualResetEventSlim exitSignal
     )
     {
-        var consumerOptions = _consumer.GetMe(consumerName);
+        var consumerOptions = _consumer.GetMe(_consumerName);
 
         var factory = new ConnectionFactory
         {
@@ -121,17 +120,18 @@ public class RabbitSubscriberAsync : IHostedService
 {
     private readonly ILogger<RabbitSubscriberAsync>? _logger;
     private readonly IRabbitConsumer _consumer;
-    private string? _consumerName;
+    private readonly string _consumerName;
     private readonly ManualResetEventSlim _exitSignal;
     private readonly Thread _consumerThread;
 
 
-    public RabbitSubscriberAsync(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger)
+    public RabbitSubscriberAsync(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger, string consumerName)
     {
         _consumer = consumer;
         _logger = logger;
+        _consumerName = consumerName;
         _exitSignal = new ManualResetEventSlim();
-        _consumerThread = new Thread(() => RegisterAsync(_exitSignal, _consumerName));
+        _consumerThread = new Thread(() => RegisterAsync(_exitSignal));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -151,15 +151,6 @@ public class RabbitSubscriberAsync : IHostedService
     }
 
     /// <summary>
-    /// Set consumer
-    /// </summary>
-    /// <param name="consumerName"></param>
-    public void SetConsumer(string? consumerName)
-    {
-        _consumerName = consumerName;
-    }
-
-    /// <summary>
     /// Handle messages
     /// </summary>
     /// <param name="message"></param>
@@ -174,13 +165,11 @@ public class RabbitSubscriberAsync : IHostedService
     /// Register a consumer
     /// </summary>
     /// <param name="exitSignal"></param>
-    /// <param name="consumerName"></param>
     private void RegisterAsync(
-        ManualResetEventSlim exitSignal,
-        string? consumerName
+        ManualResetEventSlim exitSignal
     )
     {
-        var consumerOptions = _consumer.GetMe(consumerName);
+        var consumerOptions = _consumer.GetMe(_consumerName);
 
         var factory = new ConnectionFactory
         {
