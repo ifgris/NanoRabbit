@@ -5,7 +5,7 @@ namespace Example.ConsumerQuickStart;
 
 public class ConsumeService : RabbitSubscriber
 {
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, logger, consumerName)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, consumerName, logger)
     {
     }
 

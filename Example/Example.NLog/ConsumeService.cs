@@ -3,18 +3,18 @@ using NanoRabbit.Consumer;
 
 namespace Example.NLog;
 
-public class ConsumeService : RabbitSubscriber
+public class ConsumeService : RabbitSubscriberAsync
 {
-    private readonly ILogger<RabbitSubscriber>? _logger;
+    private readonly ILogger<ConsumeService>? _logger;
 
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, logger, consumerName)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger, string consumerName, ILogger<ConsumeService>? logger2) : base(consumer, consumerName, logger)
     {
-        _logger = logger;
+        _logger = logger2;
     }
 
-    protected override bool HandleMessage(string message)
+    protected override Task HandleMessage(string message)
     {
         _logger?.LogInformation(message);
-        return true;
+        return Task.CompletedTask;
     }
 }

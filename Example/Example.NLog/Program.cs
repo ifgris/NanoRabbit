@@ -70,7 +70,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 AutoDelete = false,
                 Arguments = null,
             });
-        });
+        }, false);
 
         services.AddRabbitConsumer(options =>
         {
@@ -94,9 +94,9 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 VirtualHost = "BarHost",
                 QueueName = "BarFirstQueue"
             });
-        });
+        }, false);
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
-        services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer");
+        services.AddRabbitSubscriberAsync<ConsumeService>("FooFirstQueueConsumer", false);
     });

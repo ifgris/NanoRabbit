@@ -40,8 +40,8 @@ var logger = loggerFactory.CreateLogger<Program>();
 logger.LogInformation("Program init");
 
 // register BackgroundService
-builder.Services.AddRabbitSubscriber<FirstConsumeService>("FooFirstQueueConsumer");
-builder.Services.AddRabbitSubscriberAsync<SecondConsumeService>("FooSecondQueueConsumer");
+builder.Services.AddRabbitSubscriber<FirstConsumeService>("FooFirstQueueConsumer", false);
+builder.Services.AddRabbitSubscriberAsync<SecondConsumeService>("FooSecondQueueConsumer", false);
 
 using IHost host = builder.Build();
 

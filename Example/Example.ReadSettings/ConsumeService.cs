@@ -7,7 +7,7 @@ public class ConsumeService : RabbitSubscriber
 {
     private readonly ILogger<RabbitSubscriber>? _logger;
 
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string? consumerName = null) : base(consumer, logger, consumerName)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string? consumerName = null) : base(consumer, consumerName, logger)
     {
         _logger = logger;
     }
