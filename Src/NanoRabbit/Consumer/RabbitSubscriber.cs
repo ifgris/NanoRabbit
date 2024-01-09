@@ -8,14 +8,14 @@ namespace NanoRabbit.Consumer;
 
 public class RabbitSubscriber : IHostedService
 {
-    private ILogger<RabbitSubscriber>? _logger;
+    private readonly ILogger<RabbitSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
     private readonly ManualResetEventSlim _exitSignal;
     private readonly Thread _consumerThread;
 
 
-    public RabbitSubscriber(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName)
+    public RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null)
     {
         _consumer = consumer;
         _logger = logger;
@@ -113,10 +113,19 @@ public class RabbitSubscriberAsync : IHostedService
     private readonly Thread _consumerThread;
 
 
-    public RabbitSubscriberAsync(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger, string consumerName)
+    public RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName,
+        ILogger<RabbitSubscriberAsync>? logger)
     {
         _consumer = consumer;
         _logger = logger;
+        _consumerName = consumerName;
+        _exitSignal = new ManualResetEventSlim();
+        _consumerThread = new Thread(() => RegisterAsync(_exitSignal));
+    }
+    
+    public RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName)
+    {
+        _consumer = consumer;
         _consumerName = consumerName;
         _exitSignal = new ManualResetEventSlim();
         _consumerThread = new Thread(() => RegisterAsync(_exitSignal));
