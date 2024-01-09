@@ -24,8 +24,8 @@ public static class RabbitProducerExtensions
             }
             else
             {
-                var consumer = new RabbitProducer(options.Producers);
-                return consumer;
+                var producer = new RabbitProducer(options.Producers);
+                return producer;
             }
         });
     
