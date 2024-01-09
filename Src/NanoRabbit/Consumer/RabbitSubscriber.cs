@@ -109,8 +109,7 @@ public class RabbitSubscriberAsync : IHostedService
     private readonly ILogger<RabbitSubscriberAsync>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
-    private readonly ManualResetEventSlim _exitSignal;
-    private readonly Thread _consumerThread;
+    private CancellationTokenSource? _cancellationTokenSource;
 
 
     public RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName,
@@ -119,29 +118,18 @@ public class RabbitSubscriberAsync : IHostedService
         _consumer = consumer;
         _logger = logger;
         _consumerName = consumerName;
-        _exitSignal = new ManualResetEventSlim();
-        _consumerThread = new Thread(() => RegisterAsync(_exitSignal));
-    }
-    
-    public RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName)
-    {
-        _consumer = consumer;
-        _consumerName = consumerName;
-        _exitSignal = new ManualResetEventSlim();
-        _consumerThread = new Thread(() => RegisterAsync(_exitSignal));
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _consumerThread.Start();
-        return Task.CompletedTask;
+        _cancellationTokenSource = new CancellationTokenSource();
+        await Task.Run(() => RegisterAsync(_cancellationTokenSource.Token));
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _exitSignal.Set();
-        _consumerThread.Join();
-        return Task.CompletedTask;
+        _cancellationTokenSource?.Cancel();
+        await Task.WhenAny(Task.Delay(Timeout.Infinite, cancellationToken));
     }
 
     /// <summary>
@@ -154,13 +142,13 @@ public class RabbitSubscriberAsync : IHostedService
         Console.WriteLine(message);
         return Task.CompletedTask;
     }
-    
+
     /// <summary>
     /// Register a consumer
     /// </summary>
-    /// <param name="exitSignal"></param>
-    private void RegisterAsync(
-        ManualResetEventSlim exitSignal
+    /// <param name="cancellationToken"></param>
+    private async Task RegisterAsync(
+        CancellationToken cancellationToken
     )
     {
         var consumerOptions = _consumer.GetMe(_consumerName);
@@ -210,6 +198,9 @@ public class RabbitSubscriberAsync : IHostedService
             autoAck: false,
             consumer: consumer);
         
-        exitSignal.Wait();
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(1000, cancellationToken);
+        }
     }
 }
