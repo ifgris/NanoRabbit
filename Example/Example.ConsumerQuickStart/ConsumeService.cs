@@ -5,9 +5,8 @@ namespace Example.ConsumerQuickStart;
 
 public class ConsumeService : RabbitSubscriber
 {
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, logger, consumerName)
     {
-        SetConsumer("FooSecondQueueConsumer");
     }
 
     // protected override bool HandleMessage(string message)

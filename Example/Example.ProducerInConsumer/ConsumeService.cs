@@ -8,10 +8,9 @@ public class ConsumeService : RabbitSubscriber
 {
     private readonly IRabbitProducer _producer;
 
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, IRabbitProducer producer) : base(consumer, logger)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName, IRabbitProducer producer) : base(consumer, logger, consumerName)
     {
         _producer = producer;
-        SetConsumer("BarFirstQueueConsumer");
     }
 
     protected override bool HandleMessage(string message)

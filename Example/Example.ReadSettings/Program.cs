@@ -23,10 +23,10 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
-        services.AutoAddRabbitProducer(context.Configuration);
+        services.AutoAddRabbitProducer(context.Configuration, false);
         services.AutoAddRabbitConsumer(context.Configuration);
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
-        services.AddHostedService<ConsumeService>();
+        services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer", true);
     });

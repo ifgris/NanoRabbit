@@ -79,7 +79,7 @@ logger.LogInformation("Program init");
 
 // register BackgroundService
 builder.Services.AddHostedService<PublishService>();
-builder.Services.AddHostedService<ConsumeService>();
+builder.Services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer");
 
 using IHost host = builder.Build();
 

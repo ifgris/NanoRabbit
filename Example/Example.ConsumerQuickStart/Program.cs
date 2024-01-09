@@ -17,6 +17,6 @@ var consumer = new RabbitConsumer(new[]
     }
 });
 
-var consumeService = new ConsumeService(consumer, null);
+var consumeService = new ConsumeService(consumer, null, "FooSecondQueueConsumer");
 
 consumeService.StartAsync(CancellationToken.None);

@@ -8,9 +8,8 @@ public class SecondConsumeService : RabbitSubscriber
 {
     private readonly IRabbitConsumer _consumer;
 
-    public SecondConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
+    public SecondConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, logger, consumerName)
     {
         _consumer = consumer;
-        SetConsumer("FooSecondQueueConsumer");
     }
 }

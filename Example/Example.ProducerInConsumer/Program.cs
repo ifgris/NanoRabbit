@@ -50,7 +50,7 @@ var logger = loggerFactory.CreateLogger<Program>();
 logger.LogInformation("Program init");
 
 // register BackgroundService
-builder.Services.AddHostedService<ConsumeService>();
+builder.Services.AddRabbitSubscriber<ConsumeService>("BarFirstQueueConsumer");
 
 using IHost host = builder.Build();
 
