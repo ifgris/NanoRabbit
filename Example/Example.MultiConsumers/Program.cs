@@ -41,7 +41,7 @@ logger.LogInformation("Program init");
 
 // register BackgroundService
 builder.Services.AddRabbitSubscriber<FirstConsumeService>("FooFirstQueueConsumer");
-builder.Services.AddRabbitSubscriber<SecondConsumeService>("FooSecondQueueConsumer");
+builder.Services.AddRabbitSubscriberAsync<SecondConsumeService>("FooSecondQueueConsumer");
 
 using IHost host = builder.Build();
 
