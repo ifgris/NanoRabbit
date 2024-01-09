@@ -36,7 +36,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 | 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |      6.0      |
 |                  0.0.7                   |      6.5.0      | 6.0, 7.0, 8.0 |
 |               0.0.8, 0.0.9               |      6.7.0      | 6.0, 7.0, 8.0 |
-|                  0.1.0                   |      6.8.1      | 6.0, 7.0, 8.0 |
+|               0.1.0, 0.1.1               |      6.8.1      | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -107,14 +107,15 @@ producer.Publish<string>("FooFirstQueueProducer", "Hello");
 
 ### Simple Consume
 
-[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by inheriting `RabbitSubscriber`.
+[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by
+inheriting `RabbitSubscriber`.
 
 ```csharp
 public class ConsumeService : RabbitSubscriber
 {
     public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger) : base(consumer, logger)
     {
-        SetConsumer("FooSecondQueueConsumer");
+        // ...
     }
 
     protected override bool HandleMessage(string message)
@@ -124,7 +125,7 @@ public class ConsumeService : RabbitSubscriber
     }
 }
 
-var consumeService = new ConsumeService(consumer, null);
+var consumeService = new ConsumeService(consumer, null, "FooSecondQueueConsumer");
 
 consumeService.StartAsync(CancellationToken.None);
 ```
@@ -208,6 +209,17 @@ builder.Services.AddRabbitConsumer(options =>
 });
 ```
 
+#### AddRabbitSubscriber
+
+After adding `RabbitConsumer` and inheriting `RabbitSubscriber`, you should register the BackgroundService
+by `AddRabbitSubscriber`:
+
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddRabbitSubscriber<ConsumeService>("FooSecondQueueConsumer");
+```
+
 #### Using producer or consumer
 
 Then, you can use RabbitProducer and RabbitConsumer at anywhere.
@@ -248,7 +260,7 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
-- [ ] Logging support
+- [x] Logging support
 - [ ] Forward messages
 - [ ] ASP.NET support
 - [ ] Exchange Configurations
