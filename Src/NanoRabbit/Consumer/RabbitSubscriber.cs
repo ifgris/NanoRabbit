@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace NanoRabbit.Consumer;
 
-public class RabbitSubscriber : IHostedService
+public abstract class RabbitSubscriber : IHostedService
 {
     private readonly ILogger<RabbitSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
@@ -15,7 +15,7 @@ public class RabbitSubscriber : IHostedService
     private readonly Thread _consumerThread;
 
 
-    public RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null)
+    protected RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null)
     {
         _consumer = consumer;
         _logger = logger;
@@ -42,11 +42,7 @@ public class RabbitSubscriber : IHostedService
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    protected virtual bool HandleMessage(string message)
-    {
-        Console.WriteLine(message);
-        return true;
-    }
+    protected abstract bool HandleMessage(string message);
     
     /// <summary>
     /// Register a consumer
@@ -102,7 +98,7 @@ public class RabbitSubscriber : IHostedService
     }
 }
 
-public class RabbitSubscriberAsync : IHostedService
+public abstract class RabbitSubscriberAsync : IHostedService
 {
     private readonly ILogger<RabbitSubscriberAsync>? _logger;
     private readonly IRabbitConsumer _consumer;
@@ -110,7 +106,7 @@ public class RabbitSubscriberAsync : IHostedService
     private CancellationTokenSource? _cancellationTokenSource;
 
 
-    public RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName,
+    protected RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName,
         ILogger<RabbitSubscriberAsync>? logger)
     {
         _consumer = consumer;
@@ -135,11 +131,7 @@ public class RabbitSubscriberAsync : IHostedService
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    protected virtual Task HandleMessage(string message)
-    {
-        Console.WriteLine(message);
-        return Task.CompletedTask;
-    }
+    protected abstract Task HandleMessage(string message);
 
     /// <summary>
     /// Register a consumer
