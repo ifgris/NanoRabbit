@@ -9,9 +9,9 @@ public class ConsumeService : RabbitSubscriber
     {
     }
 
-    // protected override bool HandleMessage(string message)
-    // {
-    //     _logger?.LogInformation(message);
-    //     return true;
-    // }
+    protected override bool HandleMessage(string message)
+    {
+        Console.WriteLine(message);
+        return true;
+    }
 }
