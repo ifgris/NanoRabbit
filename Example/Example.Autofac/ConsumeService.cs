@@ -5,11 +5,8 @@ namespace Example.Autofac;
 
 public class ConsumeService : RabbitSubscriber
 {
-    private readonly ILogger<RabbitSubscriber>? _logger;
-
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, consumerName, logger)
+    public ConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null) : base(consumer, consumerName, logger)
     {
-        _logger = logger;
     }
 
     protected override bool HandleMessage(string message)
