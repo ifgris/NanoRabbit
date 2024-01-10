@@ -33,7 +33,7 @@ public static class RabbitConsumerExtensions
         return services;
     }
     
-    public static IServiceCollection AutoAddRabbitConsumer(this IServiceCollection services, IConfiguration configuration, bool enableLogging = true)
+    public static IServiceCollection AddRabbitConsumerFromAppSettings(this IServiceCollection services, IConfiguration configuration, bool enableLogging = true)
     {
         var rabbitConfig = configuration.ReadSettings();
         var consumerList = rabbitConfig?.Consumers;

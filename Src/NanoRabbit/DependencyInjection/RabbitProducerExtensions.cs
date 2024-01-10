@@ -32,7 +32,7 @@ public static class RabbitProducerExtensions
         return services;
     }
     
-    public static IServiceCollection AutoAddRabbitProducer(this IServiceCollection services, IConfiguration configuration, bool enableLogging = true)
+    public static IServiceCollection AddRabbitProducerFromAppSettings(this IServiceCollection services, IConfiguration configuration, bool enableLogging = true)
     {
         var rabbitConfig = configuration.ReadSettings();
         var producerList = rabbitConfig?.Producers;
