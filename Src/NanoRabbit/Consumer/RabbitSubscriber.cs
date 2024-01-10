@@ -11,7 +11,7 @@ public class RabbitSubscriber : IHostedService
     private readonly ILogger<RabbitSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
-    private readonly ManualResetEventSlim _exitSignal;
+    private readonly AutoResetEvent _exitSignal;
     private readonly Thread _consumerThread;
 
 
@@ -20,7 +20,7 @@ public class RabbitSubscriber : IHostedService
         _consumer = consumer;
         _logger = logger;
         _consumerName = consumerName;
-        _exitSignal = new ManualResetEventSlim();
+        _exitSignal = new AutoResetEvent(false);
         _consumerThread = new Thread(() => Register(_exitSignal));
     }
 
@@ -52,9 +52,7 @@ public class RabbitSubscriber : IHostedService
     /// Register a consumer
     /// </summary>
     /// <param name="exitSignal"></param>
-    private void Register(
-        ManualResetEventSlim exitSignal
-    )
+    private void Register(AutoResetEvent exitSignal)
     {
         var consumerOptions = _consumer.GetMe(_consumerName);
 
@@ -100,7 +98,7 @@ public class RabbitSubscriber : IHostedService
             autoAck: false,
             consumer: consumer);
         
-        exitSignal.Wait();
+        exitSignal.WaitOne(); // wait for signal
     }
 }
 
