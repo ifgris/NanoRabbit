@@ -23,8 +23,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
-        services.AutoAddRabbitProducer(context.Configuration, false);
-        services.AutoAddRabbitConsumer(context.Configuration);
+        services.AddRabbitProducerFromAppSettings(context.Configuration, false);
+        services.AddRabbitConsumerFromAppSettings(context.Configuration);
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
