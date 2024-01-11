@@ -31,24 +31,24 @@ public static class RabbitSubscriberExtensions
         return services;
     }
     
-    public static IServiceCollection AddRabbitSubscriberAsync<TSubscriberAsync>(this IServiceCollection services,
-        string consumerName, bool enableLogging = true) where TSubscriberAsync : RabbitSubscriberAsync
+    public static IServiceCollection AddRabbitAsyncSubscriber<TAsyncSubscriber>(this IServiceCollection services,
+        string consumerName, bool enableLogging = true) where TAsyncSubscriber : RabbitAsyncSubscriber
     {
         services.AddHostedService(provider =>
         {
             if (enableLogging)
             {
-                var logger = provider.GetRequiredService<ILogger<RabbitSubscriberAsync>>();
+                var logger = provider.GetRequiredService<ILogger<RabbitAsyncSubscriber>>();
                 var consumer = provider.GetRequiredService<IRabbitConsumer>();
                 var subscriberService =
-                    ActivatorUtilities.CreateInstance<TSubscriberAsync>(provider, consumer, logger, consumerName);
+                    ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, logger, consumerName);
                 return subscriberService;
             }
             else
             {
                 var consumer = provider.GetRequiredService<IRabbitConsumer>();
                 var subscriberService =
-                    ActivatorUtilities.CreateInstance<TSubscriberAsync>(provider, consumer, consumerName);
+                    ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, consumerName);
                 return subscriberService;
             }
         });
