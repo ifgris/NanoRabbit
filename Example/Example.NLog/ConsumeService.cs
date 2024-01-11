@@ -3,11 +3,11 @@ using NanoRabbit.Consumer;
 
 namespace Example.NLog;
 
-public class ConsumeService : RabbitSubscriberAsync
+public class ConsumeService : RabbitAsyncSubscriber
 {
     private readonly ILogger<ConsumeService>? _logger;
 
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger, string consumerName, ILogger<ConsumeService>? logger2) : base(consumer, consumerName, logger)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitAsyncSubscriber>? logger, string consumerName, ILogger<ConsumeService>? logger2) : base(consumer, consumerName, logger)
     {
         _logger = logger2;
     }

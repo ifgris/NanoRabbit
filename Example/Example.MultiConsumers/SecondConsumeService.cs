@@ -3,13 +3,13 @@ using NanoRabbit.Consumer;
 
 namespace Example.MultiConsumers;
 
-public class SecondConsumeService : RabbitSubscriberAsync
+public class SecondConsumeService : RabbitAsyncSubscriber
 {
     private readonly ILogger<SecondConsumeService> _logger;
     
-    public SecondConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriberAsync>? logger, string consumerName, ILogger<SecondConsumeService> logger1) : base(consumer, consumerName, logger)
+    public SecondConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger, ILogger<SecondConsumeService> logger2) : base(consumer, consumerName, logger)
     {
-        _logger = logger1;
+        _logger = logger2;
     }
 
     protected override Task HandleMessage(string message)
