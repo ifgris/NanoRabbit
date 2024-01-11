@@ -98,26 +98,26 @@ public abstract class RabbitSubscriber : IHostedService
     }
 }
 
-public abstract class RabbitSubscriberAsync : IHostedService
+public abstract class RabbitAsyncSubscriber : IHostedService
 {
-    private readonly ILogger<RabbitSubscriberAsync>? _logger;
+    private readonly ILogger<RabbitAsyncSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
     private CancellationTokenSource? _cancellationTokenSource;
 
-
-    protected RabbitSubscriberAsync(IRabbitConsumer consumer, string consumerName,
-        ILogger<RabbitSubscriberAsync>? logger)
+    protected RabbitAsyncSubscriber(IRabbitConsumer consumer, string consumerName,
+        ILogger<RabbitAsyncSubscriber>? logger)
     {
         _consumer = consumer;
         _logger = logger;
         _consumerName = consumerName;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _cancellationTokenSource = new CancellationTokenSource();
-        await Task.Run(() => RegisterAsync(_cancellationTokenSource.Token));
+        Task.Run(() => RegisterAsync(_cancellationTokenSource.Token));
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
