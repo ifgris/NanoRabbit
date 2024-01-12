@@ -170,6 +170,7 @@ public abstract class RabbitAsyncSubscriber : IHostedService
             {
                 // handle incoming message
                 _logger?.LogDebug($"Received message: {message}");
+                // support Task and async Task
                 await HandleMessageAsync(message);
                 channel.BasicAck(ea.DeliveryTag, false);
                 await Task.Yield();
