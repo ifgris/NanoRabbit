@@ -131,7 +131,7 @@ public abstract class RabbitAsyncSubscriber : IHostedService
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    protected abstract Task HandleMessage(string message);
+    protected abstract Task HandleMessageAsync(string message);
 
     /// <summary>
     /// Register a consumer
@@ -170,11 +170,8 @@ public abstract class RabbitAsyncSubscriber : IHostedService
             {
                 // handle incoming message
                 _logger?.LogDebug($"Received message: {message}");
-                var result = HandleMessage(message);
-                if (result.IsCompleted)
-                {
-                    channel.BasicAck(ea.DeliveryTag, false);
-                }
+                await HandleMessageAsync(message);
+                channel.BasicAck(ea.DeliveryTag, false);
                 await Task.Yield();
             }
             catch (Exception e)
