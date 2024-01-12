@@ -12,7 +12,7 @@ public class SecondConsumeService : RabbitAsyncSubscriber
         _logger = logger2;
     }
 
-    protected override Task HandleMessage(string message)
+    protected override Task HandleMessageAsync(string message)
     {
         _logger.LogInformation(message);
         return Task.CompletedTask;

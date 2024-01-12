@@ -35,15 +35,25 @@ public class ConsumerService : RabbitAsyncSubscriber
       _count = 0;
    }
 
-   protected override Task HandleMessage(string message)
+   // protected override Task HandleMessage(string message)
+   // {
+   //    Task.Run(async () =>
+   //    {
+   //       _count++;
+   //       Console.WriteLine($"{_count}: {message}");
+   //       await Task.Delay(1000); // make a delay
+   //    });
+   //    return Task.CompletedTask;
+   // }
+   
+   protected override async Task HandleMessageAsync(string message)
    {
-      Task.Run(async () =>
+      await Task.Run(async () =>
       {
          _count++;
          Console.WriteLine($"{_count}: {message}");
          await Task.Delay(1000); // make a delay
       });
-      return Task.CompletedTask;
    }
 }
 
