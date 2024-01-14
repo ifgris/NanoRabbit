@@ -5,8 +5,7 @@
 
 ## About
 
-NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage *
-*Multiple** connections, producers, consumers, and easy to use.
+NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage **Multiple** connections, producers, consumers, and easy to use.
 
 > _NanoRabbit is under development! Please note that some APIs may change their names or usage!_
 
