@@ -1,32 +1,14 @@
 ﻿using NanoRabbit.DependencyInjection;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Example.ReadSettings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+    
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddRabbitProducerFromAppSettings(builder.Configuration);
+builder.Services.AddRabbitConsumerFromAppSettings(builder.Configuration);
 
-try
-{
-    var host = CreateHostBuilder(args).Build();
-    await host.RunAsync();
-}
-catch (Exception)
-{
-    throw;
-}
+builder.Services.AddHostedService<PublishService>();
+builder.Services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer", true);
 
-IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
-    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-    .ConfigureContainer<ContainerBuilder>((context, builders) =>
-    {
-        // ...
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddRabbitProducerFromAppSettings(context.Configuration, false);
-        services.AddRabbitConsumerFromAppSettings(context.Configuration);
-
-        // register BackgroundService
-        services.AddHostedService<PublishService>();
-        services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer", true);
-    });
+var host = builder.Build();
+await host.RunAsync();
