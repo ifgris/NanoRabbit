@@ -35,7 +35,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 | 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |      6.0      |
 |                  0.0.7                   |      6.5.0      | 6.0, 7.0, 8.0 |
 |               0.0.8, 0.0.9               |      6.7.0      | 6.0, 7.0, 8.0 |
-|    0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4     |      6.8.1      | 6.0, 7.0, 8.0 |
+| 0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5 |      6.8.1      | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -226,23 +226,19 @@ Then, you can use RabbitProducer and RabbitConsumer at anywhere.
 For example:
 
 ```csharp
-public class PublishService : BackgroundService
+public class ConsumeService : RabbitSubscriber
 {
     private readonly IRabbitProducer _producer;
 
-    public PublishService(IRabbitProducer producer)
+    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName, IRabbitProducer producer) : base(consumer, consumerName, logger)
     {
         _producer = producer;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override bool HandleMessage(string message)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _producer.Publish("FooFirstQueueProducer", "Hello from conn1");
-            _producer.Publish("BarFirstQueueProducer", "Hello from conn2");
-            await Task.Delay(1000, stoppingToken);
-        }
+        _producer.Publish("FooSecondQueueProducer", message);
+        return true;
     }
 }
 ```
