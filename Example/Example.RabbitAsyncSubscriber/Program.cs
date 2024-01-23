@@ -22,7 +22,7 @@ builder.Services.AddRabbitConsumer(builder =>
    }); 
 });
 
-builder.Services.AddRabbitAsyncSubscriber<ConsumerService>("FooFirstQueueConsumer", consumerCount: 2);
+builder.Services.AddRabbitAsyncSubscriber<ConsumerService>("FooFirstQueueConsumer");
 
 var host = builder.Build();
 await host.RunAsync();
