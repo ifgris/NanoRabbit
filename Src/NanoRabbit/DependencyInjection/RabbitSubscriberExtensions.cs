@@ -49,25 +49,3 @@ public static class RabbitSubscriberExtensions
         return services;
     }
 }
-
-public class CompositeHostedService : IHostedService
-{
-    private readonly List<IHostedService> _hostedServices;
-
-    public CompositeHostedService(List<IHostedService> hostedServices)
-    {
-        _hostedServices = hostedServices;
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        var tasks = _hostedServices.Select(service => service.StartAsync(cancellationToken));
-        await Task.WhenAll(tasks);
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        var tasks = _hostedServices.Select(service => service.StopAsync(cancellationToken));
-        await Task.WhenAll(tasks);
-    }
-}
