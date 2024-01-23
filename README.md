@@ -30,12 +30,12 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-|                NanoRabbit                | RabbitMQ.Client |     .NET      |
-|:----------------------------------------:|:---------------:|:-------------:|
-| 0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6 |      6.5.0      |      6.0      |
-|                  0.0.7                   |      6.5.0      | 6.0, 7.0, 8.0 |
-|               0.0.8, 0.0.9               |      6.7.0      | 6.0, 7.0, 8.0 |
-| 0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5 |      6.8.1      | 6.0, 7.0, 8.0 |
+|                   NanoRabbit                    | RabbitMQ.Client |     .NET      |
+|:-----------------------------------------------:|:---------------:|:-------------:|
+|    0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6     |      6.5.0      |      6.0      |
+|                      0.0.7                      |      6.5.0      | 6.0, 7.0, 8.0 |
+|                  0.0.8, 0.0.9                   |      6.7.0      | 6.0, 7.0, 8.0 |
+| 0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6 |      6.8.1      | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -218,6 +218,8 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddRabbitSubscriber<ConsumeService>("FooSecondQueueConsumer");
 ```
+
+From **0.1.6** on, setting `Consumer Count` in AddRabbitSubscriber() is available.
 
 #### Using producer or consumer
 
