@@ -8,7 +8,7 @@ builder.Services.AddRabbitProducerFromAppSettings(builder.Configuration);
 builder.Services.AddRabbitConsumerFromAppSettings(builder.Configuration);
 
 builder.Services.AddHostedService<PublishService>();
-builder.Services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer", true);
+builder.Services.AddRabbitSubscriber<ConsumeService>("FooFirstQueueConsumer", enableLogging: true);
 
 var host = builder.Build();
 await host.RunAsync();

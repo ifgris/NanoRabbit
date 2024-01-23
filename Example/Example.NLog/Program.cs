@@ -98,5 +98,5 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
-        services.AddRabbitAsyncSubscriber<ConsumeService>("FooFirstQueueConsumer", false);
+        services.AddRabbitAsyncSubscriber<ConsumeService>("FooFirstQueueConsumer", enableLogging: false);
     });

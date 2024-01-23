@@ -18,10 +18,11 @@ builder.Services.AddRabbitConsumer(builder =>
       VirtualHost = "FooHost",
       QueueName = "FooFirstQueue",
       AutomaticRecoveryEnabled = true,
+      PrefetchCount = 2
    }); 
 });
 
-builder.Services.AddRabbitAsyncSubscriber<ConsumerService>("FooFirstQueueConsumer");
+builder.Services.AddRabbitAsyncSubscriber<ConsumerService>("FooFirstQueueConsumer", consumerCount: 2);
 
 var host = builder.Build();
 await host.RunAsync();
