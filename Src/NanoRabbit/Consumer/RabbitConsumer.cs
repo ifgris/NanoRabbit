@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace NanoRabbit.Consumer;
 
+/// <summary>
+/// RabbitConsumer Interface.
+/// </summary>
 public interface IRabbitConsumer
 {
     public ConsumerOptions GetMe(string? consumerName);

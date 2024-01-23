@@ -6,6 +6,10 @@ using RabbitMQ.Client.Events;
 
 namespace NanoRabbit.Consumer;
 
+
+/// <summary>
+/// RabbitMQ Synchronous Subscriber abstract class.
+/// </summary>
 public abstract class RabbitSubscriber : IHostedService
 {
     private readonly ILogger<RabbitSubscriber>? _logger;
@@ -38,7 +42,7 @@ public abstract class RabbitSubscriber : IHostedService
     }
 
     /// <summary>
-    /// Handle messages
+    /// Handle messages method.
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -98,6 +102,9 @@ public abstract class RabbitSubscriber : IHostedService
     }
 }
 
+/// <summary>
+/// RabbitMQ Asynchronous Subscriber abstract class.
+/// </summary>
 public abstract class RabbitAsyncSubscriber : IHostedService
 {
     private readonly ILogger<RabbitAsyncSubscriber>? _logger;
@@ -127,7 +134,7 @@ public abstract class RabbitAsyncSubscriber : IHostedService
     }
 
     /// <summary>
-    /// Handle messages
+    /// Handle messages task.
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
