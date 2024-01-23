@@ -12,30 +12,17 @@ public static class RabbitSubscriberExtensions
     {
         services.AddHostedService(provider =>
         {
-            var hostedServices = new List<IHostedService>();
-
-            for (int i = 0; i < consumerCount; i++)
+            if (enableLogging)
             {
-                if (enableLogging)
-                {
-                    var logger = provider.GetRequiredService<ILogger<RabbitAsyncSubscriber>>();
-                    var consumer = provider.GetRequiredService<IRabbitConsumer>();
-                    var subscriberService =
-                        ActivatorUtilities.CreateInstance<TSubscriber>(provider, consumer, logger, consumerName);
-                    // return subscriberService;
-                    hostedServices.Add(subscriberService);
-                }
-                else
-                {
-                    var consumer = provider.GetRequiredService<IRabbitConsumer>();
-                    var subscriberService =
-                        ActivatorUtilities.CreateInstance<TSubscriber>(provider, consumer, consumerName);
-                    // return subscriberService;
-                    hostedServices.Add(subscriberService);
-                }
+                var logger = provider.GetRequiredService<ILogger<RabbitSubscriber>>();
+                var consumer = provider.GetRequiredService<IRabbitConsumer>();
+                return ActivatorUtilities.CreateInstance<TSubscriber>(provider, consumer, logger, consumerName, consumerCount);
             }
-
-            return new CompositeHostedService(hostedServices);
+            else
+            {
+                var consumer = provider.GetRequiredService<IRabbitConsumer>();
+                return ActivatorUtilities.CreateInstance<TSubscriber>(provider, consumer, consumerName, consumerCount);
+            }
         });
 
         return services;
@@ -46,30 +33,17 @@ public static class RabbitSubscriberExtensions
     {
         services.AddHostedService(provider =>
         {
-            var hostedServices = new List<IHostedService>();
-
-            for (int i = 0; i < consumerCount; i++)
+            if (enableLogging)
             {
-                if (enableLogging)
-                {
-                    var logger = provider.GetRequiredService<ILogger<RabbitAsyncSubscriber>>();
-                    var consumer = provider.GetRequiredService<IRabbitConsumer>();
-                    var subscriberService =
-                        ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, logger, consumerName);
-                    // return subscriberService;
-                    hostedServices.Add(subscriberService);
-                }
-                else
-                {
-                    var consumer = provider.GetRequiredService<IRabbitConsumer>();
-                    var subscriberService =
-                        ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, consumerName);
-                    // return subscriberService;
-                    hostedServices.Add(subscriberService);
-                }
+                var logger = provider.GetRequiredService<ILogger<RabbitAsyncSubscriber>>();
+                var consumer = provider.GetRequiredService<IRabbitConsumer>();
+                return ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, logger, consumerName, consumerCount);
             }
-
-            return new CompositeHostedService(hostedServices);
+            else
+            {
+                var consumer = provider.GetRequiredService<IRabbitConsumer>();
+                return ActivatorUtilities.CreateInstance<TAsyncSubscriber>(provider, consumer, consumerName, consumerCount);
+            }
         });
 
         return services;

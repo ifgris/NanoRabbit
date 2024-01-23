@@ -7,7 +7,7 @@ public class FirstConsumeService : RabbitSubscriber
 {
     private readonly ILogger<RabbitSubscriber>? _logger;
 
-    public FirstConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, consumerName, logger)
+    public FirstConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null, int consumerCount = 1) : base(consumer, consumerName, logger, consumerCount)
     {
         _logger = logger;
     }

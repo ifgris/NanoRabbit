@@ -6,7 +6,6 @@ using RabbitMQ.Client.Events;
 
 namespace NanoRabbit.Consumer;
 
-
 /// <summary>
 /// RabbitMQ Synchronous Subscriber abstract class.
 /// </summary>
@@ -15,29 +14,41 @@ public abstract class RabbitSubscriber : IHostedService
     private readonly ILogger<RabbitSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
+
     private readonly AutoResetEvent _exitSignal;
-    private readonly Thread _consumerThread;
+    private readonly List<Thread> _consumerThreads;
 
 
-    protected RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null)
+    protected RabbitSubscriber(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null,
+        int consumerCount = 1)
     {
         _consumer = consumer;
         _logger = logger;
         _consumerName = consumerName;
         _exitSignal = new AutoResetEvent(false);
-        _consumerThread = new Thread(() => Register(_exitSignal));
+        _consumerThreads = Enumerable.Range(0, consumerCount)
+            .Select(_ => new Thread(() => Register(_exitSignal)))
+            .ToList();
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _consumerThread.Start();
+        foreach (var thread in _consumerThreads)
+        {
+            thread.Start();
+        }
+
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _exitSignal.Set();
-        _consumerThread.Join();
+        foreach (var thread in _consumerThreads)
+        {
+            thread.Join();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -47,7 +58,7 @@ public abstract class RabbitSubscriber : IHostedService
     /// <param name="message"></param>
     /// <returns></returns>
     protected abstract bool HandleMessage(string message);
-    
+
     /// <summary>
     /// Register a consumer
     /// </summary>
@@ -97,7 +108,7 @@ public abstract class RabbitSubscriber : IHostedService
             queue: consumerOptions.QueueName,
             autoAck: false,
             consumer: consumer);
-        
+
         exitSignal.WaitOne(); // wait for signal
     }
 }
@@ -110,27 +121,40 @@ public abstract class RabbitAsyncSubscriber : IHostedService
     private readonly ILogger<RabbitAsyncSubscriber>? _logger;
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
+    private readonly int _consumerCount;
+    private List<Task>? _consumerTasks;
     private CancellationTokenSource? _cancellationTokenSource;
 
     protected RabbitAsyncSubscriber(IRabbitConsumer consumer, string consumerName,
-        ILogger<RabbitAsyncSubscriber>? logger)
+        ILogger<RabbitAsyncSubscriber>? logger, int consumerCount = 1)
     {
         _consumer = consumer;
         _logger = logger;
+        _consumerCount = consumerCount;
         _consumerName = consumerName;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cancellationTokenSource = new CancellationTokenSource();
-        Task.Run(() => RegisterAsync(_cancellationTokenSource.Token));
+
+        _consumerTasks = Enumerable.Range(0, _consumerCount)
+            .Select(_ => Task.Run(() => RegisterAsync(_cancellationTokenSource.Token)))
+            .ToList();
+
         return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _cancellationTokenSource?.Cancel();
-        await Task.WhenAny(Task.Delay(Timeout.Infinite, cancellationToken));
+        // _cancellationTokenSource?.Cancel();
+        // await Task.WhenAny(Task.Delay(Timeout.Infinite, cancellationToken));
+        if (_consumerTasks != null)
+        {
+            _cancellationTokenSource?.Cancel();
+
+            await Task.WhenAll(_consumerTasks);
+        }
     }
 
     /// <summary>
@@ -159,7 +183,7 @@ public abstract class RabbitAsyncSubscriber : IHostedService
             VirtualHost = consumerOptions.VirtualHost,
             AutomaticRecoveryEnabled = consumerOptions.AutomaticRecoveryEnabled
         };
-        
+
         factory.DispatchConsumersAsync = true;
 
         using var connection = factory.CreateConnection();
@@ -192,7 +216,7 @@ public abstract class RabbitAsyncSubscriber : IHostedService
             queue: consumerOptions.QueueName,
             autoAck: false,
             consumer: consumer);
-        
+
         while (!cancellationToken.IsCancellationRequested)
         {
             await Task.Delay(1000, cancellationToken);

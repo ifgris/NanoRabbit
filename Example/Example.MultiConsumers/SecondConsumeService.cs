@@ -6,8 +6,8 @@ namespace Example.MultiConsumers;
 public class SecondConsumeService : RabbitAsyncSubscriber
 {
     private readonly ILogger<SecondConsumeService> _logger;
-    
-    public SecondConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger, ILogger<SecondConsumeService> logger2) : base(consumer, consumerName, logger)
+
+    public SecondConsumeService(ILogger<SecondConsumeService> logger2, IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger, int consumerCount = 1) : base(consumer, consumerName, logger, consumerCount)
     {
         _logger = logger2;
     }
