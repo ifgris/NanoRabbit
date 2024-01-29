@@ -15,7 +15,7 @@ public abstract class RabbitSubscriber : IHostedService
     private readonly IRabbitConsumer _consumer;
     private readonly string _consumerName;
 
-    private readonly AutoResetEvent _exitSignal;
+    private readonly ManualResetEvent _exitSignal;
     private readonly List<Thread> _consumerThreads;
 
 
@@ -25,7 +25,7 @@ public abstract class RabbitSubscriber : IHostedService
         _consumer = consumer;
         _logger = logger;
         _consumerName = consumerName;
-        _exitSignal = new AutoResetEvent(false);
+        _exitSignal = new ManualResetEvent(false);
         _consumerThreads = Enumerable.Range(0, consumerCount)
             .Select(_ => new Thread(() => Register(_exitSignal)))
             .ToList();
@@ -43,7 +43,9 @@ public abstract class RabbitSubscriber : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _exitSignal.Set();
+        _exitSignal.Set(); // Set the exit signal to wake up all waiting threads
+
+        // Wait for all consumer threads to exit
         foreach (var thread in _consumerThreads)
         {
             thread.Join();
@@ -63,7 +65,7 @@ public abstract class RabbitSubscriber : IHostedService
     /// Register a consumer
     /// </summary>
     /// <param name="exitSignal"></param>
-    private void Register(AutoResetEvent exitSignal)
+    private void Register(ManualResetEvent exitSignal)
     {
         var consumerOptions = _consumer.GetMe(_consumerName);
 
@@ -147,13 +149,19 @@ public abstract class RabbitAsyncSubscriber : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        // _cancellationTokenSource?.Cancel();
-        // await Task.WhenAny(Task.Delay(Timeout.Infinite, cancellationToken));
         if (_consumerTasks != null)
         {
             _cancellationTokenSource?.Cancel();
 
-            await Task.WhenAll(_consumerTasks);
+            try
+            {
+                await Task.WhenAll(_consumerTasks);
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignore the TaskCanceledException
+                // ...
+            }
         }
     }
 
