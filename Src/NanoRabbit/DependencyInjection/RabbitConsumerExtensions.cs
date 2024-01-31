@@ -14,7 +14,7 @@ public static class RabbitConsumerExtensions
         var builder = new ConsumerOptionsBuilder(services);
         optionsBuilder.Invoke(builder);
         var options = builder.Build();
-    
+
         services.AddScoped<IRabbitConsumer, RabbitConsumer>(provider =>
         {
             if (enableLogging)
@@ -29,20 +29,29 @@ public static class RabbitConsumerExtensions
                 return consumer;
             }
         });
-    
+
         return services;
     }
-    
-    public static IServiceCollection AddRabbitConsumerFromAppSettings(this IServiceCollection services, IConfiguration configuration, bool enableLogging = true)
+
+    public static IServiceCollection AddRabbitConsumerFromAppSettings(this IServiceCollection services,
+        IConfiguration configuration, bool enableLogging = true)
     {
         var rabbitConfig = configuration.ReadSettings();
         var consumerList = rabbitConfig?.Consumers;
-    
+
         services.AddScoped<IRabbitConsumer, RabbitConsumer>(provider =>
         {
             if (enableLogging && consumerList != null)
             {
                 var logger = provider.GetRequiredService<ILogger<RabbitConsumer>>();
+
+
+                foreach (var consumerConfig in consumerList)
+                {
+                    logger.LogDebug(
+                        $"RabbitConsumer Configs Found!|ConsumerName-{consumerConfig.ConsumerName}|HostName-{consumerConfig.HostName}|Port-{consumerConfig.Port}|UserName-{consumerConfig.UserName}|VirtualHost-{consumerConfig.VirtualHost}|QueueName-{consumerConfig.QueueName}");
+                }
+
                 var consumer = new RabbitConsumer(consumerList, logger);
                 return consumer;
             }
@@ -55,7 +64,8 @@ public static class RabbitConsumerExtensions
 
             throw new Exception("No consumers detected in appsettings.json");
         });
-    
+
+
         return services;
     }
 }

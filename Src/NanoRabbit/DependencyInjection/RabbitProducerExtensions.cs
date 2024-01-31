@@ -42,6 +42,13 @@ public static class RabbitProducerExtensions
             if (enableLogging && producerList != null)
             {
                 var logger = provider.GetRequiredService<ILogger<RabbitProducer>>();
+                
+                foreach (var producerConfig in producerList)
+                {
+                    logger.LogDebug(
+                        $"RabbitProducer Configs Found!|ProducerName-{producerConfig.ProducerName}|HostName-{producerConfig.HostName}|Port-{producerConfig.Port}|UserName-{producerConfig.UserName}|VirtualHost-{producerConfig.VirtualHost}|ExchangeName-{producerConfig.ExchangeName}|RoutingKey-{producerConfig.RoutingKey}");
+                }
+
                 var producer = new RabbitProducer(producerList, logger);
                 return producer;
             }
