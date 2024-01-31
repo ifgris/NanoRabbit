@@ -47,17 +47,17 @@ public class ProducerOptions
     public string? RoutingKey { get; set; }
     
     /// <summary>
-    /// Exchange type
+    /// Exchange type, default: direct
     /// </summary>
     public string Type { get; set; } = ExchangeType.Direct;
     
     /// <summary>
-    /// Exchange durable
+    /// Exchange durable, default: true
     /// </summary>
     public bool Durable { get; set; } = true;
     
     /// <summary>
-    /// Exchange auto-delete
+    /// Exchange auto-delete, default: false
     /// </summary>
     public bool AutoDelete { get; set; } = false;
 
@@ -134,12 +134,12 @@ public class ConsumerOptions
     public bool AutomaticRecoveryEnabled { get; set; } = true;
 
     /// <summary>
-    /// BasicQos prefetchSize
+    /// BasicQos prefetchSize, default: 0
     /// </summary>
     public uint PrefetchSize { get; set; } = 0;
     
     /// <summary>
-    /// BasicQos prefetchCount
+    /// BasicQos prefetchCount, default: 0
     /// </summary>
     public ushort PrefetchCount { get; set; } = 0;
 }
