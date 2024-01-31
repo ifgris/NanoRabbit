@@ -45,7 +45,6 @@ public static class RabbitConsumerExtensions
             {
                 var logger = provider.GetRequiredService<ILogger<RabbitConsumer>>();
 
-
                 foreach (var consumerConfig in consumerList)
                 {
                     logger.LogDebug(
