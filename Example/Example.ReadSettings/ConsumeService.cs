@@ -6,8 +6,8 @@ namespace Example.ReadSettings;
 public class ConsumeService : RabbitSubscriber
 {
     private readonly ILogger<RabbitSubscriber>? _logger;
-    
-    public ConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null) : base(consumer, consumerName, logger)
+
+    public ConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null, int consumerCount = 1) : base(consumer, consumerName, logger, consumerCount)
     {
         _logger = logger;
     }
