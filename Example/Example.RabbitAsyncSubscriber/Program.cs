@@ -30,24 +30,24 @@ await host.RunAsync();
 public class ConsumerService : RabbitAsyncSubscriber
 {
    private int _count;
-   
-   public ConsumerService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger) : base(consumer, consumerName, logger)
-   {
-      _count = 0;
-   }
 
-   // protected override Task HandleMessage(string message)
-   // {
-   //    Task.Run(async () =>
-   //    {
-   //       _count++;
-   //       Console.WriteLine($"{_count}: {message}");
-   //       await Task.Delay(1000); // make a delay
-   //    });
-   //    return Task.CompletedTask;
-   // }
-   
-   protected override async Task HandleMessageAsync(string message)
+    public ConsumerService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger, int consumerCount = 1) : base(consumer, consumerName, logger, consumerCount)
+    {
+        _count = 0;
+    }
+
+    // protected override Task HandleMessage(string message)
+    // {
+    //    Task.Run(async () =>
+    //    {
+    //       _count++;
+    //       Console.WriteLine($"{_count}: {message}");
+    //       await Task.Delay(1000); // make a delay
+    //    });
+    //    return Task.CompletedTask;
+    // }
+
+    protected override async Task HandleMessageAsync(string message)
    {
       await Task.Run(async () =>
       {
