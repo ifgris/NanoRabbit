@@ -1,27 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using NanoRabbit.Connection;
-using NanoRabbit.Producer;
+﻿using NanoRabbit.Helper;
 
-var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-var logger = loggerFactory.CreateLogger<RabbitProducer>();
+var rabbitHelper = new RabbitHelper("localhost", virtualHost: "foo", userName: "admin", password: "admin");
 
-var producer = new RabbitProducer(new[]
-{
-    new ProducerOptions
-    {
-        ProducerName = "FooFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        ExchangeName = "amq.topic",
-        RoutingKey = "FooFirstKey",
-        Type = ExchangeType.Topic,
-        Durable = true,
-        AutoDelete = false,
-        AutomaticRecoveryEnabled = true
-    }
-}, logger);
-
-producer.Publish("FooFirstQueueProducer", "Hello");
+rabbitHelper.Publish<string>("data.topic", "foo.key", "Hello from NanoRabbit");
