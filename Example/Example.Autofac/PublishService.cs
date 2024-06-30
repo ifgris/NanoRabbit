@@ -1,18 +1,18 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NanoRabbit.Producer;
+using NanoRabbit.Helper;
 
 namespace Example.Autofac;
 
 public class PublishService : BackgroundService
 {
     private readonly ILogger<PublishService> _logger;
-    private readonly IRabbitProducer _producer;
+    private readonly IRabbitHelper _rabbitHelper;
 
-    public PublishService(ILogger<PublishService> logger, IRabbitProducer producer)
+    public PublishService(ILogger<PublishService> logger, IRabbitHelper rabbitHelper)
     {
         _logger = logger;
-        _producer = producer;
+        _rabbitHelper = rabbitHelper;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,8 +21,8 @@ public class PublishService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _producer.Publish("FooFirstQueueProducer", "Hello from conn1");
-            _producer.Publish("BarFirstQueueProducer", "Hello from conn2");
+            _rabbitHelper.Publish("FooProducer", "Hello from conn1");
+            _rabbitHelper.Publish("BarProducer", "Hello from conn2");
             await Task.Delay(1000, stoppingToken);
         }
     }

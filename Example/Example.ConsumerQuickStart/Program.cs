@@ -1,34 +1,54 @@
 ﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
-using NanoRabbit.Consumer;
+using NanoRabbit.Helper;
+using NanoRabbit.Helper.MessageHandler;
 
-var consumer = new RabbitConsumer(new[]
+var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {
-    new ConsumerOptions
+    HostName = "localhost",
+    Port = 5672,
+    VirtualHost = "/",
+    UserName = "admin",
+    Password = "admin",
+    Consumers = new List<ConsumerOptions>
     {
-        ConsumerName = "FooSecondQueueConsumer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        QueueName = "FooSecondQueue",
-        AutomaticRecoveryEnabled = true
+        new ConsumerOptions
+        {
+            ConsumerName = "FooConsumer",
+            QueueName = "foo-queue"
+        },
+        new ConsumerOptions
+        {
+            ConsumerName = "BarConsumer",
+            QueueName = "bar-queue"
+        }
     }
 });
-var consumeService = new ConsumeService(consumer, null, "FooSecondQueueConsumer");
 
-consumeService.StartAsync(CancellationToken.None);
+var fooHandler = new FooQueueHandler();
+var barHandler = new BarQueueHandler();
 
-public class ConsumeService : RabbitSubscriber
+rabbitHelper.AddConsumer("FooConsumer", fooHandler.HandleMessage);
+rabbitHelper.AddConsumer("FooConsumer", barHandler.HandleMessage);
+
+public class FooQueueHandler : DefaultMessageHandler
 {
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName) : base(consumer, consumerName, logger)
+    public override void HandleMessage(string message)
     {
+        Console.WriteLine($"[x] Received from foo-queue: {message}");
+        // 自定义处理逻辑
+        Task.Delay(1000).Wait();
+        Console.WriteLine("[x] Done");
     }
+}
 
-    protected override bool HandleMessage(string message)
+public class BarQueueHandler : DefaultMessageHandler
+{
+    public override void HandleMessage(string message)
     {
-        Console.WriteLine(message);
-        return true;
+        Console.WriteLine($"[x] Received from bar-queue: {message}");
+        // 自定义处理逻辑
+        Task.Delay(500).Wait();
+        Console.WriteLine("[x] Done");
     }
 }

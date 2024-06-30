@@ -1,60 +1,60 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
-using NanoRabbit.Consumer;
 using NanoRabbit.DependencyInjection;
+using NanoRabbit.Helper.MessageHandler;
 
 var builder = Host.CreateApplicationBuilder();
 
-builder.Services.AddRabbitConsumer(builder =>
+builder.Services.AddRabbitHelper(builder =>
 {
-   builder.AddConsumer(new ConsumerOptions
-   {
-      ConsumerName = "FooFirstQueueConsumer",
-      HostName = "localhost",
-      Port = 5672,
-      UserName = "admin",
-      Password = "admin",
-      VirtualHost = "FooHost",
-      QueueName = "FooFirstQueue",
-      AutomaticRecoveryEnabled = true,
-      PrefetchCount = 2
-   }); 
-});
-
-builder.Services.AddRabbitAsyncSubscriber<ConsumerService>("FooFirstQueueConsumer");
+    builder.SetHostName("localhost");
+    builder.SetPort(5672);
+    builder.SetVirtualHost("/");
+    builder.SetUserName("admin");
+    builder.SetPassword("admin");
+    builder.UseAsyncConsumer(true); // set UseAsyncConsumer to true
+    builder.AddProducer(new ProducerOptions
+    {
+        ProducerName = "FooProducer",
+        ExchangeName = "amq.topic",
+        RoutingKey = "foo.key",
+        Type = ExchangeType.Topic
+    });
+    builder.AddConsumer(new ConsumerOptions
+    {
+        ConsumerName = "FooConsumer",
+        QueueName = "foo-queue"
+    });
+    builder.AddConsumer(new ConsumerOptions
+    {
+        ConsumerName = "BarConsumer",
+        QueueName = "bar-queue"
+    });
+})
+.AddAsyncRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
+.AddAsyncRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
 
 var host = builder.Build();
 await host.RunAsync();
 
-public class ConsumerService : RabbitAsyncSubscriber
+public class FooQueueHandler : DefaultAsyncMessageHandler
 {
-   private int _count;
-
-    public ConsumerService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitAsyncSubscriber>? logger, int consumerCount = 1) : base(consumer, consumerName, logger, consumerCount)
+    public override async Task HandleMessageAsync(string message)
     {
-        _count = 0;
+        Console.WriteLine($"[x] Received from foo-queue: {message}");
+        // 自定义处理逻辑
+        await Task.Delay(1000);
+        Console.WriteLine("[x] Done");
     }
-
-    // protected override Task HandleMessage(string message)
-    // {
-    //    Task.Run(async () =>
-    //    {
-    //       _count++;
-    //       Console.WriteLine($"{_count}: {message}");
-    //       await Task.Delay(1000); // make a delay
-    //    });
-    //    return Task.CompletedTask;
-    // }
-
-    protected override async Task HandleMessageAsync(string message)
-   {
-      await Task.Run(async () =>
-      {
-         _count++;
-         Console.WriteLine($"{_count}: {message}");
-         await Task.Delay(1000); // make a delay
-      });
-   }
 }
 
+public class BarQueueHandler : DefaultAsyncMessageHandler
+{
+    public override async Task HandleMessageAsync(string message)
+    {
+        Console.WriteLine($"[x] Received from bar-queue: {message}");
+        // 自定义处理逻辑
+        await Task.Delay(500);
+        Console.WriteLine("[x] Done");
+    }
+}

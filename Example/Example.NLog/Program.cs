@@ -43,11 +43,11 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             options.AddProducer(new ProducerOptions
             {
                 ProducerName = "FooFirstQueueProducer",
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "admin",
-                Password = "admin",
-                VirtualHost = "FooHost",
+                //HostName = "localhost",
+                //Port = 5672,
+                //UserName = "admin",
+                //Password = "admin",
+                //VirtualHost = "FooHost",
                 ExchangeName = "amq.topic",
                 RoutingKey = "FooFirstKey",
                 Type = ExchangeType.Topic,
@@ -58,11 +58,11 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             options.AddProducer(new ProducerOptions
             {
                 ProducerName = "BarFirstQueueProducer",
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "admin",
-                Password = "admin",
-                VirtualHost = "BarHost",
+                //HostName = "localhost",
+                //Port = 5672,
+                //UserName = "admin",
+                //Password = "admin",
+                //VirtualHost = "BarHost",
                 ExchangeName = "amq.direct",
                 RoutingKey = "BarFirstKey",
                 Type = ExchangeType.Direct,
@@ -77,21 +77,21 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             options.AddConsumer(new ConsumerOptions
             {
                 ConsumerName = "FooFirstQueueConsumer",
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "admin",
-                Password = "admin",
-                VirtualHost = "FooHost",
+                //HostName = "localhost",
+                //Port = 5672,
+                //UserName = "admin",
+                //Password = "admin",
+                //VirtualHost = "FooHost",
                 QueueName = "FooFirstQueue"
             });
             options.AddConsumer(new ConsumerOptions
             {
                 ConsumerName = "BarFirstQueueConsumer",
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "admin",
-                Password = "admin",
-                VirtualHost = "BarHost",
+                //HostName = "localhost",
+                //Port = 5672,
+                //UserName = "admin",
+                //Password = "admin",
+                //VirtualHost = "BarHost",
                 QueueName = "BarFirstQueue"
             });
         }, false);

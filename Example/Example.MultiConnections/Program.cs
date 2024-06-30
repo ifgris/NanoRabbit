@@ -1,39 +1,32 @@
-﻿using NanoRabbit.Connection;
-using NanoRabbit.Producer;
+﻿using Microsoft.Extensions.Hosting;
+using NanoRabbit.Connection;
+using NanoRabbit.DependencyInjection;
 
-var producer = new RabbitProducer(new[]
+var builder = Host.CreateApplicationBuilder();
+
+builder.Services.AddRabbitHelper(builder =>
 {
-    new ProducerOptions
+    builder.SetHostName("localhost");
+    builder.SetPort(5672);
+    builder.SetVirtualHost("/");
+    builder.SetUserName("admin");
+    builder.SetPassword("admin");
+    builder.UseAsyncConsumer(true); // set UseAsyncConsumer to true
+    builder.AddProducer(new ProducerOptions
     {
-        ProducerName = "FooFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
+        ProducerName = "FooProducer",
         ExchangeName = "amq.topic",
-        RoutingKey = "FooFirstKey",
-        Type = ExchangeType.Topic,
-        Durable = true,
-        AutoDelete = false,
-        Arguments = null,
-    },
-    new ProducerOptions
+        RoutingKey = "foo.key",
+        Type = ExchangeType.Topic
+    });
+    builder.AddProducer(new ProducerOptions
     {
-        ProducerName = "BarFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "BarHost",
+        ProducerName = "BarProducer",
         ExchangeName = "amq.direct",
-        RoutingKey = "BarFirstKey",
-        Type = ExchangeType.Direct,
-        Durable = true,
-        AutoDelete = false,
-        Arguments = null,
-    },
+        RoutingKey = "bar.key",
+        Type = ExchangeType.Direct
+    });
 });
 
-producer.Publish("FooFirstQueueProducer", "Hello");
-producer.Publish("BarFirstQueueProducer", "Hello");
+var host = builder.Build();
+await host.RunAsync();
