@@ -10,31 +10,6 @@ public class ProducerOptions
     /// Customize producer name
     /// </summary>
     public string ProducerName { get; set; } = null!;
-
-    /// <summary>
-    /// RabbitMQ HostName, default: localhost
-    /// </summary>
-    public string HostName { get; set; } = "localhost";
-
-    /// <summary>
-    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
-    /// </summary>
-    public int Port { get; set; } = 5672;
-
-    /// <summary>
-    /// RabbitMQ UserName, default: guest
-    /// </summary>
-    public string UserName { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ Password, default: guest
-    /// </summary>
-    public string Password { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ VirtualHost, default: "/"
-    /// </summary>
-    public string VirtualHost { get; set; } = "/";
     
     /// <summary>
     /// Exchange name
@@ -99,31 +74,6 @@ public class ConsumerOptions
     public string ConsumerName { get; set; } = null!;
 
     /// <summary>
-    /// RabbitMQ HostName, default: localhost
-    /// </summary>
-    public string HostName { get; set; } = "localhost";
-
-    /// <summary>
-    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
-    /// </summary>
-    public int Port { get; set; } = 5672;
-
-    /// <summary>
-    /// RabbitMQ UserName, default: guest
-    /// </summary>
-    public string UserName { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ Password, default: guest
-    /// </summary>
-    public string Password { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ VirtualHost, default: "/"
-    /// </summary>
-    public string VirtualHost { get; set; } = "/";
-    
-    /// <summary>
     /// Subscribe queue name
     /// </summary>
     public string QueueName { get; set; } = null!;
@@ -160,6 +110,36 @@ public class RabbitConsumerOptions
 /// </summary>
 public class RabbitConfiguration
 {
+    /// <summary>
+    /// RabbitMQ HostName, default: "localhost"
+    /// </summary>
+    public string HostName { get; set; } = "localhost";
+
+    /// <summary>
+    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
+    /// </summary>
+    public int Port { get; set; } = 5672;
+
+    /// <summary>
+    /// RabbitMQ UserName, default: "guest"
+    /// </summary>
+    public string UserName { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ Password, default: "guest"
+    /// </summary>
+    public string Password { get; set; } = "guest";
+
+    /// <summary>
+    /// RabbitMQ VirtualHost, default: "/"
+    /// </summary>
+    public string VirtualHost { get; set; } = "/";
+
+    /// <summary>
+    /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations. Defaults: false
+    /// </summary>
+    public bool UseAsyncConsumer { get; set; } = false;
+
     /// <summary>
     /// RabbitProducer configs
     /// </summary>

@@ -3,53 +3,60 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace NanoRabbit.Connection;
 
-public class ProducerOptionsBuilder
+public class RabbitConfigurationBuilder
 {
     private readonly IServiceCollection _services;
-    private readonly List<ProducerOptions> _producers;
+    private readonly RabbitConfiguration _rabbitConfiguration;
 
-    public ProducerOptionsBuilder(IServiceCollection services)
+    public RabbitConfigurationBuilder(IServiceCollection services)
     {
         _services = services;
-        _producers = new List<ProducerOptions>();
+        _rabbitConfiguration = new RabbitConfiguration
+        {
+            Producers = new List<ProducerOptions>(),
+            Consumers = new List<ConsumerOptions>()
+        };
+    }
+
+    public void SetHostName(string hostName)
+    {
+        _rabbitConfiguration.HostName = hostName;
+    }
+    public void SetPort(int port)
+    {
+        _rabbitConfiguration.Port = port;
+    }
+    public void SetVirtualHost(string virtualHost)
+    {
+        _rabbitConfiguration.VirtualHost = virtualHost;
+    }
+    public void SetUserName(string userName)
+    {
+        _rabbitConfiguration.UserName = userName;
+    }
+    public void SetPassword(string password)
+    {
+        _rabbitConfiguration.Password = password;
+    }
+    
+    public void UseAsyncConsumer(bool useAsyncConsumer)
+    {
+        _rabbitConfiguration.UseAsyncConsumer = useAsyncConsumer;
     }
 
     public void AddProducer(ProducerOptions options)
     {
-        _producers.Add(options);
+        _rabbitConfiguration.Producers.Add(options);
     }
-
-    public RabbitProducerOptions Build()
-    {
-        return new RabbitProducerOptions
-        {
-            Producers = _producers
-        };
-    }
-}
-
-public class ConsumerOptionsBuilder
-{
-    private readonly IServiceCollection _services;
-    private readonly List<ConsumerOptions> _consumers;
-
-    public ConsumerOptionsBuilder(IServiceCollection services)
-    {
-        _services = services;
-        _consumers = new List<ConsumerOptions>();
-    }
-
+    
     public void AddConsumer(ConsumerOptions options)
     {
-        _consumers.Add(options);
+        _rabbitConfiguration.Consumers.Add(options);
     }
 
-    public RabbitConsumerOptions Build()
+    public RabbitConfiguration Build()
     {
-        return new RabbitConsumerOptions
-        {
-            Consumers = _consumers
-        };
+        return _rabbitConfiguration;
     }
 }
 
