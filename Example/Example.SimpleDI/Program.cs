@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Example.SimpleDI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
@@ -49,6 +50,8 @@ class Program
                 })
                 .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
                 .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
+
+                services.AddHostedService<PublishService>();
             });
 
     public class FooQueueHandler : DefaultMessageHandler
