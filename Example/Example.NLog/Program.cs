@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
+using NanoRabbit.Helper.MessageHandler;
 using NLog;
 using NLog.Extensions.Logging;
 
@@ -38,65 +39,61 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             loggingBuilder.AddNLog(context.Configuration);
         }).BuildServiceProvider();
 
-        services.AddRabbitProducer(options =>
+        services.AddRabbitHelper(builder =>
         {
-            options.AddProducer(new ProducerOptions
+            builder.SetHostName("localhost");
+            builder.SetPort(5672);
+            builder.SetVirtualHost("/");
+            builder.SetUserName("admin");
+            builder.SetPassword("admin");
+            builder.AddProducer(new ProducerOptions
             {
-                ProducerName = "FooFirstQueueProducer",
-                //HostName = "localhost",
-                //Port = 5672,
-                //UserName = "admin",
-                //Password = "admin",
-                //VirtualHost = "FooHost",
+                ProducerName = "FooProducer",
                 ExchangeName = "amq.topic",
-                RoutingKey = "FooFirstKey",
-                Type = ExchangeType.Topic,
-                Durable = true,
-                AutoDelete = false,
-                Arguments = null,
+                RoutingKey = "foo.key",
+                Type = ExchangeType.Topic
             });
-            options.AddProducer(new ProducerOptions
+            builder.AddProducer(new ProducerOptions
             {
-                ProducerName = "BarFirstQueueProducer",
-                //HostName = "localhost",
-                //Port = 5672,
-                //UserName = "admin",
-                //Password = "admin",
-                //VirtualHost = "BarHost",
+                ProducerName = "BarProducer",
                 ExchangeName = "amq.direct",
-                RoutingKey = "BarFirstKey",
-                Type = ExchangeType.Direct,
-                Durable = true,
-                AutoDelete = false,
-                Arguments = null,
+                RoutingKey = "bar.key",
+                Type = ExchangeType.Direct
             });
-        }, false);
-
-        services.AddRabbitConsumer(options =>
-        {
-            options.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(new ConsumerOptions
             {
-                ConsumerName = "FooFirstQueueConsumer",
-                //HostName = "localhost",
-                //Port = 5672,
-                //UserName = "admin",
-                //Password = "admin",
-                //VirtualHost = "FooHost",
-                QueueName = "FooFirstQueue"
+                ConsumerName = "FooConsumer",
+                QueueName = "foo-queue"
             });
-            options.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(new ConsumerOptions
             {
-                ConsumerName = "BarFirstQueueConsumer",
-                //HostName = "localhost",
-                //Port = 5672,
-                //UserName = "admin",
-                //Password = "admin",
-                //VirtualHost = "BarHost",
-                QueueName = "BarFirstQueue"
+                ConsumerName = "BarConsumer",
+                QueueName = "bar-queue"
             });
-        }, false);
+        })
+        .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
+        .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
-        services.AddRabbitAsyncSubscriber<ConsumeService>("FooFirstQueueConsumer", enableLogging: false);
     });
+
+public class FooQueueHandler : DefaultMessageHandler
+{
+    public override void HandleMessage(string message)
+    {
+        Console.WriteLine($"[x] Received from foo-queue: {message}");
+        Task.Delay(1000).Wait();
+        Console.WriteLine("[x] Done");
+    }
+}
+
+public class BarQueueHandler : DefaultMessageHandler
+{
+    public override void HandleMessage(string message)
+    {
+        Console.WriteLine($"[x] Received from bar-queue: {message}");
+        Task.Delay(500).Wait();
+        Console.WriteLine("[x] Done");
+    }
+}

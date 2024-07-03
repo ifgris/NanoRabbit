@@ -21,7 +21,6 @@ public class FooQueueHandler : DefaultMessageHandler
     public override void HandleMessage(string message)
     {
         Console.WriteLine($"[x] Received from foo-queue: {message}");
-        // 自定义处理逻辑
         Task.Delay(1000).Wait();
         Console.WriteLine("[x] Done");
     }
@@ -32,7 +31,6 @@ public class BarQueueHandler : DefaultMessageHandler
     public override void HandleMessage(string message)
     {
         Console.WriteLine($"[x] Received from bar-queue: {message}");
-        // 自定义处理逻辑
         Task.Delay(500).Wait();
         Console.WriteLine("[x] Done");
     }

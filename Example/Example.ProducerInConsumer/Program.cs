@@ -1,56 +1,32 @@
 ﻿using Example.ProducerInConsumer;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
-
-var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
 
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitProducer(options =>
+builder.Services.AddRabbitHelper(builder =>
 {
-    options.AddProducer(new ProducerOptions
+    builder.SetHostName("localhost");
+    builder.SetPort(5672);
+    builder.SetVirtualHost("/");
+    builder.SetUserName("admin");
+    builder.SetPassword("admin");
+    builder.AddProducer(new ProducerOptions
     {
-        ProducerName = "FooSecondQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        ExchangeName = "amq.topic",
-        RoutingKey = "FooSecondKey",
-        Type = ExchangeType.Topic,
-        Durable = true,
-        AutoDelete = false,
-        Arguments = null,
-        AutomaticRecoveryEnabled = true
+        ProducerName = "BarProducer",
+        ExchangeName = "amq.direct",
+        RoutingKey = "bar.key",
+        Type = ExchangeType.Direct
     });
-});
-
-builder.Services.AddRabbitConsumer(options =>
-{
-    options.AddConsumer(new ConsumerOptions
+    builder.AddConsumer(new ConsumerOptions
     {
-        ConsumerName = "BarFirstQueueConsumer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "BarHost",
-        QueueName = "BarFirstQueue",
-        AutomaticRecoveryEnabled = true
+        ConsumerName = "FooConsumer",
+        QueueName = "foo-queue"
     });
-});
-
-builder.Logging.AddConsole();
-var logger = loggerFactory.CreateLogger<Program>();
-logger.LogInformation("Program init");
-
-// register BackgroundService
-builder.Services.AddRabbitSubscriber<ConsumeService>("BarFirstQueueConsumer");
+})
+.AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3);
 
 using IHost host = builder.Build();
 

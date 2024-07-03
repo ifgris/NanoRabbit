@@ -42,7 +42,6 @@ public class FooQueueHandler : DefaultAsyncMessageHandler
     public override async Task HandleMessageAsync(string message)
     {
         Console.WriteLine($"[x] Received from foo-queue: {message}");
-        // 自定义处理逻辑
         await Task.Delay(1000);
         Console.WriteLine("[x] Done");
     }
@@ -53,7 +52,6 @@ public class BarQueueHandler : DefaultAsyncMessageHandler
     public override async Task HandleMessageAsync(string message)
     {
         Console.WriteLine($"[x] Received from bar-queue: {message}");
-        // 自定义处理逻辑
         await Task.Delay(500);
         Console.WriteLine("[x] Done");
     }
