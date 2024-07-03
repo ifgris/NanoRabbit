@@ -20,6 +20,7 @@ namespace NanoRabbit.DependencyInjection
 
         public static IServiceCollection AddKeyedRabbitHelper(this IServiceCollection services, string key, Action<RabbitConfigurationBuilder> builders)
         {
+#if NET7_0_OR_GREATER
             var rabbitConfigBuilder = new RabbitConfigurationBuilder(services);
             builders.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
@@ -29,8 +30,10 @@ namespace NanoRabbit.DependencyInjection
                 var rabbitHelper = new RabbitHelper(rabbitConfig);
                 return rabbitHelper;
             });
-
             return services;
+#else
+            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+#endif
         }
 
         public static IServiceCollection AddRabbitMqHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration)
@@ -50,6 +53,7 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddKeyedRabbitMqHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, string key, IConfiguration configuration)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
+#if NET7_0_OR_GREATER
             var configSection = configuration.GetSection(typeof(TRabbitConfiguration).Name);
             if (!configSection.Exists())
             {
@@ -59,6 +63,9 @@ namespace NanoRabbit.DependencyInjection
 
             services.AddKeyedSingleton<IRabbitHelper>(key, (key, provider) => new RabbitHelper(rabbitConfig));
             return services;
+#else
+            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+#endif
         }
 
         public static IServiceCollection AddRabbitConsumer<THandler>(this IServiceCollection services, string consumerName, int consumers = 1)
@@ -81,6 +88,7 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddKeyedRabbitConsumer<THandler>(this IServiceCollection services, string key, string consumerName, int consumers = 1)
             where THandler : class, IMessageHandler
         {
+#if NET7_0_OR_GREATER
             services.AddKeyedSingleton<THandler>(key);
 
             var serviceProvider = services.BuildServiceProvider();
@@ -93,6 +101,9 @@ namespace NanoRabbit.DependencyInjection
             rabbitMqHelper.AddConsumer(consumerName, messageHandler.HandleMessage, consumers);
 
             return services;
+#else
+            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+#endif
         }
 
         public static IServiceCollection AddAsyncRabbitConsumer<TAsyncHandler>(this IServiceCollection services, string consumerName, int consumers = 1)
@@ -110,6 +121,15 @@ namespace NanoRabbit.DependencyInjection
             rabbitMqHelper.AddAsyncConsumer(consumerName, messageHandler.HandleMessageAsync, consumers).GetAwaiter().GetResult();
 
             return services;
+        }
+
+        public static IRabbitHelper GetRabbitHelper(this IServiceProvider serviceProvider, string key)
+        {
+#if NET7_0_OR_GREATER
+            return serviceProvider.GetRequiredKeyedService<IRabbitHelper>(key);
+#else
+            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+#endif
         }
     }
 }
