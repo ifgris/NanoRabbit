@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NanoRabbit.DependencyInjection;
 using NanoRabbit.Helper;
 
 namespace Example.MultiConnections;
@@ -10,10 +11,10 @@ public class TestPublishService : BackgroundService
     private readonly ILogger<TestPublishService> _logger;
     private readonly IRabbitHelper _rabbitHelper;
 
-    public TestPublishService(ILogger<TestPublishService> logger, [FromKeyedServices("TestRabbitHelper")]IRabbitHelper rabbitHelper)
+    public TestPublishService(ILogger<TestPublishService> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _rabbitHelper = rabbitHelper;
+        _rabbitHelper = serviceProvider.GetRabbitHelper("TestRabbitHelper");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
