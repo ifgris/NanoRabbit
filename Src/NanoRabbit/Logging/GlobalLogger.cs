@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Serilog;
 
 namespace NanoRabbit.Logging;
 
@@ -7,27 +7,27 @@ namespace NanoRabbit.Logging;
 /// </summary>
 public static class GlobalLogger
 {
-    // private static ILoggerFactory Factory { get; } = new LoggerFactory();
-    //
-    // public static ILogger<T> CreateLogger<T>()
-    // {
-    //     return Factory.CreateLogger<T>();
-    // }
-    private static ILoggerFactory Factory { get; } = InitializeLoggerFactory();
+    private static ILogger _logger;
 
-    private static ILoggerFactory InitializeLoggerFactory()
+    public static bool IsLoggingEnabled { get; private set; }
+
+    public static void ConfigureLogging(bool enableLogging)
     {
-        var loggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
-        return loggerFactory;
+        IsLoggingEnabled = enableLogging;
+
+        if (enableLogging)
+        {
+            _logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+        }
+        else
+        {
+            _logger = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(new Serilog.Core.LoggingLevelSwitch(Serilog.Events.LogEventLevel.Fatal))
+                .CreateLogger();
+        }
     }
 
-    /// <summary>
-    /// Create Logger with type param
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static ILogger<T> CreateLogger<T>()
-    {
-        return Factory.CreateLogger<T>();
-    }
+    public static ILogger Logger => _logger;
 }
