@@ -10,27 +10,27 @@ public class ProducerOptions
     /// Customize producer name
     /// </summary>
     public string ProducerName { get; set; } = null!;
-    
+
     /// <summary>
     /// Exchange name
     /// </summary>
     public string? ExchangeName { get; set; }
-    
+
     /// <summary>
     /// Publish routing-key
     /// </summary>
     public string? RoutingKey { get; set; }
-    
+
     /// <summary>
     /// Exchange type, default: direct
     /// </summary>
     public string Type { get; set; } = ExchangeType.Direct;
-    
+
     /// <summary>
     /// Exchange durable, default: true
     /// </summary>
     public bool Durable { get; set; } = true;
-    
+
     /// <summary>
     /// Exchange auto-delete, default: false
     /// </summary>
@@ -77,7 +77,7 @@ public class ConsumerOptions
     /// Subscribe queue name
     /// </summary>
     public string QueueName { get; set; } = null!;
-    
+
     /// <summary>
     /// Set to false to disable automatic connection recovery. Defaults to true.
     /// </summary>
@@ -87,7 +87,7 @@ public class ConsumerOptions
     /// BasicQos prefetchSize, default: 0
     /// </summary>
     public uint PrefetchSize { get; set; } = 0;
-    
+
     /// <summary>
     /// BasicQos prefetchCount, default: 0
     /// </summary>
@@ -139,6 +139,11 @@ public class RabbitConfiguration
     /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations. Defaults: false
     /// </summary>
     public bool UseAsyncConsumer { get; set; } = false;
+
+    /// <summary>
+    /// Enable logging. Default: true
+    /// </summary>
+    public bool EnableLogging { get; set; } = true;
 
     /// <summary>
     /// RabbitProducer configs

@@ -1,4 +1,4 @@
-﻿namespace NanoRabbit.Helper.MessageHandler
+﻿namespace NanoRabbit
 {
     public interface IMessageHandler
     {

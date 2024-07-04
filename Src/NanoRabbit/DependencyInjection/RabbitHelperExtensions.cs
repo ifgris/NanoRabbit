@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NanoRabbit.Connection;
-using NanoRabbit.Helper;
-using NanoRabbit.Helper.MessageHandler;
 
 namespace NanoRabbit.DependencyInjection
 {
@@ -14,7 +12,9 @@ namespace NanoRabbit.DependencyInjection
             builder.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
 
-            services.AddSingleton<IRabbitHelper>(sp => new RabbitHelper(rabbitConfig));
+            services.AddSingleton<IRabbitHelper>(provider => {
+                return new RabbitHelper(rabbitConfig);
+            });
             return services;
         }
 
@@ -25,7 +25,7 @@ namespace NanoRabbit.DependencyInjection
             builders.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
 
-            services.AddKeyedSingleton<IRabbitHelper>(key, (key, provider) =>
+            services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
             {
                 var rabbitHelper = new RabbitHelper(rabbitConfig);
                 return rabbitHelper;
@@ -46,7 +46,9 @@ namespace NanoRabbit.DependencyInjection
             }
             var rabbitConfig = configSection.Get<TRabbitConfiguration>();
 
-            services.AddSingleton<IRabbitHelper>(sp => new RabbitHelper(rabbitConfig));
+            services.AddSingleton<IRabbitHelper>(provider => {
+                return new RabbitHelper(rabbitConfig);
+            });
             return services;
         }
         
@@ -61,7 +63,11 @@ namespace NanoRabbit.DependencyInjection
             }
             var rabbitConfig = configSection.Get<TRabbitConfiguration>();
 
-            services.AddKeyedSingleton<IRabbitHelper>(key, (key, provider) => new RabbitHelper(rabbitConfig));
+            services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
+            {
+                var rabbitHelper = new RabbitHelper(rabbitConfig);
+                return rabbitHelper;
+            });
             return services;
 #else
             throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
@@ -118,7 +124,7 @@ namespace NanoRabbit.DependencyInjection
             // todo: check if queue exists.
             // rabbitMqHelper.DeclareQueue(queueName);
 
-            rabbitMqHelper.AddAsyncConsumer(consumerName, messageHandler.HandleMessageAsync, consumers).GetAwaiter().GetResult();
+            rabbitMqHelper.AddAsyncConsumer(consumerName, messageHandler.HandleMessageAsync, consumers);
 
             return services;
         }

@@ -43,6 +43,11 @@ public class RabbitConfigurationBuilder
     {
         _rabbitConfiguration.UseAsyncConsumer = useAsyncConsumer;
     }
+    
+    public void EnableLogging(bool enableLogging)
+    {
+        _rabbitConfiguration.EnableLogging = enableLogging;
+    }
 
     public void AddProducer(ProducerOptions options)
     {

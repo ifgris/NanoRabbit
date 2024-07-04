@@ -1,11 +1,16 @@
-﻿using NanoRabbit.Connection;
+﻿using Microsoft.Extensions.Logging;
+using NanoRabbit.Connection;
+using NanoRabbit.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace NanoRabbit.Helper
+namespace NanoRabbit
 {
+    /// <summary>
+    /// RabbitHelper
+    /// </summary>
     public class RabbitHelper : IRabbitHelper, IDisposable
     {
         private readonly IConnection _connection;
@@ -14,6 +19,11 @@ namespace NanoRabbit.Helper
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
 
+        /// <summary>
+        /// RabbitHelper constructor.
+        /// </summary>
+        /// <param name="rabbitConfig"></param>
+        /// <param name="logger"></param>
         public RabbitHelper(
             RabbitConfiguration rabbitConfig)
         {
@@ -26,6 +36,7 @@ namespace NanoRabbit.Helper
             var password = _rabbitConfig.Password;
             var factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
+            GlobalLogger.ConfigureLogging(_rabbitConfig.EnableLogging);
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             _consumers = new Dictionary<string, EventingBasicConsumer>();
@@ -39,14 +50,21 @@ namespace NanoRabbit.Helper
         /// <returns></returns>
         public ProducerOptions GetProducerOption(string producerName)
         {
-            var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
-
-            if (connectionOption == null)
+            if (_rabbitConfig.Producers != null)
             {
-                throw new Exception($"Producer: {producerName} not found!");
-            }
+                var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
 
-            return connectionOption;
+                if (connectionOption == null)
+                {
+                    throw new Exception($"Producer: {producerName} not found!");
+                }
+
+                return connectionOption;
+            }
+            else
+            {
+                throw new Exception("No ProducerOptions added in RabbitHelper!");
+            }
         }
 
         /// <summary>
@@ -57,22 +75,43 @@ namespace NanoRabbit.Helper
         /// <exception cref="Exception"></exception>
         public ConsumerOptions GetConsumerOption(string? consumerName)
         {
-            var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
-
-            if (connectionOption == null)
+            if (_rabbitConfig.Consumers != null)
             {
-                throw new Exception($"Consumer: {consumerName} not found!");
-            }
+                var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
 
-            return connectionOption;
+                if (connectionOption == null)
+                {
+                    throw new Exception($"Consumer: {consumerName} not found!");
+                }
+
+                return connectionOption;
+            }
+            else
+            {
+                throw new Exception("No ConsumerOptions added in RabbitHelper!");
+            }
         }
 
+        /// <summary>
+        /// Declare a queue based on RabbitMQ.Client.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="durable"></param>
+        /// <param name="exclusive"></param>
+        /// <param name="autoDelete"></param>
+        /// <param name="arguments"></param>
         public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
         {
             _channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
             _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
         }
 
+        /// <summary>
+        /// Publish any type of messages.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="producerName"></param>
+        /// <param name="message"></param>
         public void Publish<T>(string producerName, T message)
         {
             var option = GetProducerOption(producerName);
@@ -92,6 +131,11 @@ namespace NanoRabbit.Helper
             properties.Persistent = true;
 
             _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
+
+            if (_rabbitConfig.EnableLogging)
+            {
+                GlobalLogger.Logger.Information($"{producerName}|Published a messgage.");
+            }
         }
 
         /// <summary>
@@ -121,8 +165,15 @@ namespace NanoRabbit.Helper
                             basicProperties: properties,
                             body: body);
             }
+            if (_rabbitConfig.EnableLogging) GlobalLogger.Logger.Information($"{producerName}|Published a batch of messgages.");
         }
 
+        /// <summary>
+        /// Add a consumer by a custom consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <param name="onMessageReceived"></param>
+        /// <param name="consumers"></param>
         public void AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)
         {
             var option = GetConsumerOption(consumerName);
@@ -149,7 +200,13 @@ namespace NanoRabbit.Helper
             }
         }
 
-        public async Task AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
+        /// <summary>
+        /// Add an async consumer by a custom consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <param name="onMessageReceived"></param>
+        /// <param name="consumers"></param>
+        public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
         {
             var option = GetConsumerOption(consumerName);
 
