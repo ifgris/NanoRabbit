@@ -1,10 +1,9 @@
 ﻿using Example.SimpleDI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NanoRabbit;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Helper;
-using NanoRabbit.Helper.MessageHandler;
 
 class Program
 {
@@ -18,6 +17,7 @@ class Program
             builder.SetVirtualHost("/");
             builder.SetUserName("admin");
             builder.SetPassword("admin");
+            builder.EnableLogging(true);
             builder.AddProducer(new ProducerOptions
             {
                 ProducerName = "FooProducer",

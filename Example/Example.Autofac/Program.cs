@@ -4,8 +4,8 @@ using Autofac.Extensions.DependencyInjection;
 using Example.Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NanoRabbit;
 using NanoRabbit.Connection;
-using NanoRabbit.Helper.MessageHandler;
 
 try
 {

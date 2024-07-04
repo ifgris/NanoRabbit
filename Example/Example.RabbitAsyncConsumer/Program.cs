@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
+using NanoRabbit;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Helper.MessageHandler;
 
 var builder = Host.CreateApplicationBuilder();
 

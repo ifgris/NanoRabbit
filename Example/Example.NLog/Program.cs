@@ -4,9 +4,9 @@ using Example.NLog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NanoRabbit;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Helper.MessageHandler;
 using NLog;
 using NLog.Extensions.Logging;
 

@@ -1,5 +1,4 @@
-﻿using NanoRabbit.Helper;
-using NanoRabbit.Helper.MessageHandler;
+﻿using NanoRabbit;
 
 namespace Example.ProducerInConsumer;
 

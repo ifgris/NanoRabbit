@@ -1,5 +1,5 @@
-﻿using NanoRabbit.Connection;
-using NanoRabbit.Helper;
+﻿using NanoRabbit;
+using NanoRabbit.Connection;
 
 var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {

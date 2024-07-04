@@ -2,7 +2,7 @@
 using Example.ReadSettings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NanoRabbit.Helper.MessageHandler;
+using NanoRabbit;
 using NanoRabbit.Connection;
 
 var builder = Host.CreateApplicationBuilder(args);

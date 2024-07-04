@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NanoRabbit;
 using NanoRabbit.DependencyInjection;
-using NanoRabbit.Helper;
 
 namespace Example.MultiConnections;
 

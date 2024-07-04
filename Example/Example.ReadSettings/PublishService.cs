@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NanoRabbit.Helper;
+using NanoRabbit;
 
 namespace Example.ReadSettings;
 
