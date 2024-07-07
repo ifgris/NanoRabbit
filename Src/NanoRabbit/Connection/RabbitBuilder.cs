@@ -49,13 +49,17 @@ public class RabbitConfigurationBuilder
         _rabbitConfiguration.EnableLogging = enableLogging;
     }
 
-    public void AddProducer(ProducerOptions options)
+    public void AddProducer(Action<ProducerOptions> configureProducer)
     {
+        var options = new ProducerOptions();
+        configureProducer(options);
         _rabbitConfiguration.Producers.Add(options);
     }
-    
-    public void AddConsumer(ConsumerOptions options)
+
+    public void AddConsumer(Action<ConsumerOptions> configureConsumer)
     {
+        var options = new ConsumerOptions();
+        configureConsumer(options);
         _rabbitConfiguration.Consumers.Add(options);
     }
 
@@ -64,6 +68,8 @@ public class RabbitConfigurationBuilder
         return _rabbitConfiguration;
     }
 }
+
+
 
 public static class ConfigurationExtensions
 {
