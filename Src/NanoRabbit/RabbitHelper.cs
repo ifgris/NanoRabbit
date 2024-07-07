@@ -35,8 +35,11 @@ namespace NanoRabbit
             var userName = _rabbitConfig.UserName;
             var password = _rabbitConfig.Password;
             var factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
+            
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
+            
             GlobalLogger.ConfigureLogging(_rabbitConfig.EnableLogging);
+           
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             _consumers = new Dictionary<string, EventingBasicConsumer>();
