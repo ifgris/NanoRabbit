@@ -13,17 +13,17 @@ builder.Services.AddRabbitHelper(builder =>
     builder.SetVirtualHost("/");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddProducer(new ProducerOptions
+    builder.AddProducer(producer =>
     {
-        ProducerName = "BarProducer",
-        ExchangeName = "amq.direct",
-        RoutingKey = "bar.key",
-        Type = ExchangeType.Direct
+        producer.ProducerName = "BarProducer";
+        producer.ExchangeName = "amq.direct";
+        producer.RoutingKey = "bar.key";
+        producer.Type = ExchangeType.Direct;
     });
-    builder.AddConsumer(new ConsumerOptions
+    builder.AddConsumer(consumer =>
     {
-        ConsumerName = "FooConsumer",
-        QueueName = "foo-queue"
+        consumer.ConsumerName = "FooConsumer";
+        consumer.QueueName = "foo-queue";
     });
 })
 .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3);

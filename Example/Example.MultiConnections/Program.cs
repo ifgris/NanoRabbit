@@ -14,17 +14,17 @@ builder.Services.AddKeyedRabbitHelper("DefaultRabbitHelper", builder =>
     builder.SetVirtualHost("/");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddProducer(new ProducerOptions
+    builder.AddProducer(producer =>
     {
-        ProducerName = "FooProducer",
-        ExchangeName = "amq.topic",
-        RoutingKey = "foo.key",
-        Type = ExchangeType.Topic
+        producer.ProducerName = "FooProducer";
+        producer.ExchangeName = "amq.topic";
+        producer.RoutingKey = "foo.key";
+        producer.Type = ExchangeType.Topic;
     });
-    builder.AddConsumer(new ConsumerOptions
+    builder.AddConsumer(consumer =>
     {
-        ConsumerName = "DefaultFooConsumer",
-        QueueName = "foo-queue"
+        consumer.ConsumerName = "DefaultFooConsumer";
+        consumer.QueueName = "foo-queue";
     });
 }).AddKeyedRabbitConsumer<DefaultMessageHandler>("DefaultRabbitHelper", "DefaultFooConsumer");
 
@@ -35,17 +35,17 @@ builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", builder =>
     builder.SetVirtualHost("test");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddProducer(new ProducerOptions
+    builder.AddProducer(producer =>
     {
-        ProducerName = "FooProducer",
-        ExchangeName = "amq.topic",
-        RoutingKey = "foo.key",
-        Type = ExchangeType.Topic
+        producer.ProducerName = "FooProducer";
+        producer.ExchangeName = "amq.topic";
+        producer.RoutingKey = "foo.key";
+        producer.Type = ExchangeType.Topic;
     });
-    builder.AddConsumer(new ConsumerOptions
+    builder.AddConsumer(consumer =>
     {
-        ConsumerName = "TestFooConsumer",
-        QueueName = "foo-queue"
+        consumer.ConsumerName = "TestFooConsumer";
+        consumer.QueueName = "foo-queue";
     });
 }).AddKeyedRabbitConsumer<DefaultMessageHandler>("TestRabbitHelper", "TestFooConsumer");
 

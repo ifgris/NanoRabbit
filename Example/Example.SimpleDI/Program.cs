@@ -18,22 +18,22 @@ class Program
             builder.SetUserName("admin");
             builder.SetPassword("admin");
             builder.EnableLogging(true);
-            builder.AddProducer(new ProducerOptions
+            builder.AddProducer(producer =>
             {
-                ProducerName = "FooProducer",
-                ExchangeName = "amq.topic",
-                RoutingKey = "foo.key",
-                Type = ExchangeType.Topic
+                producer.ProducerName = "FooProducer";
+                producer.ExchangeName = "amq.topic";
+                producer.RoutingKey = "foo.key";
+                producer.Type = ExchangeType.Topic;
             });
-            builder.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(consumer =>
             {
-                ConsumerName = "FooConsumer",
-                QueueName = "foo-queue"
+                consumer.ConsumerName = "FooConsumer";
+                consumer.QueueName = "foo-queue";
             });
-            builder.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(consumer =>
             {
-                ConsumerName = "BarConsumer",
-                QueueName = "bar-queue"
+                consumer.ConsumerName = "BarConsumer";
+                consumer.QueueName = "bar-queue";
             });
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)

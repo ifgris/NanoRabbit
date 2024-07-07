@@ -32,29 +32,29 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             builder.SetVirtualHost("/");
             builder.SetUserName("admin");
             builder.SetPassword("admin");
-            builder.AddProducer(new ProducerOptions
+            builder.AddProducer(producer =>
             {
-                ProducerName = "FooProducer",
-                ExchangeName = "amq.topic",
-                RoutingKey = "foo.key",
-                Type = ExchangeType.Topic
+                producer.ProducerName = "FooProducer";
+                producer.ExchangeName = "amq.topic";
+                producer.RoutingKey = "foo.key";
+                producer.Type = ExchangeType.Topic;
             });
-            builder.AddProducer(new ProducerOptions
+            builder.AddProducer(producer =>
             {
-                ProducerName = "BarProducer",
-                ExchangeName = "amq.direct",
-                RoutingKey = "bar.key",
-                Type = ExchangeType.Direct
+                producer.ProducerName = "BarProducer";
+                producer.ExchangeName = "amq.direct";
+                producer.RoutingKey = "bar.key";
+                producer.Type = ExchangeType.Direct;
             });
-            builder.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(consumer =>
             {
-                ConsumerName = "FooConsumer",
-                QueueName = "foo-queue"
+                consumer.ConsumerName = "FooConsumer";
+                consumer.QueueName = "foo-queue";
             });
-            builder.AddConsumer(new ConsumerOptions
+            builder.AddConsumer(consumer =>
             {
-                ConsumerName = "BarConsumer",
-                QueueName = "bar-queue"
+                consumer.ConsumerName = "BarConsumer";
+                consumer.QueueName = "bar-queue";
             });
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
