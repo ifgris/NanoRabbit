@@ -21,7 +21,8 @@ namespace NanoRabbit.DependencyInjection
             builder.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
 
-            services.AddSingleton<IRabbitHelper>(provider => {
+            services.AddSingleton<IRabbitHelper>(provider =>
+            {
                 return new RabbitHelper(rabbitConfig);
             });
             return services;
@@ -64,16 +65,19 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddRabbitMqHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
-            var configSection = configuration.GetSection(typeof(TRabbitConfiguration).Name);
-            if (!configSection.Exists())
-            {
-                throw new Exception($"Configuration section '{typeof(TRabbitConfiguration).Name}' not found.");
-            }
-            var rabbitConfig = configSection.Get<TRabbitConfiguration>();
+            TRabbitConfiguration? rabbitConfig = ReadSettings<TRabbitConfiguration>(configuration);
 
-            services.AddSingleton<IRabbitHelper>(provider => {
-                return new RabbitHelper(rabbitConfig);
-            });
+            if (rabbitConfig != null)
+            {
+                services.AddSingleton<IRabbitHelper>(provider =>
+                {
+                    return new RabbitHelper(rabbitConfig);
+                });
+            }
+            else
+            {
+                throw new Exception("NanoRabbit Configuration is incorrect.");
+            }
             return services;
         }
 
@@ -90,18 +94,20 @@ namespace NanoRabbit.DependencyInjection
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
 #if NET7_0_OR_GREATER
-            var configSection = configuration.GetSection(typeof(TRabbitConfiguration).Name);
-            if (!configSection.Exists())
-            {
-                throw new Exception($"Configuration section '{typeof(TRabbitConfiguration).Name}' not found.");
-            }
-            var rabbitConfig = configSection.Get<TRabbitConfiguration>();
+            TRabbitConfiguration? rabbitConfig = ReadSettings<TRabbitConfiguration>(configuration);
 
-            services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
+            if (rabbitConfig != null)
             {
-                var rabbitHelper = new RabbitHelper(rabbitConfig);
-                return rabbitHelper;
-            });
+                services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
+                {
+                    var rabbitHelper = new RabbitHelper(rabbitConfig);
+                    return rabbitHelper;
+                });
+            }
+            else
+            {
+                throw new Exception("NanoRabbit Configuration is incorrect.");
+            }
             return services;
 #else
             throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
@@ -231,6 +237,22 @@ namespace NanoRabbit.DependencyInjection
 #else
             throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
+        }
+
+        /// <summary>
+        /// Read NanoRabbit configs in appsettings.json
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static TRabbitConfiguration? ReadSettings<TRabbitConfiguration>(this IConfiguration configuration)
+        {
+            var configSection = configuration.GetSection(typeof(TRabbitConfiguration).Name);
+            if (!configSection.Exists())
+            {
+                throw new Exception($"Configuration section '{typeof(TRabbitConfiguration).Name}' not found.");
+            }
+            var rabbitConfig = configSection.Get<TRabbitConfiguration>();
+            return rabbitConfig;
         }
     }
 }

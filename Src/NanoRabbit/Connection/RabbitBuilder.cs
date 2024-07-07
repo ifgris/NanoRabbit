@@ -92,7 +92,14 @@ public class RabbitConfigurationBuilder
     {
         var options = new ProducerOptions();
         configureProducer(options);
-        if (_rabbitConfiguration.Producers != null) _rabbitConfiguration.Producers.Add(options);
+        if (_rabbitConfiguration.Producers != null)
+        {
+            if (_rabbitConfiguration.Producers.Any(x=>x.ProducerName == options.ProducerName))
+            {
+                throw new Exception($"Producer '{options.ProducerName}' already registered in IRabbitHelper.");
+            }
+            _rabbitConfiguration.Producers.Add(options);
+        }
     }
 
     /// <summary>
@@ -103,7 +110,14 @@ public class RabbitConfigurationBuilder
     {
         var options = new ConsumerOptions();
         configureConsumer(options);
-        if (_rabbitConfiguration.Consumers != null) _rabbitConfiguration.Consumers.Add(options);
+        if (_rabbitConfiguration.Consumers != null)
+        {
+            if (_rabbitConfiguration.Consumers.Any(x => x.ConsumerName == options.ConsumerName))
+            {
+                throw new Exception($"Consumer '{options.ConsumerName}' already registered in IRabbitHelper.");
+            }
+            _rabbitConfiguration.Consumers.Add(options);
+        }
     }
 
     /// <summary>
@@ -113,22 +127,5 @@ public class RabbitConfigurationBuilder
     public RabbitConfiguration Build()
     {
         return _rabbitConfiguration;
-    }
-}
-
-/// <summary>
-/// RabbitConfiguration extensions.
-/// </summary>
-public static class ConfigurationExtensions
-{
-    /// <summary>
-    /// Read NanoRabbit configs in appsettings.json
-    /// </summary>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
-    public static RabbitConfiguration? ReadSettings(this IConfiguration configuration)
-    {
-        var rabbitConfig = configuration.GetSection("NanoRabbit").Get<RabbitConfiguration>();
-        return rabbitConfig;
     }
 }

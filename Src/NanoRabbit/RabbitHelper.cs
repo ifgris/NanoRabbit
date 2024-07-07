@@ -59,7 +59,7 @@ namespace NanoRabbit
 
                 if (connectionOption == null)
                 {
-                    throw new Exception($"Producer: {producerName} not found!");
+                    throw new Exception($"Producer '{producerName}' not found!");
                 }
 
                 return connectionOption;
@@ -84,7 +84,7 @@ namespace NanoRabbit
 
                 if (connectionOption == null)
                 {
-                    throw new Exception($"Consumer: {consumerName} not found!");
+                    throw new Exception($"Consumer '{consumerName}' not found!");
                 }
 
                 return connectionOption;
