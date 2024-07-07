@@ -54,56 +54,56 @@ For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/m
 
 #### RabbitProducer
 
-Register a RabbitMQ Producer by calling `RabbitProducer()`, and configure it.
+Register a RabbitMQ Producer by calling `RabbitHelper()`, and configure it.
 
 ```csharp
-var producer = new RabbitProducer(new[]
+using NanoRabbit;
+using NanoRabbit.Connection;
+
+var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {
-    new ProducerOptions
-    {
-        ProducerName = "FooFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
+    HostName = "localhost",
+    Port = 5672,
+    VirtualHost = "/",
+    UserName = "admin",
+    Password = "admin",
+    Producers = new List<ProducerOptions> { new ProducerOptions {
+        ProducerName = "FooProducer",
         ExchangeName = "amq.topic",
-        RoutingKey = "FooFirstKey",
-        Type = ExchangeType.Topic,
-        Durable = true,
-        AutoDelete = false,
-        AutomaticRecoveryEnabled = true
-    }
+        RoutingKey = "foo.key"
+    } }
 });
 ```
 
 #### RabbitConsumer
 
-Register a RabbitMQ Consumer by calling `RabbitConsumer()`, and configure it.
+Register a RabbitMQ Consumer by calling `RabbitHelper()`, and configure it.
 
 ```csharp
-var consumer = new RabbitConsumer(new[]
+using NanoRabbit;
+using NanoRabbit.Connection;
+
+var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {
-    new ConsumerOptions
-    {
-        ConsumerName = "FooSecondQueueConsumer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        QueueName = "FooSecondQueue",
-        AutomaticRecoveryEnabled = true
+    HostName = "localhost",
+    Port = 5672,
+    VirtualHost = "/",
+    UserName = "admin",
+    Password = "admin",
+    Consumers = new List<ConsumerOptions> { new ConsumerOptions {
+            ConsumerName= "FooConsumer",
+            QueueName = "foo-queue"
+        }
     }
 });
 ```
 
 ### Simple Publish
 
-[After](#rabbitproducer) creating the `RabbitProducer`, you can simply publish a message by calling `Publish<T>()`.
+[After](#rabbitproducer) creating the `RabbitHelper`, you can simply publish a message by calling `Publish<T>()`.
 
 ```csharp
-producer.Publish<string>("FooFirstQueueProducer", "Hello");
+rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
 ```
 
 ### Simple Consume
@@ -112,23 +112,13 @@ producer.Publish<string>("FooFirstQueueProducer", "Hello");
 inheriting `RabbitSubscriber`.
 
 ```csharp
-public class ConsumeService : RabbitSubscriber
+while (true)
 {
-    public ConsumeService(IRabbitConsumer consumer, string consumerName, ILogger<RabbitSubscriber>? logger = null) : base(consumer, consumerName, logger)
+    rabbitHelper.AddConsumer("FooConsumer", message =>
     {
-        // ...
-    }
-
-    protected override bool HandleMessage(string message)
-    {
-        // ...
-        return true;
-    }
+        Console.WriteLine(message);
+    });
 }
-
-var consumeService = new ConsumeService(consumer, null, "FooSecondQueueConsumer");
-
-consumeService.StartAsync(CancellationToken.None);
 ```
 
 ### Forward messages
@@ -142,41 +132,26 @@ consumeService.StartAsync(CancellationToken.None);
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddRabbitProducer(options =>
+// Configure the RabbitMQ Connection
+builder.Services.AddRabbitHelper(builder =>
 {
-    options.AddProducer(new ProducerOptions
+    builder.SetHostName("localhost");
+    builder.SetPort(5672);
+    builder.SetVirtualHost("/");
+    builder.SetUserName("admin");
+    builder.SetPassword("admin");
+    builder.AddProducer(producer =>
     {
-        ProducerName = "FooFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        ExchangeName = "amq.topic",
-        RoutingKey = "FooFirstKey",
-        Type = ExchangeType.Topic,
-        Durable = true,
-        AutoDelete = false,
-        Arguments = null,
-        AutomaticRecoveryEnabled = true
-    });
-    options.AddProducer(new ProducerOptions
-    {
-        ProducerName = "BarFirstQueueProducer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "BarHost",
-        ExchangeName = "amq.direct",
-        RoutingKey = "BarFirstKey",
-        Type = ExchangeType.Direct,
-        Durable = true,
-        AutoDelete = false,
-        Arguments = null,
-        AutomaticRecoveryEnabled = true
+        producer.ProducerName = "FooProducer";
+        producer.ExchangeName = "amq.topic";
+        producer.RoutingKey = "foo.key";
+        producer.Type = ExchangeType.Topic;
     });
 });
+
+using IHost host = builder.Build();
+
+host.Run();
 ```
 
 #### AddRabbitConsumer
@@ -184,67 +159,31 @@ builder.Services.AddRabbitProducer(options =>
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddRabbitConsumer(options =>
+// Configure the RabbitMQ Connection
+builder.Services.AddRabbitHelper(builder =>
 {
-    options.AddConsumer(new ConsumerOptions
+    builder.SetHostName("localhost");
+    builder.SetPort(5672);
+    builder.SetVirtualHost("/");
+    builder.SetUserName("admin");
+    builder.SetPassword("admin");
+    builder.AddConsumer(consumer =>
     {
-        ConsumerName = "FooFirstQueueConsumer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "FooHost",
-        QueueName = "FooFirstQueue",
-        AutomaticRecoveryEnabled = true
+        consumer.ConsumerName = "FooConsumer";
+        consumer.QueueName = "foo-queue";
     });
-    options.AddConsumer(new ConsumerOptions
+    builder.AddConsumer(consumer =>
     {
-        ConsumerName = "BarFirstQueueConsumer",
-        HostName = "localhost",
-        Port = 5672,
-        UserName = "admin",
-        Password = "admin",
-        VirtualHost = "BarHost",
-        QueueName = "BarFirstQueue", AutomaticRecoveryEnabled = true
+        consumer.ConsumerName = "BarConsumer";
+        consumer.QueueName = "bar-queue";
     });
-});
-```
+})
+.AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
+.AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
 
-#### AddRabbitSubscriber
+using IHost host = builder.Build();
 
-After adding `RabbitConsumer` and inheriting `RabbitSubscriber`, you should register the BackgroundService
-by `AddRabbitSubscriber`:
-
-```csharp
-var builder = Host.CreateApplicationBuilder(args);
-
-builder.Services.AddRabbitSubscriber<ConsumeService>("FooSecondQueueConsumer");
-```
-
-From **0.1.6** on, setting `Consumer Count` in AddRabbitSubscriber() is available.
-
-#### Using producer or consumer
-
-Then, you can use RabbitProducer and RabbitConsumer at anywhere.
-
-For example:
-
-```csharp
-public class ConsumeService : RabbitSubscriber
-{
-    private readonly IRabbitProducer _producer;
-
-    public ConsumeService(IRabbitConsumer consumer, ILogger<RabbitSubscriber>? logger, string consumerName, IRabbitProducer producer) : base(consumer, consumerName, logger)
-    {
-        _producer = producer;
-    }
-
-    protected override bool HandleMessage(string message)
-    {
-        _producer.Publish("FooSecondQueueProducer", message);
-        return true;
-    }
-}
+host.Run();
 ```
 
 More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
