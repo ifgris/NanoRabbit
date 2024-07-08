@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace NanoRabbit.Connection;
+﻿namespace NanoRabbit.Connection;
 
 /// <summary>
 /// RabbitConfiguration Builder.
@@ -88,7 +86,7 @@ public class RabbitConfigurationBuilder
     /// Add a producer to RabbitMQ connection.
     /// </summary>
     /// <param name="configureProducer"></param>
-    public void AddProducer(Action<ProducerOptions> configureProducer)
+    public void AddProducerOption(Action<ProducerOptions> configureProducer)
     {
         var options = new ProducerOptions();
         configureProducer(options);
@@ -106,7 +104,7 @@ public class RabbitConfigurationBuilder
     /// Add a consumer to RabbitMQ connection.
     /// </summary>
     /// <param name="configureConsumer"></param>
-    public void AddConsumer(Action<ConsumerOptions> configureConsumer)
+    public void AddConsumerOption(Action<ConsumerOptions> configureConsumer)
     {
         var options = new ConsumerOptions();
         configureConsumer(options);
