@@ -47,26 +47,26 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             builder.SetUserName("admin");
             builder.SetPassword("admin");
             builder.EnableLogging(false);
-            builder.AddProducer(producer =>
+            builder.AddProducerOption(producer =>
             {
                 producer.ProducerName = "FooProducer";
                 producer.ExchangeName = "amq.topic";
                 producer.RoutingKey = "foo.key";
                 producer.Type = ExchangeType.Topic;
             });
-            builder.AddProducer(producer =>
+            builder.AddProducerOption(producer =>
             {
                 producer.ProducerName = "BarProducer";
                 producer.ExchangeName = "amq.direct";
                 producer.RoutingKey = "bar.key";
                 producer.Type = ExchangeType.Direct;
             });
-            builder.AddConsumer(consumer =>
+            builder.AddConsumerOption(consumer =>
             {
                 consumer.ConsumerName = "FooConsumer";
                 consumer.QueueName = "foo-queue";
             });
-            builder.AddConsumer(consumer =>
+            builder.AddConsumerOption(consumer =>
             {
                 consumer.ConsumerName = "BarConsumer";
                 consumer.QueueName = "bar-queue";
