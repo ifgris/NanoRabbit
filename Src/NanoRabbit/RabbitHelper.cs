@@ -27,13 +27,21 @@ namespace NanoRabbit
             RabbitConfiguration rabbitConfig)
         {
             _rabbitConfig = rabbitConfig;
+            ConnectionFactory factory = new();
 
-            var hostName = _rabbitConfig.HostName;
-            var port = _rabbitConfig.Port;
-            var virtualHost = _rabbitConfig.VirtualHost;
-            var userName = _rabbitConfig.UserName;
-            var password = _rabbitConfig.Password;
-            var factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
+            if (!string.IsNullOrEmpty(_rabbitConfig.Uri))
+            {
+                factory.Uri = new Uri( _rabbitConfig.Uri );
+            }
+            else
+            {
+                var hostName = _rabbitConfig.HostName;
+                var port = _rabbitConfig.Port ?? 5672; // Use default amqp port 5672 if port is null.
+                var virtualHost = _rabbitConfig.VirtualHost;
+                var userName = _rabbitConfig.UserName;
+                var password = _rabbitConfig.Password;
+                factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
+            }
             
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
             
@@ -137,7 +145,7 @@ namespace NanoRabbit
 
             if (_rabbitConfig.EnableLogging)
             {
-                GlobalLogger.Logger.Information($"{producerName}|Published a messgage.");
+                GlobalLogger.Logger?.Information($"{producerName}|Published|{messageStr}");
             }
         }
 
@@ -168,7 +176,7 @@ namespace NanoRabbit
                             basicProperties: properties,
                             body: body);
             }
-            if (_rabbitConfig.EnableLogging) GlobalLogger.Logger.Information($"{producerName}|Published a batch of messgages.");
+            if (_rabbitConfig.EnableLogging) GlobalLogger.Logger?.Information($"{producerName}|Published a batch of messgages.");
         }
 
         /// <summary>
