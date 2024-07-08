@@ -7,7 +7,7 @@ namespace NanoRabbit.Logging;
 /// </summary>
 public static class GlobalLogger
 {
-    private static ILogger _logger;
+    private static ILogger? _logger;
 
     public static bool IsLoggingEnabled { get; private set; }
 
@@ -29,5 +29,5 @@ public static class GlobalLogger
         }
     }
 
-    public static ILogger Logger => _logger;
+    public static ILogger? Logger => _logger;
 }
