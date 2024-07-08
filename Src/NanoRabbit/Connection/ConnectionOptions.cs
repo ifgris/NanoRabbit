@@ -106,53 +106,64 @@ public class RabbitConsumerOptions
 }
 
 /// <summary>
-/// NanoRabbit configs in appsettings.json
+/// NanoRabbit connection configurations in appsettings.json
 /// </summary>
 public class RabbitConfiguration
 {
     /// <summary>
-    /// RabbitMQ HostName, default: "localhost"
+    /// RabbitMQ connection Uri.
+    /// Example: "amqp://user:pass@hostName:port/vhost"
     /// </summary>
-    public string HostName { get; set; } = "localhost";
+    public string? Uri { get; set; } = null;
 
     /// <summary>
-    /// RabbitMQ AmqpTcpEndpoint port, default: 5672
+    /// RabbitMQ HostName.
+    /// Example: "localhost"
     /// </summary>
-    public int Port { get; set; } = 5672;
+    public string? HostName { get; set; } = null;
+    /// <summary>
+    /// RabbitMQ AmqpTcpEndpoint port.
+    /// Example: 5672
+    /// </summary>
+    public int? Port { get; set; } = null;
+    /// <summary>
+    /// RabbitMQ UserName.
+    /// Example: "guest"
+    /// </summary>
+    public string? UserName { get; set; } = null;
+    /// <summary>
+    /// RabbitMQ Password.
+    /// Example: "guest"
+    /// </summary>
+    public string? Password { get; set; } = null;
+    /// <summary>
+    /// RabbitMQ VirtualHost.
+    /// Example: "/"
+    /// </summary>
+    public string? VirtualHost { get; set; } = null;
 
     /// <summary>
-    /// RabbitMQ UserName, default: "guest"
-    /// </summary>
-    public string UserName { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ Password, default: "guest"
-    /// </summary>
-    public string Password { get; set; } = "guest";
-
-    /// <summary>
-    /// RabbitMQ VirtualHost, default: "/"
-    /// </summary>
-    public string VirtualHost { get; set; } = "/";
-
-    /// <summary>
-    /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations. Defaults: false
+    /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations.
+    /// Defaults: false
     /// </summary>
     public bool UseAsyncConsumer { get; set; } = false;
 
     /// <summary>
-    /// Enable logging. Default: true
+    /// Enable logging.
+    /// Default: true
     /// </summary>
     public bool EnableLogging { get; set; } = true;
 
     /// <summary>
-    /// RabbitProducer configs
+    /// RabbitProducer configs.
+    /// Dafaults: null
     /// </summary>
-    public List<ProducerOptions>? Producers { get; set; }
+    public List<ProducerOptions>? Producers { get; set; } = null;
     /// <summary>
-    /// RabbitConsumer configs
+    /// RabbitConsumer configs.
+    /// Dafaults: null
     /// </summary>
-    public List<ConsumerOptions>? Consumers { get; set; }
+    public List<ConsumerOptions>? Consumers { get; set; } = null;
 }
 
 /// <summary>
