@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using NanoRabbit.Connection;
+﻿using NanoRabbit.Connection;
 using NanoRabbit.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -42,6 +41,7 @@ namespace NanoRabbit
            
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
+
             _consumers = new Dictionary<string, EventingBasicConsumer>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
         }

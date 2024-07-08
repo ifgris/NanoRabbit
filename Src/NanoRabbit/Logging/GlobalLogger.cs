@@ -3,7 +3,7 @@
 namespace NanoRabbit.Logging;
 
 /// <summary>
-/// GlobalLogger Static Class, used to create Logger simply.
+/// GlobalLogger Static Class, which is used to create Logger simply.
 /// </summary>
 public static class GlobalLogger
 {
