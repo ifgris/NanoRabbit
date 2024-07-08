@@ -37,7 +37,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 |                      0.0.7                      |      6.5.0      | 6.0, 7.0, 8.0 |
 |                  0.0.8, 0.0.9                   |      6.7.0      | 6.0, 7.0, 8.0 |
 | 0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6 |      6.8.1      | 6.0, 7.0, 8.0 |
-|                      0.1.7                      |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
+|                      0.1.7, 0.1.8               |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -50,7 +50,7 @@ a **UNIQUE NAME** for each Producers, Consumers._
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
-### Create a RabbitProducer && RabbitConsumer
+### Setup RabbitProducers && RabbitConsumers
 
 #### RabbitProducer
 
@@ -100,7 +100,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 
 ### Simple Publish
 
-[After](#rabbitproducer) creating the `RabbitHelper`, you can simply publish a message by calling `Publish<T>()`.
+[After](#rabbitproducer) registering a `RabbitProducer` in the `RabbitHelper`, you can simply publish a message by calling `Publish<T>(string producerName, T message)`.
 
 ```csharp
 rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
@@ -108,8 +108,8 @@ rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
 
 ### Simple Consume
 
-[After](#rabbitconsumer) creating the `RabbitConsumer`, you can simply consume a message by
-inheriting `RabbitSubscriber`.
+[After](#rabbitconsumer) registering a `RabbitConsumer` in the `RabbitConsumer`, you can simply consume a message by
+calling `AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)`.
 
 ```csharp
 while (true)
@@ -140,7 +140,7 @@ builder.Services.AddRabbitHelper(builder =>
     builder.SetVirtualHost("/");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddProducer(producer =>
+    builder.AddProducerOption(producer =>
     {
         producer.ProducerName = "FooProducer";
         producer.ExchangeName = "amq.topic";
@@ -167,12 +167,12 @@ builder.Services.AddRabbitHelper(builder =>
     builder.SetVirtualHost("/");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddConsumer(consumer =>
+    builder.AddConsumerOption(consumer =>
     {
         consumer.ConsumerName = "FooConsumer";
         consumer.QueueName = "foo-queue";
     });
-    builder.AddConsumer(consumer =>
+    builder.AddConsumerOption(consumer =>
     {
         consumer.ConsumerName = "BarConsumer";
         consumer.QueueName = "bar-queue";
