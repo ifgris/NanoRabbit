@@ -15,19 +15,19 @@ builder.Services.AddRabbitHelper(builder =>
     builder.SetVirtualHost("/");
     builder.SetUserName("admin");
     builder.SetPassword("admin");
-    builder.AddProducer(producer =>
+    builder.AddProducerOption(producer =>
     {
         producer.ProducerName = "FooProducer";
         producer.ExchangeName = "amq.topic";
         producer.RoutingKey = "foo.key";
         producer.Type = ExchangeType.Topic;
     });
-    builder.AddConsumer(consumer =>
+    builder.AddConsumerOption(consumer =>
     {
         consumer.ConsumerName = "FooConsumer";
         consumer.QueueName = "foo-queue";
     });
-    builder.AddConsumer(consumer =>
+    builder.AddConsumerOption(consumer =>
     {
         consumer.ConsumerName = "BarConsumer";
         consumer.QueueName = "bar-queue";
