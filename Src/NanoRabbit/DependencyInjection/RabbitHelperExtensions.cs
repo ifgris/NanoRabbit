@@ -62,7 +62,7 @@ namespace NanoRabbit.DependencyInjection
         /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static IServiceCollection AddRabbitMqHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
             TRabbitConfiguration? rabbitConfig = ReadSettings<TRabbitConfiguration>(configuration);
@@ -90,7 +90,7 @@ namespace NanoRabbit.DependencyInjection
         /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static IServiceCollection AddKeyedRabbitMqHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, string key, IConfiguration configuration)
+        public static IServiceCollection AddKeyedRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, string key, IConfiguration configuration)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
 #if NET7_0_OR_GREATER
