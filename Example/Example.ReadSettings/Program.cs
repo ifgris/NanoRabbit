@@ -7,7 +7,7 @@ using NanoRabbit.Connection;
 
 var builder = Host.CreateApplicationBuilder(args);
 var configuration = builder.Configuration;
-builder.Services.AddRabbitMqHelperFromAppSettings<FooConfiguration>(builder.Configuration)
+builder.Services.AddRabbitHelperFromAppSettings<FooConfiguration>(builder.Configuration)
     .AddRabbitConsumer<FooQueueHandler>("FooConsumer")
     .AddRabbitConsumer<BarQueueHandler>("BarConsumer");
 
