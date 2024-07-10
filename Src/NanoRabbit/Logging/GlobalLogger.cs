@@ -1,4 +1,4 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.Logging;
 
 namespace NanoRabbit.Logging;
 
@@ -7,26 +7,20 @@ namespace NanoRabbit.Logging;
 /// </summary>
 public static class GlobalLogger
 {
+    private static ILoggerFactory? _loggerFactory;
     private static ILogger? _logger;
 
-    public static bool IsLoggingEnabled { get; private set; }
-
-    public static void ConfigureLogging(bool enableLogging)
+    public static void ConfigureLogging()
     {
-        IsLoggingEnabled = enableLogging;
+        _loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.SetMinimumLevel(LogLevel.Information);
 
-        if (enableLogging)
-        {
-            _logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger();
-        }
-        else
-        {
-            _logger = new LoggerConfiguration()
-                .MinimumLevel.ControlledBy(new Serilog.Core.LoggingLevelSwitch(Serilog.Events.LogEventLevel.Fatal))
-                .CreateLogger();
-        }
+            // Add default console logging
+            builder.AddConsole();
+        });
+
+        _logger = _loggerFactory.CreateLogger("RabbitHelper");
     }
 
     public static ILogger? Logger => _logger;

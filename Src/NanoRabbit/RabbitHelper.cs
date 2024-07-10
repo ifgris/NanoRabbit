@@ -1,4 +1,5 @@
-﻿using NanoRabbit.Connection;
+﻿using Microsoft.Extensions.Logging;
+using NanoRabbit.Connection;
 using NanoRabbit.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -17,6 +18,7 @@ namespace NanoRabbit
         private readonly Dictionary<string, EventingBasicConsumer> _consumers;
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
+        private readonly ILogger<RabbitHelper>? _logger;
 
         /// <summary>
         /// RabbitHelper constructor.
@@ -24,14 +26,14 @@ namespace NanoRabbit
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
         public RabbitHelper(
-            RabbitConfiguration rabbitConfig)
+            RabbitConfiguration rabbitConfig, ILogger<RabbitHelper>? logger = null)
         {
             _rabbitConfig = rabbitConfig;
             ConnectionFactory factory = new();
 
             if (!string.IsNullOrEmpty(_rabbitConfig.Uri))
             {
-                factory.Uri = new Uri( _rabbitConfig.Uri );
+                factory.Uri = new Uri(_rabbitConfig.Uri);
             }
             else
             {
@@ -42,11 +44,21 @@ namespace NanoRabbit
                 var password = _rabbitConfig.Password;
                 factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
             }
-            
+
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
-            
-            GlobalLogger.ConfigureLogging(_rabbitConfig.EnableLogging);
-           
+
+            if (_rabbitConfig.EnableLogging)
+            {
+                if (logger != null)
+                {
+                    _logger = logger;
+                }
+                else
+                {
+                    _logger = (ILogger<RabbitHelper>?)GlobalLogger.Logger;
+                }
+            }
+
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
@@ -143,10 +155,7 @@ namespace NanoRabbit
 
             _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
 
-            if (_rabbitConfig.EnableLogging)
-            {
-                GlobalLogger.Logger?.Information($"{producerName}|Published|{messageStr}");
-            }
+            _logger?.LogInformation($"{producerName}|Published|{messageStr}");
         }
 
         /// <summary>
@@ -176,7 +185,7 @@ namespace NanoRabbit
                             basicProperties: properties,
                             body: body);
             }
-            if (_rabbitConfig.EnableLogging) GlobalLogger.Logger?.Information($"{producerName}|Published a batch of messgages.");
+            _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
         }
 
         /// <summary>

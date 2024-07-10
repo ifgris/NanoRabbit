@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 
 namespace NanoRabbit.DependencyInjection
@@ -23,7 +24,8 @@ namespace NanoRabbit.DependencyInjection
 
             services.AddSingleton<IRabbitHelper>(provider =>
             {
-                return new RabbitHelper(rabbitConfig);
+                var logger = provider.GetRequiredService<ILogger<RabbitHelper>>();
+                return new RabbitHelper(rabbitConfig, logger);
             });
             return services;
         }
