@@ -161,7 +161,7 @@ public class RabbitConfiguration
     public List<ProducerOptions>? Producers { get; set; }
     /// <summary>
     /// RabbitConsumer configs.
-    /// Dafaults: null
+    /// Defaults: null
     /// </summary>
     public List<ConsumerOptions>? Consumers { get; set; }
 }
