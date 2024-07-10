@@ -120,33 +120,33 @@ public class RabbitConfiguration
     /// RabbitMQ HostName.
     /// Example: "localhost"
     /// </summary>
-    public string? HostName { get; set; } = null;
+    public string? HostName { get; set; }
     /// <summary>
     /// RabbitMQ AmqpTcpEndpoint port.
     /// Example: 5672
     /// </summary>
-    public int? Port { get; set; } = null;
+    public int? Port { get; set; }
     /// <summary>
     /// RabbitMQ UserName.
     /// Example: "guest"
     /// </summary>
-    public string? UserName { get; set; } = null;
+    public string? UserName { get; set; }
     /// <summary>
     /// RabbitMQ Password.
     /// Example: "guest"
     /// </summary>
-    public string? Password { get; set; } = null;
+    public string? Password { get; set; }
     /// <summary>
     /// RabbitMQ VirtualHost.
     /// Example: "/"
     /// </summary>
-    public string? VirtualHost { get; set; } = null;
+    public string? VirtualHost { get; set; }
 
     /// <summary>
     /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations.
     /// Defaults: false
     /// </summary>
-    public bool UseAsyncConsumer { get; set; } = false;
+    public bool UseAsyncConsumer { get; set; }
 
     /// <summary>
     /// Enable logging.
@@ -158,12 +158,12 @@ public class RabbitConfiguration
     /// RabbitProducer configs.
     /// Dafaults: null
     /// </summary>
-    public List<ProducerOptions>? Producers { get; set; } = null;
+    public List<ProducerOptions>? Producers { get; set; }
     /// <summary>
     /// RabbitConsumer configs.
     /// Dafaults: null
     /// </summary>
-    public List<ConsumerOptions>? Consumers { get; set; } = null;
+    public List<ConsumerOptions>? Consumers { get; set; }
 }
 
 /// <summary>
