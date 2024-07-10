@@ -46,7 +46,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             builder.SetVirtualHost("/");
             builder.SetUserName("admin");
             builder.SetPassword("admin");
-            builder.EnableLogging(false);
+            builder.EnableLogging(true);
             builder.AddProducerOption(producer =>
             {
                 producer.ProducerName = "FooProducer";
