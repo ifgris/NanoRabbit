@@ -53,17 +53,6 @@ public class ProducerOptions
 }
 
 /// <summary>
-/// Includes the list of ProducerOptions
-/// </summary>
-public class RabbitProducerOptions
-{
-    /// <summary>
-    /// List of ProducerOptions
-    /// </summary>
-    public List<ProducerOptions> Producers { get; set; } = null!;
-}
-
-/// <summary>
 /// NanoRabbit consumer connect options
 /// </summary>
 public class ConsumerOptions
@@ -92,17 +81,6 @@ public class ConsumerOptions
     /// BasicQos prefetchCount, default: 0
     /// </summary>
     public ushort PrefetchCount { get; set; } = 0;
-}
-
-/// <summary>
-/// Includes the list of ConsumerOptions
-/// </summary>
-public class RabbitConsumerOptions
-{
-    /// <summary>
-    /// List of ConsumerOptions
-    /// </summary>
-    public List<ConsumerOptions> Consumers { get; set; } = null!;
 }
 
 /// <summary>
