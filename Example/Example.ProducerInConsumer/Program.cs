@@ -8,23 +8,23 @@ var builder = Host.CreateApplicationBuilder(args);
 // Configure the RabbitMQ Connection
 builder.Services.AddRabbitHelper(builder =>
 {
-    builder.SetHostName("localhost");
-    builder.SetPort(5672);
-    builder.SetVirtualHost("/");
-    builder.SetUserName("admin");
-    builder.SetPassword("admin");
-    builder.AddProducerOption(producer =>
-    {
-        producer.ProducerName = "BarProducer";
-        producer.ExchangeName = "amq.direct";
-        producer.RoutingKey = "bar.key";
-        producer.Type = ExchangeType.Direct;
-    });
-    builder.AddConsumerOption(consumer =>
-    {
-        consumer.ConsumerName = "FooConsumer";
-        consumer.QueueName = "foo-queue";
-    });
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("/")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .AddProducerOption(producer =>
+        {
+            producer.ProducerName = "BarProducer";
+            producer.ExchangeName = "amq.direct";
+            producer.RoutingKey = "bar.key";
+            producer.Type = ExchangeType.Direct;
+        })
+        .AddConsumerOption(consumer =>
+        {
+            consumer.ConsumerName = "FooConsumer";
+            consumer.QueueName = "foo-queue";
+        });
 })
 .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3);
 

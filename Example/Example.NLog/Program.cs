@@ -41,36 +41,36 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
 
         services.AddRabbitHelper(builder =>
         {
-            builder.SetHostName("localhost");
-            builder.SetPort(5672);
-            builder.SetVirtualHost("/");
-            builder.SetUserName("admin");
-            builder.SetPassword("admin");
-            builder.EnableLogging(true);
-            builder.AddProducerOption(producer =>
-            {
-                producer.ProducerName = "FooProducer";
-                producer.ExchangeName = "amq.topic";
-                producer.RoutingKey = "foo.key";
-                producer.Type = ExchangeType.Topic;
-            });
-            builder.AddProducerOption(producer =>
-            {
-                producer.ProducerName = "BarProducer";
-                producer.ExchangeName = "amq.direct";
-                producer.RoutingKey = "bar.key";
-                producer.Type = ExchangeType.Direct;
-            });
-            builder.AddConsumerOption(consumer =>
-            {
-                consumer.ConsumerName = "FooConsumer";
-                consumer.QueueName = "foo-queue";
-            });
-            builder.AddConsumerOption(consumer =>
-            {
-                consumer.ConsumerName = "BarConsumer";
-                consumer.QueueName = "bar-queue";
-            });
+            builder.SetHostName("localhost")
+                .SetPort(5672)
+                .SetVirtualHost("/")
+                .SetUserName("admin")
+                .SetPassword("admin")
+                .EnableLogging(true)
+                .AddProducerOption(producer =>
+                {
+                    producer.ProducerName = "FooProducer";
+                    producer.ExchangeName = "amq.topic";
+                    producer.RoutingKey = "foo.key";
+                    producer.Type = ExchangeType.Topic;
+                })
+                .AddProducerOption(producer =>
+                {
+                    producer.ProducerName = "BarProducer";
+                    producer.ExchangeName = "amq.direct";
+                    producer.RoutingKey = "bar.key";
+                    producer.Type = ExchangeType.Direct;
+                })
+                .AddConsumerOption(consumer =>
+                {
+                    consumer.ConsumerName = "FooConsumer";
+                    consumer.QueueName = "foo-queue";
+                })
+                .AddConsumerOption(consumer =>
+                {
+                    consumer.ConsumerName = "BarConsumer";
+                    consumer.QueueName = "bar-queue";
+                });
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
         .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);

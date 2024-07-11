@@ -9,40 +9,40 @@ var builder = Host.CreateApplicationBuilder();
 
 builder.Services.AddKeyedRabbitHelper("DefaultRabbitHelper", builder =>
 {
-    builder.SetHostName("localhost");
-    builder.SetPort(5672);
-    builder.SetVirtualHost("/");
-    builder.SetUserName("admin");
-    builder.SetPassword("admin");
-    builder.AddProducerOption(producer =>
-    {
-        producer.ProducerName = "FooProducer";
-        producer.ExchangeName = "amq.topic";
-        producer.RoutingKey = "foo.key";
-        producer.Type = ExchangeType.Topic;
-    });
-    builder.AddConsumerOption(consumer =>
-    {
-        consumer.ConsumerName = "DefaultFooConsumer";
-        consumer.QueueName = "foo-queue";
-    });
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("/")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .AddProducerOption(producer =>
+        {
+            producer.ProducerName = "FooProducer";
+            producer.ExchangeName = "amq.topic";
+            producer.RoutingKey = "foo.key";
+            producer.Type = ExchangeType.Topic;
+        })
+        .AddConsumerOption(consumer =>
+        {
+            consumer.ConsumerName = "DefaultFooConsumer";
+            consumer.QueueName = "foo-queue";
+        });
 }).AddKeyedRabbitConsumer<DefaultMessageHandler>("DefaultRabbitHelper", "DefaultFooConsumer");
 
 builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", builder =>
 {
-    builder.SetHostName("localhost");
-    builder.SetPort(5672);
-    builder.SetVirtualHost("test");
-    builder.SetUserName("admin");
-    builder.SetPassword("admin");
-    builder.AddProducerOption(producer =>
+    builder.SetHostName("localhost")
+    .SetPort(5672)
+    .SetVirtualHost("test")
+    .SetUserName("admin")
+    .SetPassword("admin")
+    .AddProducerOption(producer =>
     {
         producer.ProducerName = "FooProducer";
         producer.ExchangeName = "amq.topic";
         producer.RoutingKey = "foo.key";
         producer.Type = ExchangeType.Topic;
-    });
-    builder.AddConsumerOption(consumer =>
+    })
+    .AddConsumerOption(consumer =>
     {
         consumer.ConsumerName = "TestFooConsumer";
         consumer.QueueName = "foo-queue";
