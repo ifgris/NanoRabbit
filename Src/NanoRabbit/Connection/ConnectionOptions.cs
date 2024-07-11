@@ -128,7 +128,7 @@ public class RabbitConfiguration
 
     /// <summary>
     /// Enable logging.
-    /// Default: true
+    /// Defaults: true
     /// </summary>
     public bool EnableLogging { get; set; } = true;
 

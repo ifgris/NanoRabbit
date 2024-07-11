@@ -5,15 +5,15 @@
 
 ## About
 
-NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage *
-*Multiple** connections, producers, consumers, and easy to use.
+NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage
+*Multiple* connections, producers, consumers, and easy to use.
 
-> _NanoRabbit is under development! Please note that some APIs may change their names or usage!_
+> *NanoRabbit is under development! Please note that some APIs may change their names or usage!*
 
 ## Building
 
 | Branch |                                                                                 Building Status                                                                                 |
-|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | master | [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml) |
 |  dev   |  [![build](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml/badge.svg?branch=dev&event=push)](https://github.com/cgcel/NanoRabbit/actions/workflows/build.yml)   |
 
@@ -31,13 +31,10 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 
 ## Version
 
-|                   NanoRabbit                    | RabbitMQ.Client |     .NET      |
-|:-----------------------------------------------:|:---------------:|:-------------:|
-|    0.0.1, 0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6     |      6.5.0      |      6.0      |
-|                      0.0.7                      |      6.5.0      | 6.0, 7.0, 8.0 |
-|                  0.0.8, 0.0.9                   |      6.7.0      | 6.0, 7.0, 8.0 |
-| 0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6 |      6.8.1      | 6.0, 7.0, 8.0 |
-|                      0.1.7, 0.1.8               |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
+|  NanoRabbit   | RabbitMQ.Client |     .NET      |
+| :-----------: | :-------------: | :-----------: |
+| 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
+|     0.1.9     |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -45,8 +42,8 @@ The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRab
 
 ## QuickStart
 
-> _NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set
-a **UNIQUE NAME** for each Producers, Consumers._
+> *NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set
+a **UNIQUE NAME** for each Producers, Consumers.*
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
@@ -54,7 +51,7 @@ For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/m
 
 #### RabbitProducer
 
-Register a RabbitMQ Producer by calling `RabbitHelper()`, and configure it.
+Register a RabbitMQ Producer by calling `RabbitHelper(RabbitConfiguration rabbitConfig, ILogger<RabbitHelper>? logger = null)`, and configure it.
 
 ```csharp
 using NanoRabbit;
@@ -68,10 +65,11 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
     UserName = "admin",
     Password = "admin",
     Producers = new List<ProducerOptions> { new ProducerOptions {
-        ProducerName = "FooProducer",
-        ExchangeName = "amq.topic",
-        RoutingKey = "foo.key"
-    } }
+            ProducerName = "FooProducer",
+            ExchangeName = "amq.topic",
+            RoutingKey = "foo.key"
+        } 
+    }
 });
 ```
 
@@ -135,18 +133,18 @@ var builder = Host.CreateApplicationBuilder(args);
 // Configure the RabbitMQ Connection
 builder.Services.AddRabbitHelper(builder =>
 {
-    builder.SetHostName("localhost");
-    builder.SetPort(5672);
-    builder.SetVirtualHost("/");
-    builder.SetUserName("admin");
-    builder.SetPassword("admin");
-    builder.AddProducerOption(producer =>
-    {
-        producer.ProducerName = "FooProducer";
-        producer.ExchangeName = "amq.topic";
-        producer.RoutingKey = "foo.key";
-        producer.Type = ExchangeType.Topic;
-    });
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("/")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .AddProducerOption(producer =>
+        {
+            producer.ProducerName = "FooProducer";
+            producer.ExchangeName = "amq.topic";
+            producer.RoutingKey = "foo.key";
+            producer.Type = ExchangeType.Topic;
+        });
 });
 
 using IHost host = builder.Build();
@@ -162,21 +160,21 @@ var builder = Host.CreateApplicationBuilder(args);
 // Configure the RabbitMQ Connection
 builder.Services.AddRabbitHelper(builder =>
 {
-    builder.SetHostName("localhost");
-    builder.SetPort(5672);
-    builder.SetVirtualHost("/");
-    builder.SetUserName("admin");
-    builder.SetPassword("admin");
-    builder.AddConsumerOption(consumer =>
-    {
-        consumer.ConsumerName = "FooConsumer";
-        consumer.QueueName = "foo-queue";
-    });
-    builder.AddConsumerOption(consumer =>
-    {
-        consumer.ConsumerName = "BarConsumer";
-        consumer.QueueName = "bar-queue";
-    });
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("/")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .AddConsumerOption(consumer =>
+        {
+            consumer.ConsumerName = "FooConsumer";
+            consumer.QueueName = "foo-queue";
+        })
+        .AddConsumerOption(consumer =>
+        {
+            consumer.ConsumerName = "BarConsumer";
+            consumer.QueueName = "bar-queue";
+        });
 })
 .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
 .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
@@ -186,7 +184,7 @@ using IHost host = builder.Build();
 host.Run();
 ```
 
-More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
+More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
 
 ## Contributing
 
@@ -199,12 +197,11 @@ More DI Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjec
 - [x] Basic Consume & Publish support
 - [x] DependencyInjection support
 - [x] Logging support
+- [x] .NET 7, .NET 8 support
 - [ ] Forward messages
 - [ ] ASP.NET support
-- [ ] Exchange Configurations
-- [x] .NET 7 support
-- [x] .NET 8 support
-- [ ] Caching of failed sends
+- [ ] TLS support
+- [ ] Re-trying of failed sends
 
 ## Thanks
 
