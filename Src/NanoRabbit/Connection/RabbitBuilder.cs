@@ -89,6 +89,7 @@ public class RabbitConfigurationBuilder
     /// Set to false will disable NanoRabbit GlobalLogger. Defaults to true.
     /// </summary>
     /// <param name="enableLogging"></param>
+    [Obsolete("this will be removed in next versions. instead pass logger while configuring NanoRabbit")]
     public RabbitConfigurationBuilder EnableLogging(bool enableLogging)
     {
         _rabbitConfiguration.EnableLogging = enableLogging;
