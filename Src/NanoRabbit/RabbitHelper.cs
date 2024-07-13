@@ -37,12 +37,14 @@ namespace NanoRabbit
             }
             else
             {
-                var hostName = _rabbitConfig.HostName;
-                var port = _rabbitConfig.Port ?? 5672; // Use default amqp port 5672 if port is null.
-                var virtualHost = _rabbitConfig.VirtualHost;
-                var userName = _rabbitConfig.UserName;
-                var password = _rabbitConfig.Password;
-                factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
+                factory = new ConnectionFactory
+                {
+                    HostName = _rabbitConfig.HostName, 
+                    Port = _rabbitConfig.Port,
+                    VirtualHost = _rabbitConfig.VirtualHost, 
+                    UserName = _rabbitConfig.UserName,
+                    Password = _rabbitConfig.Password
+                };
             }
 
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;

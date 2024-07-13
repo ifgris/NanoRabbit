@@ -101,9 +101,9 @@ public class RabbitConfiguration
     public string? HostName { get; set; }
     /// <summary>
     /// RabbitMQ AmqpTcpEndpoint port.
-    /// Example: 5672
+    /// Defaults: 5672
     /// </summary>
-    public int? Port { get; set; }
+    public int Port { get; set; } = 5672;
     /// <summary>
     /// RabbitMQ UserName.
     /// Example: "guest"
