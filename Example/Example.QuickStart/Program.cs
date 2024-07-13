@@ -1,5 +1,13 @@
-﻿using NanoRabbit;
+﻿using Microsoft.Extensions.Logging;
+using NanoRabbit;
 using NanoRabbit.Connection;
+
+var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddConsole();
+});
+
+var logger = loggerFactory.CreateLogger("RabbitHelper");
 
 var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {
@@ -19,7 +27,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
             QueueName = "foo-queue"
         }
     }
-});
+}, logger);
 
 rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
 

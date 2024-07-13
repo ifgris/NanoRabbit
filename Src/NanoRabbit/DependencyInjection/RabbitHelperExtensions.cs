@@ -10,23 +10,22 @@ namespace NanoRabbit.DependencyInjection
     /// </summary>
     public static class RabbitHelperExtensions
     {
+        private static readonly ILogger NullLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+
         /// <summary>
         /// Adds a singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
         /// </summary>
         /// <param name="services"></param>
         /// <param name="builder"></param>
+        /// <param name="loggerFactory"></param>
         /// <returns></returns>
-        public static IServiceCollection AddRabbitHelper(this IServiceCollection services, Action<RabbitConfigurationBuilder> builder)
+        public static IServiceCollection AddRabbitHelper(this IServiceCollection services, Action<RabbitConfigurationBuilder> builder, Func<IServiceCollection, ILogger>? loggerFactory = null)
         {
             var rabbitConfigBuilder = new RabbitConfigurationBuilder();
             builder.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
 
-            services.AddSingleton<IRabbitHelper>(provider =>
-            {
-                var logger = provider.GetRequiredService<ILogger<RabbitHelper>>();
-                return new RabbitHelper(rabbitConfig, logger);
-            });
+            services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory)));
             return services;
         }
 
@@ -36,18 +35,19 @@ namespace NanoRabbit.DependencyInjection
         /// <param name="services"></param>
         /// <param name="key"></param>
         /// <param name="builders"></param>
+        /// <param name="loggerFactory"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static IServiceCollection AddKeyedRabbitHelper(this IServiceCollection services, string key, Action<RabbitConfigurationBuilder> builders)
+        public static IServiceCollection AddKeyedRabbitHelper(this IServiceCollection services, string key, Action<RabbitConfigurationBuilder> builders, Func<IServiceCollection, ILogger>? loggerFactory = null)
         {
 #if NET7_0_OR_GREATER
             var rabbitConfigBuilder = new RabbitConfigurationBuilder();
             builders.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
 
-            services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
+            services.AddKeyedSingleton<IRabbitHelper>(key, (_, _) =>
             {
-                var rabbitHelper = new RabbitHelper(rabbitConfig);
+                var rabbitHelper = new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory));
                 return rabbitHelper;
             });
             return services;
@@ -62,19 +62,17 @@ namespace NanoRabbit.DependencyInjection
         /// <typeparam name="TRabbitConfiguration"></typeparam>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="loggerFactory"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static IServiceCollection AddRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, IConfiguration configuration, Func<IServiceCollection, ILogger>? loggerFactory = null)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
             TRabbitConfiguration? rabbitConfig = ReadSettings<TRabbitConfiguration>(configuration);
 
             if (rabbitConfig != null)
             {
-                services.AddSingleton<IRabbitHelper>(provider =>
-                {
-                    return new RabbitHelper(rabbitConfig);
-                });
+                services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory)));
             }
             else
             {
@@ -90,9 +88,10 @@ namespace NanoRabbit.DependencyInjection
         /// <param name="services"></param>
         /// <param name="key"></param>
         /// <param name="configuration"></param>
+        /// <param name="loggerFactory"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static IServiceCollection AddKeyedRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, string key, IConfiguration configuration)
+        public static IServiceCollection AddKeyedRabbitHelperFromAppSettings<TRabbitConfiguration>(this IServiceCollection services, string key, IConfiguration configuration, Func<IServiceCollection, ILogger>? loggerFactory = null)
             where TRabbitConfiguration : RabbitConfiguration, new()
         {
 #if NET7_0_OR_GREATER
@@ -100,9 +99,9 @@ namespace NanoRabbit.DependencyInjection
 
             if (rabbitConfig != null)
             {
-                services.AddKeyedSingleton<IRabbitHelper>(key, (provider, _) =>
+                services.AddKeyedSingleton<IRabbitHelper>(key, (_, _) =>
                 {
-                    var rabbitHelper = new RabbitHelper(rabbitConfig);
+                    var rabbitHelper = new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory));
                     return rabbitHelper;
                 });
             }
@@ -256,5 +255,16 @@ namespace NanoRabbit.DependencyInjection
             var rabbitConfig = configSection.Get<TRabbitConfiguration>();
             return rabbitConfig;
         }
+
+        #region Private
+
+        private static ILogger GetLogger(IServiceCollection services, Func<IServiceCollection, ILogger>? loggerFactory = null)
+        {
+            var logger = loggerFactory is null ? NullLogger : loggerFactory(services);
+
+            return logger;
+        }
+
+        #endregion
     }
 }
