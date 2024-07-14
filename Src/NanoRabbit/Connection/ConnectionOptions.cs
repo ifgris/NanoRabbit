@@ -101,9 +101,9 @@ public class RabbitConfiguration
     public string? HostName { get; set; }
     /// <summary>
     /// RabbitMQ AmqpTcpEndpoint port.
-    /// Example: 5672
+    /// Defaults: 5672
     /// </summary>
-    public int? Port { get; set; }
+    public int Port { get; set; } = 5672;
     /// <summary>
     /// RabbitMQ UserName.
     /// Example: "guest"
@@ -130,6 +130,7 @@ public class RabbitConfiguration
     /// Enable logging.
     /// Defaults: true
     /// </summary>
+    [Obsolete("this will be removed in next versions. instead pass logger while configuring NanoRabbit")]
     public bool EnableLogging { get; set; } = true;
 
     /// <summary>

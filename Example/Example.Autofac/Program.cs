@@ -4,6 +4,7 @@ using Autofac.Extensions.DependencyInjection;
 using Example.Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NanoRabbit;
 using NanoRabbit.Connection;
 
@@ -56,6 +57,15 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                     consumer.ConsumerName = "BarConsumer";
                     consumer.QueueName = "bar-queue";
                 });
+        }, serviceCollection => {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+            });
+
+            var logger = loggerFactory.CreateLogger("RabbitHelper");
+
+            return logger;
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
         .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);

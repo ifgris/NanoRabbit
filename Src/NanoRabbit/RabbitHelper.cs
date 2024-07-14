@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
-using NanoRabbit.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -18,15 +17,14 @@ namespace NanoRabbit
         private readonly Dictionary<string, EventingBasicConsumer> _consumers;
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
-        private readonly ILogger<RabbitHelper>? _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// RabbitHelper constructor.
         /// </summary>
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
-        public RabbitHelper(
-            RabbitConfiguration rabbitConfig, ILogger<RabbitHelper>? logger = null)
+        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger)
         {
             _rabbitConfig = rabbitConfig;
             ConnectionFactory factory = new();
@@ -37,33 +35,24 @@ namespace NanoRabbit
             }
             else
             {
-                var hostName = _rabbitConfig.HostName;
-                var port = _rabbitConfig.Port ?? 5672; // Use default amqp port 5672 if port is null.
-                var virtualHost = _rabbitConfig.VirtualHost;
-                var userName = _rabbitConfig.UserName;
-                var password = _rabbitConfig.Password;
-                factory = new ConnectionFactory() { HostName = hostName, Port = port, VirtualHost = virtualHost, UserName = userName, Password = password };
+                factory = new ConnectionFactory
+                {
+                    HostName = _rabbitConfig.HostName, 
+                    Port = _rabbitConfig.Port,
+                    VirtualHost = _rabbitConfig.VirtualHost, 
+                    UserName = _rabbitConfig.UserName,
+                    Password = _rabbitConfig.Password
+                };
             }
 
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
-
-            if (_rabbitConfig.EnableLogging)
-            {
-                if (logger != null)
-                {
-                    _logger = logger;
-                }
-                else
-                {
-                    _logger = (ILogger<RabbitHelper>?)GlobalLogger.Logger;
-                }
-            }
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
             _consumers = new Dictionary<string, EventingBasicConsumer>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
+            _logger = logger;
         }
 
         /// <summary>
