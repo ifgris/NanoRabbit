@@ -46,7 +46,6 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 .SetVirtualHost("/")
                 .SetUserName("admin")
                 .SetPassword("admin")
-                .EnableLogging(true)
                 .AddProducerOption(producer =>
                 {
                     producer.ProducerName = "FooProducer";
@@ -71,6 +70,10 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                     consumer.ConsumerName = "BarConsumer";
                     consumer.QueueName = "bar-queue";
                 });
+        }, loggerFactory: serviceCollection =>
+        {
+            var logger = LoggerFactory.Create(builder => builder.AddNLog()).CreateLogger<Program>();
+            return logger;
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)
         .AddRabbitConsumer<BarQueueHandler>("BarConsumer", consumers: 2);
