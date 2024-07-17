@@ -109,11 +109,17 @@ public class FooQueueHandler : DefaultAsyncMessageHandler
         var redisConn = _connFactory.GetConnection();
         var redisDb = redisConn.GetDatabase();
 
-        foreach (var message in batch)
-        {
-            await redisDb.StringSetAsync($"{Guid.NewGuid().ToString()}-{message}", message);
+        var tasks = batch.Select(async message => {
+            await redisDb.StringSetAsync(Guid.NewGuid().ToString(), message);
             _rabbitHelper.Publish("FooProducer", message);
-        }
+        }).ToList();
+        await Task.WhenAll(tasks);
+
+        //foreach (var message in batch)
+        //{
+        //    await redisDb.StringSetAsync($"{Guid.NewGuid().ToString()}-{message}", message);
+        //    _rabbitHelper.Publish("FooProducer", message);
+        //}
 
         Console.WriteLine($"[x] Processed batch of {batch.Count} messages");
     }
