@@ -8,108 +8,108 @@ using NanoRabbit;
 using NanoRabbit.Connection;
 using NanoRabbit.DependencyInjection;
 
-//var builder = Host.CreateApplicationBuilder();
+var builder = Host.CreateApplicationBuilder();
 
-//// must be injected before IRabbitHelper's injection.
-//builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
-//{
-//    var connStr = provider.GetRequiredService<IConfiguration>().GetSection("DbConfig").GetSection(nameof(RedisConfig)).Get<RedisConfig>().DbConnStr;
-//    return new RedisConnectionFactory(connStr);
-//});
-
-//builder.Services.AddKeyedRabbitHelper("test", builder =>
-//{
-//    builder.SetHostName("localhost")
-//        .SetPort(5672)
-//        .SetVirtualHost("test")
-//        .SetUserName("admin")
-//        .SetPassword("admin")
-//        .AddProducerOption(producer =>
-//        {
-//            producer.ProducerName = "FooProducer";
-//            producer.ExchangeName = "amq.topic";
-//            producer.RoutingKey = "foo.key";
-//            producer.Type = ExchangeType.Topic;
-//        });
-//});
-
-//builder.Services.AddKeyedRabbitHelper("default", builder =>
-//{
-//    builder.SetHostName("localhost")
-//        .SetPort(5672)
-//        .SetVirtualHost("/")
-//        .SetUserName("admin")
-//        .SetPassword("admin")
-//        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
-//        .AddConsumerOption(consumer =>
-//        {
-//            consumer.ConsumerName = "FooConsumer";
-//            consumer.QueueName = "foo-queue";
-//        });
-//})
-//.AddKeyedAsyncRabbitConsumer<FooQueueHandler>("default", "FooConsumer", consumers: 1);
-
-//// Test redis service
-////builder.Services.AddHostedService<TestHostedService>();
-
-//var host = builder.Build();
-//await host.RunAsync();
-
-public class Program
+// must be injected before IRabbitHelper's injection.
+builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
 {
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args).Build().Run();
-    }
+    var connStr = provider.GetRequiredService<IConfiguration>().GetSection("DbConfig").GetSection(nameof(RedisConfig)).Get<RedisConfig>().DbConnStr;
+    return new RedisConnectionFactory(connStr);
+});
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-            .ConfigureServices((hostContext, services) =>
-            {
-                // must be injected before IRabbitHelper's injection.
-                services.AddSingleton<IRedisConnectionFactory>(provider =>
-                {
-                    var connStr = provider.GetRequiredService<IConfiguration>()
-                        .GetSection("DbConfig")
-                        .GetSection(nameof(RedisConfig)).Get<RedisConfig>().DbConnStr;
-                    return new RedisConnectionFactory(connStr);
-                });
+builder.Services.AddKeyedRabbitHelper("test", builder =>
+{
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("test")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .AddProducerOption(producer =>
+        {
+            producer.ProducerName = "FooProducer";
+            producer.ExchangeName = "amq.topic";
+            producer.RoutingKey = "foo.key";
+            producer.Type = ExchangeType.Topic;
+        });
+});
 
-                // 注册 KeyedRabbitHelper
-                services.AddKeyedRabbitHelper("test", builder =>
-                {
-                    builder.SetHostName("localhost")
-                        .SetPort(5672)
-                        .SetVirtualHost("test")
-                        .SetUserName("admin")
-                        .SetPassword("admin")
-                        .AddProducerOption(producer =>
-                        {
-                            producer.ProducerName = "FooProducer";
-                            producer.ExchangeName = "amq.topic";
-                            producer.RoutingKey = "foo.key";
-                            producer.Type = ExchangeType.Topic;
-                        });
-                });
+builder.Services.AddKeyedRabbitHelper("default", builder =>
+{
+    builder.SetHostName("localhost")
+        .SetPort(5672)
+        .SetVirtualHost("/")
+        .SetUserName("admin")
+        .SetPassword("admin")
+        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
+        .AddConsumerOption(consumer =>
+        {
+            consumer.ConsumerName = "FooConsumer";
+            consumer.QueueName = "foo-queue";
+        });
+})
+.AddKeyedAsyncRabbitConsumer<FooQueueHandler>("default", "FooConsumer", consumers: 1);
 
-                services.AddKeyedRabbitHelper("default", builder =>
-                {
-                    builder.SetHostName("localhost")
-                        .SetPort(5672)
-                        .SetVirtualHost("/")
-                        .SetUserName("admin")
-                        .SetPassword("admin")
-                        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
-                        .AddConsumerOption(consumer =>
-                        {
-                            consumer.ConsumerName = "FooConsumer";
-                            consumer.QueueName = "foo-queue";
-                        });
-                })
-                .AddKeyedAsyncRabbitConsumer<FooQueueHandler>("default", "FooConsumer", consumers: 1);
-            });
-}
+// Test redis service
+//builder.Services.AddHostedService<TestHostedService>();
+
+var host = builder.Build();
+await host.RunAsync();
+
+//public class Program
+//{
+//    public static void Main(string[] args)
+//    {
+//        CreateHostBuilder(args).Build().Run();
+//    }
+
+//    public static IHostBuilder CreateHostBuilder(string[] args) =>
+//        Host.CreateDefaultBuilder(args)
+//            .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+//            .ConfigureServices((hostContext, services) =>
+//            {
+//                // must be injected before IRabbitHelper's injection.
+//                services.AddSingleton<IRedisConnectionFactory>(provider =>
+//                {
+//                    var connStr = provider.GetRequiredService<IConfiguration>()
+//                        .GetSection("DbConfig")
+//                        .GetSection(nameof(RedisConfig)).Get<RedisConfig>().DbConnStr;
+//                    return new RedisConnectionFactory(connStr);
+//                });
+
+//                // 注册 KeyedRabbitHelper
+//                services.AddKeyedRabbitHelper("test", builder =>
+//                {
+//                    builder.SetHostName("localhost")
+//                        .SetPort(5672)
+//                        .SetVirtualHost("test")
+//                        .SetUserName("admin")
+//                        .SetPassword("admin")
+//                        .AddProducerOption(producer =>
+//                        {
+//                            producer.ProducerName = "FooProducer";
+//                            producer.ExchangeName = "amq.topic";
+//                            producer.RoutingKey = "foo.key";
+//                            producer.Type = ExchangeType.Topic;
+//                        });
+//                });
+
+//                services.AddKeyedRabbitHelper("default", builder =>
+//                {
+//                    builder.SetHostName("localhost")
+//                        .SetPort(5672)
+//                        .SetVirtualHost("/")
+//                        .SetUserName("admin")
+//                        .SetPassword("admin")
+//                        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
+//                        .AddConsumerOption(consumer =>
+//                        {
+//                            consumer.ConsumerName = "FooConsumer";
+//                            consumer.QueueName = "foo-queue";
+//                        });
+//                })
+//                .AddKeyedAsyncRabbitConsumer<FooQueueHandler>("default", "FooConsumer", consumers: 1);
+//            });
+//}
 
 public class FooQueueHandler : DefaultAsyncMessageHandler
 {
