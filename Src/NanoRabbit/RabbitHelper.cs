@@ -144,7 +144,7 @@ namespace NanoRabbit
 
             _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
 
-            _logger?.LogInformation($"{producerName}|Published|{messageStr}");
+            _logger.LogInformation($"{producerName}|Published|{messageStr}");
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace NanoRabbit
                             basicProperties: properties,
                             body: body);
             }
-            _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
+            _logger.LogInformation($"{producerName}|Published a batch of messgages.");
         }
 
         /// <summary>
