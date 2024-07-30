@@ -60,23 +60,15 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="producerName"></param>
         /// <returns></returns>
-        public ProducerOptions GetProducerOption(string producerName)
+        private ProducerOptions GetProducerOption(string producerName)
         {
-            if (_rabbitConfig.Producers != null)
-            {
-                var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
-
-                if (connectionOption == null)
-                {
-                    throw new Exception($"Producer '{producerName}' not found!");
-                }
-
-                return connectionOption;
-            }
-            else
-            {
+            if (_rabbitConfig.Producers == null)
                 throw new Exception("No ProducerOptions added in RabbitHelper!");
-            }
+            
+            var producerOptions = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName)
+                ?? throw new Exception($"Producer '{producerName}' not found!");
+
+            return producerOptions;
         }
 
         /// <summary>
@@ -85,23 +77,15 @@ namespace NanoRabbit
         /// <param name="consumerName"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public ConsumerOptions GetConsumerOption(string? consumerName)
+        private ConsumerOptions GetConsumerOption(string? consumerName)
         {
-            if (_rabbitConfig.Consumers != null)
-            {
-                var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
-
-                if (connectionOption == null)
-                {
-                    throw new Exception($"Consumer '{consumerName}' not found!");
-                }
-
-                return connectionOption;
-            }
-            else
-            {
+            if (_rabbitConfig.Consumers == null) 
                 throw new Exception("No ConsumerOptions added in RabbitHelper!");
-            }
+            
+            var consumerOptions = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName)
+                ?? throw new Exception($"Consumer '{consumerName}' not found!");
+
+            return consumerOptions;
         }
 
         /// <summary>
