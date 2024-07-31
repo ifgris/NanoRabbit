@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -60,15 +60,23 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="producerName"></param>
         /// <returns></returns>
-        private ProducerOptions GetProducerOption(string producerName)
+        public ProducerOptions GetProducerOption(string producerName)
         {
-            if (_rabbitConfig.Producers == null)
-                throw new Exception("No ProducerOptions added in RabbitHelper!");
-            
-            var producerOptions = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName)
-                ?? throw new Exception($"Producer '{producerName}' not found!");
+            if (_rabbitConfig.Producers != null)
+            {
+                var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
 
-            return producerOptions;
+                if (connectionOption == null)
+                {
+                    throw new Exception($"Producer '{producerName}' not found!");
+                }
+
+                return connectionOption;
+            }
+            else
+            {
+                throw new Exception("No ProducerOptions added in RabbitHelper!");
+            }
         }
 
         /// <summary>
@@ -77,15 +85,23 @@ namespace NanoRabbit
         /// <param name="consumerName"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private ConsumerOptions GetConsumerOption(string? consumerName)
+        public ConsumerOptions GetConsumerOption(string? consumerName)
         {
-            if (_rabbitConfig.Consumers == null) 
-                throw new Exception("No ConsumerOptions added in RabbitHelper!");
-            
-            var consumerOptions = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName)
-                ?? throw new Exception($"Consumer '{consumerName}' not found!");
+            if (_rabbitConfig.Consumers != null)
+            {
+                var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
 
-            return consumerOptions;
+                if (connectionOption == null)
+                {
+                    throw new Exception($"Consumer '{consumerName}' not found!");
+                }
+
+                return connectionOption;
+            }
+            else
+            {
+                throw new Exception("No ConsumerOptions added in RabbitHelper!");
+            }
         }
 
         /// <summary>
@@ -128,7 +144,7 @@ namespace NanoRabbit
 
             _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
 
-            _logger.LogInformation($"{producerName}|Published|{messageStr}");
+            _logger?.LogInformation($"{producerName}|Published|{messageStr}");
         }
 
         /// <summary>
@@ -158,7 +174,7 @@ namespace NanoRabbit
                             basicProperties: properties,
                             body: body);
             }
-            _logger.LogInformation($"{producerName}|Published a batch of messgages.");
+            _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
         }
 
         /// <summary>
