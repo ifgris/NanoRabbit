@@ -52,7 +52,7 @@ public static class RabbitHelperExtensions
         });
         return services;
 #else
-            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+        throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
     }
 
@@ -111,7 +111,7 @@ public static class RabbitHelperExtensions
         }
         return services;
 #else
-            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+        throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
     }
 
@@ -166,7 +166,7 @@ public static class RabbitHelperExtensions
 
         return services;
 #else
-            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+        throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
     }
 
@@ -221,7 +221,7 @@ public static class RabbitHelperExtensions
 
         return services;
 #else
-            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+        throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
     }
 
@@ -236,7 +236,7 @@ public static class RabbitHelperExtensions
 #if NET7_0_OR_GREATER
         return serviceProvider.GetRequiredKeyedService<IRabbitHelper>(key);
 #else
-            throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
+        throw new NotSupportedException("Keyed services are only supported in .NET 7 and above.");
 #endif
     }
 
