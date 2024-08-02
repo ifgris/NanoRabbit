@@ -55,6 +55,8 @@ namespace NanoRabbit
             _logger = logger;
         }
 
+        #region basic functions
+
         /// <summary>
         /// Get ProducerOptions.
         /// </summary>
@@ -105,26 +107,12 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Declare a queue based on RabbitMQ.Client.
-        /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="durable"></param>
-        /// <param name="exclusive"></param>
-        /// <param name="autoDelete"></param>
-        /// <param name="arguments"></param>
-        public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
-        {
-            _channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        }
-
-        /// <summary>
         /// Publish any type of messages.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="producerName"></param>
         /// <param name="message"></param>
-        public void Publish<T>(string producerName, T message)
+        public void Publish<T>(string producerName, T message, IBasicProperties? properties = null)
         {
             var option = GetProducerOption(producerName);
 
@@ -139,7 +127,7 @@ namespace NanoRabbit
                 messageStr = JsonConvert.SerializeObject(message);
             }
             var body = Encoding.UTF8.GetBytes(messageStr);
-            var properties = _channel.CreateBasicProperties();
+            if (properties == null) properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
             _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
@@ -152,7 +140,8 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="producerName"></param>
         /// <param name="messageList"></param>
-        public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList)
+        /// <param name="properties"></param>
+        public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null)
         {
             var option = GetProducerOption(producerName);
 
@@ -161,7 +150,7 @@ namespace NanoRabbit
             _channel.ExchangeDeclare(option.ExchangeName, option.Type,
                 durable: option.Durable, autoDelete: option.AutoDelete,
                 arguments: option.Arguments);
-            var properties = _channel.CreateBasicProperties();
+            if (properties == null) properties = _channel.CreateBasicProperties();
 
             foreach (var messageObj in messageObjs)
             {
@@ -241,6 +230,35 @@ namespace NanoRabbit
                 }
             }
         }
+
+        #endregion
+
+        #region utils
+
+        /// <summary>
+        /// Declare a queue based on RabbitMQ.Client.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="durable"></param>
+        /// <param name="exclusive"></param>
+        /// <param name="autoDelete"></param>
+        /// <param name="arguments"></param>
+        public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
+        {
+            _channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+        }
+
+        /// <summary>
+        /// Create a custom BasicProperties.
+        /// </summary>
+        /// <returns></returns>
+        public IBasicProperties CreateBasicProperties()
+        {
+            return _channel.CreateBasicProperties();
+        }
+
+        #endregion
 
         public void Dispose()
         {
