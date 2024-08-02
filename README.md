@@ -34,7 +34,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 |  NanoRabbit   | RabbitMQ.Client |     .NET      |
 | :-----------: | :-------------: | :-----------: |
 | 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
-|     0.1.9     |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
+| 0.1.9, 0.2.0  |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -57,6 +57,13 @@ Register a RabbitMQ Producer by calling `RabbitHelper(RabbitConfiguration rabbit
 using NanoRabbit;
 using NanoRabbit.Connection;
 
+var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddConsole();
+});
+
+var logger = loggerFactory.CreateLogger("RabbitHelper");
+
 var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 {
     HostName = "localhost",
@@ -70,7 +77,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
             RoutingKey = "foo.key"
         } 
     }
-});
+}, logger);
 ```
 
 #### RabbitConsumer
@@ -93,7 +100,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
             QueueName = "foo-queue"
         }
     }
-});
+}, logger);
 ```
 
 ### Simple Publish
@@ -194,10 +201,10 @@ More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/
 
 ## Todo
 
-- [x] Basic Consume & Publish support
-- [x] DependencyInjection support
-- [x] Logging support
-- [x] .NET 7, .NET 8 support
+- [x] Basic Consume & Publish
+- [x] DependencyInjection
+- [x] Logging
+- [x] Support .NET latest frameworks
 - [ ] Forward messages
 - [ ] ASP.NET support
 - [ ] TLS support
