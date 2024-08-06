@@ -1,9 +1,9 @@
-﻿using NanoRabbit.DependencyInjection;
-using Example.ReadSettings;
+﻿using Example.ReadSettings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NanoRabbit;
 using NanoRabbit.Connection;
+using NanoRabbit.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddRabbitHelperFromAppSettings<FooConfiguration>(builder.Configuration)
