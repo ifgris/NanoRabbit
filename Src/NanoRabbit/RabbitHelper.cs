@@ -176,6 +176,8 @@ namespace NanoRabbit
         {
             var option = GetConsumerOption(consumerName);
 
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+
             for (int i = 0; i < consumers; i++)
             {
                 var consumerId = string.Concat(option.QueueName, "-", i + 1);
@@ -207,6 +209,8 @@ namespace NanoRabbit
         public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
         {
             var option = GetConsumerOption(consumerName);
+
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
 
             for (int i = 0; i < consumers; i++)
             {
