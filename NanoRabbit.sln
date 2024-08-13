@@ -42,6 +42,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Logger", "Test\Test.Lo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.SpecifyMessagesProperties", "Test\Test.SpecifyMessagesProperties\Test.SpecifyMessagesProperties.csproj", "{012ACF78-7FA0-4754-A271-97D57D01D324}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.WebApplication", "Example\Example.WebApplication\Example.WebApplication.csproj", "{3169FF28-0BA6-4391-AB6F-F6BDEC75E596}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +102,10 @@ Global
 		{012ACF78-7FA0-4754-A271-97D57D01D324}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{012ACF78-7FA0-4754-A271-97D57D01D324}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{012ACF78-7FA0-4754-A271-97D57D01D324}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3169FF28-0BA6-4391-AB6F-F6BDEC75E596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3169FF28-0BA6-4391-AB6F-F6BDEC75E596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3169FF28-0BA6-4391-AB6F-F6BDEC75E596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3169FF28-0BA6-4391-AB6F-F6BDEC75E596}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -121,6 +127,7 @@ Global
 		{DE278D07-341E-425C-B687-BB3CD9F9757D} = {C0037375-1E5C-4070-9AFD-806B44C6D247}
 		{25D1ECC8-3A50-43A7-B7D5-78068222254E} = {DE278D07-341E-425C-B687-BB3CD9F9757D}
 		{012ACF78-7FA0-4754-A271-97D57D01D324} = {DE278D07-341E-425C-B687-BB3CD9F9757D}
+		{3169FF28-0BA6-4391-AB6F-F6BDEC75E596} = {D187C758-604D-4325-9FEF-912DB32D6131}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EE19DFD-83A9-4A48-B245-5A1344E7865A}
