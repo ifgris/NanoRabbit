@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Connection;
 using Newtonsoft.Json;
+using Polly;
+using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -18,6 +20,7 @@ namespace NanoRabbit
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
         private readonly ILogger _logger;
+        private readonly ResiliencePipeline _pipeline;
 
         /// <summary>
         /// RabbitHelper constructor.
@@ -37,9 +40,9 @@ namespace NanoRabbit
             {
                 factory = new ConnectionFactory
                 {
-                    HostName = _rabbitConfig.HostName, 
+                    HostName = _rabbitConfig.HostName,
                     Port = _rabbitConfig.Port,
-                    VirtualHost = _rabbitConfig.VirtualHost, 
+                    VirtualHost = _rabbitConfig.VirtualHost,
                     UserName = _rabbitConfig.UserName,
                     Password = _rabbitConfig.Password
                 };
@@ -53,6 +56,11 @@ namespace NanoRabbit
             _consumers = new Dictionary<string, EventingBasicConsumer>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
             _logger = logger;
+
+            _pipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 }) // Add retry using the default options
+                .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
+                .Build(); // Builds the resilience pipeline
         }
 
         #region basic functions
@@ -127,12 +135,27 @@ namespace NanoRabbit
                 messageStr = JsonConvert.SerializeObject(message);
             }
             var body = Encoding.UTF8.GetBytes(messageStr);
-            if (properties == null) properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
+            if (properties == null) properties = _channel.CreateBasicProperties();
 
-            _channel.BasicPublish(exchange: option.ExchangeName, routingKey: option.RoutingKey, basicProperties: properties, body: body);
+            _pipeline.Execute(token =>
+            {
+                try
+                {
+                    _channel.BasicPublish(
+                        exchange: option.ExchangeName, 
+                        routingKey: option.RoutingKey, 
+                        basicProperties: properties, 
+                        body: body);
 
-            _logger?.LogInformation($"{producerName}|Published|{messageStr}");
+                    _logger?.LogInformation($"{producerName}|Published|{messageStr}");
+                }
+                catch (Exception e)
+                {
+                    _logger?.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                    throw;
+                }
+            });
         }
 
         /// <summary>
@@ -157,11 +180,22 @@ namespace NanoRabbit
                 var messageStr = JsonConvert.SerializeObject(messageObj);
                 var body = Encoding.UTF8.GetBytes(messageStr);
 
-                _channel.BasicPublish(
+                _pipeline.Execute(token =>
+                {
+                    try
+                    {
+                        _channel.BasicPublish(
                             exchange: option.ExchangeName,
                             routingKey: option.RoutingKey,
                             basicProperties: properties,
                             body: body);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger?.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                        throw;
+                    }
+                });
             }
             _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
         }
