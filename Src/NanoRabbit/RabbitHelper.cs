@@ -135,13 +135,13 @@ namespace NanoRabbit
                 messageStr = JsonConvert.SerializeObject(message);
             }
             var body = Encoding.UTF8.GetBytes(messageStr);
-            properties.Persistent = true;
-            if (properties == null) properties = _channel.CreateBasicProperties();
 
             _pipeline.Execute(token =>
             {
                 try
                 {
+                    if (properties == null) properties = _channel.CreateBasicProperties();
+                    properties.Persistent = true;
                     _channel.BasicPublish(
                         exchange: option.ExchangeName, 
                         routingKey: option.RoutingKey, 
@@ -173,7 +173,6 @@ namespace NanoRabbit
             _channel.ExchangeDeclare(option.ExchangeName, option.Type,
                 durable: option.Durable, autoDelete: option.AutoDelete,
                 arguments: option.Arguments);
-            if (properties == null) properties = _channel.CreateBasicProperties();
 
             foreach (var messageObj in messageObjs)
             {
@@ -184,6 +183,7 @@ namespace NanoRabbit
                 {
                     try
                     {
+                        if (properties == null) properties = _channel.CreateBasicProperties();
                         _channel.BasicPublish(
                             exchange: option.ExchangeName,
                             routingKey: option.RoutingKey,
