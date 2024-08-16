@@ -83,10 +83,8 @@ namespace NanoRabbit
 
                 return connectionOption;
             }
-            else
-            {
-                throw new Exception("No ProducerOptions added in RabbitHelper!");
-            }
+
+            throw new Exception("No ProducerOptions added in RabbitHelper!");
         }
 
         /// <summary>
@@ -108,10 +106,8 @@ namespace NanoRabbit
 
                 return connectionOption;
             }
-            else
-            {
-                throw new Exception("No ConsumerOptions added in RabbitHelper!");
-            }
+
+            throw new Exception("No ConsumerOptions added in RabbitHelper!");
         }
 
         /// <summary>
