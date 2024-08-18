@@ -120,23 +120,15 @@ namespace NanoRabbit
         {
             var option = GetProducerOption(producerName);
 
-            string messageStr;
-
-            if (typeof(T) == typeof(string))
-            {
-                messageStr = message.ToString();
-            }
-            else
-            {
-                messageStr = JsonConvert.SerializeObject(message);
-            }
+            var messageStr = typeof(T) == typeof(string) ? message.ToString() : JsonConvert.SerializeObject(message);
+            
             var body = Encoding.UTF8.GetBytes(messageStr);
 
             _pipeline.Execute(token =>
             {
                 try
                 {
-                    if (properties == null) properties = _channel.CreateBasicProperties();
+                    properties ??= _channel.CreateBasicProperties();
                     properties.Persistent = true;
                     _channel.BasicPublish(
                         exchange: option.ExchangeName, 
@@ -179,7 +171,7 @@ namespace NanoRabbit
                 {
                     try
                     {
-                        if (properties == null) properties = _channel.CreateBasicProperties();
+                        properties ??= _channel.CreateBasicProperties();
                         _channel.BasicPublish(
                             exchange: option.ExchangeName,
                             routingKey: option.RoutingKey,
