@@ -34,7 +34,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 |  NanoRabbit   | RabbitMQ.Client |     .NET      |
 | :-----------: | :-------------: | :-----------: |
 | 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
-| 0.1.9, 0.2.0  |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
+| 0.1.9, 0.2.0, 0.2.1  |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 
 ## Document
 
@@ -206,9 +206,9 @@ More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/
 - [x] Logging
 - [x] Support .NET latest frameworks
 - [ ] Forward messages
-- [ ] ASP.NET support
-- [ ] TLS support
-- [ ] Re-trying of failed sends
+- [x] ASP.NET support
+- [x] TLS support
+- [x] Re-trying of failed sends
 
 ## Thanks
 
