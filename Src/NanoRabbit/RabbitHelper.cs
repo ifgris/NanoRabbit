@@ -46,6 +46,16 @@ namespace NanoRabbit
                     UserName = _rabbitConfig.UserName,
                     Password = _rabbitConfig.Password
                 };
+
+                // TODO needs testing.
+                if (_rabbitConfig.TLSConfig != null )
+                {
+                    factory.Ssl.Enabled = _rabbitConfig.TLSConfig.Enabled;
+                    factory.Ssl.ServerName = _rabbitConfig.TLSConfig.ServerName;
+                    factory.Ssl.CertPath = _rabbitConfig.TLSConfig.CertPath;
+                    factory.Ssl.CertPassphrase = _rabbitConfig.TLSConfig.CertPassphrase;
+                    factory.Ssl.Version = _rabbitConfig.TLSConfig.Version;
+                }
             }
 
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
@@ -76,12 +86,7 @@ namespace NanoRabbit
             {
                 var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
 
-                if (connectionOption == null)
-                {
-                    throw new Exception($"Producer '{producerName}' not found!");
-                }
-
-                return connectionOption;
+                return connectionOption == null ? throw new Exception($"Producer '{producerName}' not found!") : connectionOption;
             }
 
             throw new Exception("No ProducerOptions added in RabbitHelper!");
@@ -99,12 +104,7 @@ namespace NanoRabbit
             {
                 var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
 
-                if (connectionOption == null)
-                {
-                    throw new Exception($"Consumer '{consumerName}' not found!");
-                }
-
-                return connectionOption;
+                return connectionOption == null ? throw new Exception($"Consumer '{consumerName}' not found!") : connectionOption;
             }
 
             throw new Exception("No ConsumerOptions added in RabbitHelper!");

@@ -86,6 +86,17 @@ public class RabbitConfigurationBuilder
     }
 
     /// <summary>
+    /// Connect to RabbitMQ using TLS.
+    /// </summary>
+    /// <param name="config"></param>
+    public RabbitConfigurationBuilder UseTLS(TLSConfig config)
+    {
+        _rabbitConfiguration.TLSConfig = config;
+
+        return this;
+    }
+
+    /// <summary>
     /// Set to false will disable NanoRabbit GlobalLogger. Defaults to true.
     /// </summary>
     /// <param name="enableLogging"></param>

@@ -1,4 +1,6 @@
-﻿namespace NanoRabbit.Connection;
+﻿using System.Security.Authentication;
+
+namespace NanoRabbit.Connection;
 
 
 /// <summary>
@@ -125,6 +127,11 @@ public class RabbitConfiguration
     /// Defaults: false
     /// </summary>
     public bool UseAsyncConsumer { get; set; }
+    
+    /// <summary>
+    /// Connect to RabbitMQ using TLS.
+    /// </summary>
+    public TLSConfig? TLSConfig { get; set; }
 
     /// <summary>
     /// Enable logging.
@@ -143,6 +150,18 @@ public class RabbitConfiguration
     /// Defaults: null
     /// </summary>
     public List<ConsumerOptions>? Consumers { get; set; }
+}
+
+/// <summary>
+/// TLS configs.
+/// </summary>
+public class TLSConfig
+{
+    public bool Enabled { get; set; } = true;
+    public string ServerName { get; set; } = System.Net.Dns.GetHostName();
+    public string CertPath { get; set; } = "/path/to/client_key.p12";
+    public string CertPassphrase { get; set; } = "MySecretPassword";
+    public SslProtocols Version { get; set; } = SslProtocols.Tls12;
 }
 
 /// <summary>
