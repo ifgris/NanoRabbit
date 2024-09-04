@@ -134,13 +134,6 @@ public class RabbitConfiguration
     public TLSConfig? TLSConfig { get; set; }
 
     /// <summary>
-    /// Enable logging.
-    /// Defaults: true
-    /// </summary>
-    [Obsolete("this will be removed in next versions. instead pass logger while configuring NanoRabbit")]
-    public bool EnableLogging { get; set; } = true;
-
-    /// <summary>
     /// RabbitProducer configs.
     /// Dafaults: null
     /// </summary>
