@@ -132,11 +132,7 @@ namespace NanoRabbit
                 try
                 {
                     properties = SetBasicProperties(properties);
-                    _channel.BasicPublish(
-                        exchange: option.ExchangeName,
-                        routingKey: option.RoutingKey,
-                        basicProperties: properties,
-                        body: body);
+                    PublishMessage(option, properties, body);
 
                     _logger?.LogInformation($"{producerName}|Published|{messageStr}");
                 }
@@ -174,11 +170,7 @@ namespace NanoRabbit
                     try
                     {
                         properties = SetBasicProperties(properties);
-                        _channel.BasicPublish(
-                            exchange: option.ExchangeName,
-                            routingKey: option.RoutingKey,
-                            basicProperties: properties,
-                            body: body);
+                        PublishMessage(option, properties, body);
                     }
                     catch (Exception e)
                     {
@@ -192,72 +184,25 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Add a consumer by a custom consumerName.
+        /// Add a sync consumer by a custom consumerName.
         /// </summary>
         /// <param name="consumerName"></param>
         /// <param name="onMessageReceived"></param>
         /// <param name="consumers"></param>
         public void AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)
         {
-            var option = GetConsumerOption(consumerName);
-
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
-
-            for (int i = 0; i < consumers; i++)
-            {
-                var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                if (!_consumers.ContainsKey(consumerName))
-                {
-                    var consumer = new EventingBasicConsumer(_channel);
-                    consumer.Received += (model, ea) =>
-                    {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-
-                        onMessageReceived(message);
-
-                        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                    };
-
-                    _channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
-                    _consumers[consumerId] = consumer;
-                }
-            }
+            AddConsumerInternal(consumerName, null, onMessageReceived, consumers, isAsync: false);
         }
 
         /// <summary>
         /// Add an async consumer by a custom consumerName.
         /// </summary>
         /// <param name="consumerName"></param>
-        /// <param name="onMessageReceived"></param>
+        /// <param name="onMessageReceivedAsync"></param>
         /// <param name="consumers"></param>
         public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
         {
-            var option = GetConsumerOption(consumerName);
-
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
-
-            for (int i = 0; i < consumers; i++)
-            {
-                var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                if (!_asyncConsumers.ContainsKey(consumerId))
-                {
-                    var consumer = new AsyncEventingBasicConsumer(_channel);
-                    consumer.Received += async (model, ea) =>
-                    {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-
-                        await onMessageReceivedAsync(message);
-
-                        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                        await Task.Yield();
-                    };
-
-                    _channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
-                    _asyncConsumers[consumerId] = consumer;
-                }
-            }
+            AddConsumerInternal(consumerName, onMessageReceivedAsync, null, consumers, isAsync: true);
         }
 
         #endregion
@@ -333,6 +278,77 @@ namespace NanoRabbit
             properties.Persistent = true;
             return properties;
         }
+
+        /// <summary>
+        /// Publish message.
+        /// </summary>
+        /// <param name="option"></param>
+        /// <param name="properties"></param>
+        /// <param name="body"></param>
+        private void PublishMessage(ProducerOptions option, IBasicProperties properties, byte[] body)
+        {
+            _channel.BasicPublish(
+                exchange: option.ExchangeName,
+                routingKey: option.RoutingKey,
+                basicProperties: properties,
+                body: body);
+        }
+
+        /// <summary>
+        /// Add a consumer (sync or async) by a custom consumerName.
+        /// </summary>
+        /// <param name="consumerName"></param>
+        /// <param name="onMessageReceived"></param>
+        /// <param name="consumers"></param>
+        /// <param name="isAsync"></param>
+        private void AddConsumerInternal(string consumerName, Func<string, Task> onMessageReceivedAsync, Action<string>? onMessageReceived = null, int consumers = 1, bool isAsync = false)
+        {
+            var option = GetConsumerOption(consumerName);
+
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+
+            for (int i = 0; i < consumers; i++)
+            {
+                var consumerId = string.Concat(option.QueueName, "-", i + 1);
+
+                if (isAsync && !_asyncConsumers.ContainsKey(consumerId))
+                {
+                    var consumer = new AsyncEventingBasicConsumer(_channel);
+                    consumer.Received += async (model, ea) =>
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+
+                        if (onMessageReceivedAsync != null)
+                            await onMessageReceivedAsync(message);
+
+                        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        await Task.Yield();
+                    };
+
+                    _channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
+                    _asyncConsumers[consumerId] = consumer;
+                }
+                else if (!isAsync && !_consumers.ContainsKey(consumerId))
+                {
+                    var consumer = new EventingBasicConsumer(_channel);
+                    consumer.Received += (model, ea) =>
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+
+                        if (onMessageReceived != null)
+                            onMessageReceived(message);
+
+                        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    };
+
+                    _channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
+                    _consumers[consumerId] = consumer;
+                }
+            }
+        }
+
 
         #endregion
 
