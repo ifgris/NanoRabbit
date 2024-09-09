@@ -248,6 +248,26 @@ namespace NanoRabbit
         }
 
         /// <summary>
+        /// Delete a queue.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="ifUnused"></param>
+        /// <param name="ifEmpty"></param>
+        public void QueueDelete(string queueName, bool ifUnused, bool ifEmpty)
+        {
+            _channel.QueueDelete(queueName, ifUnused, ifEmpty);
+        }
+
+        /// <summary>
+        /// Purge a queue of messages.
+        /// </summary>
+        /// <param name="queueName"></param>
+        public void QueuePurge(string queueName)
+        {
+            _channel.QueuePurge(queueName);
+        }
+
+        /// <summary>
         /// Create a custom BasicProperties.
         /// </summary>
         /// <returns></returns>
@@ -255,6 +275,10 @@ namespace NanoRabbit
         {
             return _channel.CreateBasicProperties();
         }
+
+        #endregion
+
+        #region private functions
 
         /// <summary>
         /// Serialize message.
@@ -348,7 +372,6 @@ namespace NanoRabbit
                 }
             }
         }
-
 
         #endregion
 

@@ -72,6 +72,18 @@ public interface IRabbitHelper
     /// <param name="arguments"></param>
     public void QueueBind(string queueName, string exchangeName, string routingKey, IDictionary<string, object> arguments);
     /// <summary>
+    /// Delete a queue.
+    /// </summary>
+    /// <param name="queueName"></param>
+    /// <param name="ifUnused"></param>
+    /// <param name="ifEmpty"></param>
+    public void QueueDelete(string queueName, bool ifUnused, bool ifEmpty);
+    /// <summary>
+    /// Purge a queue of messages.
+    /// </summary>
+    /// <param name="queueName"></param>
+    public void QueuePurge(string queueName);
+    /// <summary>
     /// Create a custom BasicProperties.
     /// </summary>
     /// <returns></returns>
