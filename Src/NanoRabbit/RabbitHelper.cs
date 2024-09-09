@@ -301,7 +301,7 @@ namespace NanoRabbit
         /// <param name="onMessageReceived"></param>
         /// <param name="consumers"></param>
         /// <param name="isAsync"></param>
-        private void AddConsumerInternal(string consumerName, Func<string, Task> onMessageReceivedAsync, Action<string>? onMessageReceived = null, int consumers = 1, bool isAsync = false)
+        private void AddConsumerInternal(string consumerName, Func<string, Task>? onMessageReceivedAsync, Action<string>? onMessageReceived = null, int consumers = 1, bool isAsync = false)
         {
             var option = GetConsumerOption(consumerName);
 
