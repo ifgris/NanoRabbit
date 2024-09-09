@@ -48,7 +48,7 @@ namespace NanoRabbit
                 };
 
                 // TODO needs testing.
-                if (_rabbitConfig.TLSConfig != null )
+                if (_rabbitConfig.TLSConfig != null)
                 {
                     factory.Ssl.Enabled = _rabbitConfig.TLSConfig.Enabled;
                     factory.Ssl.ServerName = _rabbitConfig.TLSConfig.ServerName;
@@ -124,7 +124,7 @@ namespace NanoRabbit
             var option = GetProducerOption(producerName);
 
             var messageStr = typeof(T) == typeof(string) ? message.ToString() : JsonConvert.SerializeObject(message);
-            
+
             var body = Encoding.UTF8.GetBytes(messageStr);
 
             _pipeline.Execute(token =>
@@ -134,9 +134,9 @@ namespace NanoRabbit
                     properties ??= _channel.CreateBasicProperties();
                     properties.Persistent = true;
                     _channel.BasicPublish(
-                        exchange: option.ExchangeName, 
-                        routingKey: option.RoutingKey, 
-                        basicProperties: properties, 
+                        exchange: option.ExchangeName,
+                        routingKey: option.RoutingKey,
+                        basicProperties: properties,
                         body: body);
 
                     _logger?.LogInformation($"{producerName}|Published|{messageStr}");
@@ -265,6 +265,19 @@ namespace NanoRabbit
         #region utils
 
         /// <summary>
+        /// Declare an exchange.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="exchangeType"></param>
+        /// <param name="durable"></param>
+        /// <param name="autoDelete"></param>
+        /// <param name="arguments"></param>
+        public void ExchangeDeclare(string exchangeName, string exchangeType, bool durable = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
+        {
+            _channel.ExchangeDeclare(exchangeName, exchangeType, durable, autoDelete, arguments);
+        }
+
+        /// <summary>
         /// Declare a queue based on RabbitMQ.Client.
         /// </summary>
         /// <param name="queueName"></param>
@@ -275,7 +288,18 @@ namespace NanoRabbit
         public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
         {
             _channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+        }
+
+        /// <summary>
+        /// Bind a queue to an exchange.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="routingKey"></param>
+        /// <param name="arguments"></param>
+        public void QueueBind(string queueName, string exchangeName, string routingKey, IDictionary<string, object> arguments)
+        {
+            _channel.QueueBind(queueName, exchangeName, routingKey, arguments);
         }
 
         /// <summary>
