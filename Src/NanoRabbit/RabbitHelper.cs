@@ -123,7 +123,7 @@ namespace NanoRabbit
         {
             var option = GetProducerOption(producerName);
 
-            var messageStr = typeof(T) == typeof(string) ? message.ToString() : JsonConvert.SerializeObject(message);
+            var messageStr = SerializeMessage(message) ?? "";
 
             var body = Encoding.UTF8.GetBytes(messageStr);
 
@@ -131,8 +131,7 @@ namespace NanoRabbit
             {
                 try
                 {
-                    properties ??= _channel.CreateBasicProperties();
-                    properties.Persistent = true;
+                    properties = SetBasicProperties(properties);
                     _channel.BasicPublish(
                         exchange: option.ExchangeName,
                         routingKey: option.RoutingKey,
@@ -165,16 +164,16 @@ namespace NanoRabbit
                 durable: option.Durable, autoDelete: option.AutoDelete,
                 arguments: option.Arguments);
 
-            foreach (var messageObj in messageObjs)
+            messageObjs.ForEach(message =>
             {
-                var messageStr = JsonConvert.SerializeObject(messageObj);
+                var messageStr = SerializeMessage(message) ?? "";
                 var body = Encoding.UTF8.GetBytes(messageStr);
 
                 _pipeline.Execute(token =>
                 {
                     try
                     {
-                        properties ??= _channel.CreateBasicProperties();
+                        properties = SetBasicProperties(properties);
                         _channel.BasicPublish(
                             exchange: option.ExchangeName,
                             routingKey: option.RoutingKey,
@@ -187,7 +186,8 @@ namespace NanoRabbit
                         throw;
                     }
                 });
-            }
+            });
+
             _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
         }
 
@@ -309,6 +309,29 @@ namespace NanoRabbit
         public IBasicProperties CreateBasicProperties()
         {
             return _channel.CreateBasicProperties();
+        }
+
+        /// <summary>
+        /// Serialize message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private string? SerializeMessage<T>(T message)
+        {
+            return typeof(T) == typeof(string) ? (message != null ? message.ToString() : "") : JsonConvert.SerializeObject(message);
+        }
+
+        /// <summary>
+        /// Set basic properties.
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        private IBasicProperties SetBasicProperties(IBasicProperties? properties)
+        {
+            properties ??= _channel.CreateBasicProperties();
+            properties.Persistent = true;
+            return properties;
         }
 
         #endregion
