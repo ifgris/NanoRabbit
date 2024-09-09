@@ -97,6 +97,17 @@ public class RabbitConfigurationBuilder
     }
 
     /// <summary>
+    /// Set ClientProvidedName for connections.
+    /// </summary>
+    /// <param name="connectionName"></param>
+    public RabbitConfigurationBuilder SetConnectionName(string connectionName)
+    {
+        _rabbitConfiguration.ConnectionName = connectionName;
+
+        return this;
+    }
+
+    /// <summary>
     /// Add a producer to RabbitMQ connection.
     /// </summary>
     /// <param name="configureProducer"></param>

@@ -58,6 +58,9 @@ namespace NanoRabbit
                 }
             }
 
+            factory.ClientProvidedName = string.IsNullOrEmpty(_rabbitConfig.ConnectionName) ?
+                (!string.IsNullOrEmpty(_rabbitConfig.UserName) ? $"nanorabbit:{_rabbitConfig.UserName.ToLower()}" : "") : _rabbitConfig.ConnectionName;
+
             if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
 
             _connection = factory.CreateConnection();

@@ -134,6 +134,11 @@ public class RabbitConfiguration
     public TLSConfig? TLSConfig { get; set; }
 
     /// <summary>
+    /// ClientProvidedName
+    /// </summary>
+    public string? ConnectionName { get; set; }
+
+    /// <summary>
     /// RabbitProducer configs.
     /// Dafaults: null
     /// </summary>
