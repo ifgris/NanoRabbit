@@ -19,7 +19,8 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
     Producers = new List<ProducerOptions> { new ProducerOptions {
             ProducerName = "FooProducer",
             ExchangeName = "amq.topic",
-            RoutingKey = "foo.key"
+            RoutingKey = "foo.key",
+            Type = ExchangeType.Topic
         }
     },
     Consumers = new List<ConsumerOptions> { new ConsumerOptions {
