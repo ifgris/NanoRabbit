@@ -114,7 +114,7 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Publish any type of messages.
+        /// Publish message, extended from BasicPublish().
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="producerName"></param>
@@ -145,7 +145,7 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Publish batch messages to queue(s)
+        /// Publish a batch of messages, extended from BasicPublish().
         /// </summary>
         /// <param name="producerName"></param>
         /// <param name="messageList"></param>
@@ -181,6 +181,81 @@ namespace NanoRabbit
             });
 
             _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
+        }
+
+        /// <summary>
+        /// Publish message asynchronously, extended from BasicPublish().
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="producerName"></param>
+        /// <param name="message"></param>
+        /// <param name="properties"></param>
+        public async Task PublishAsync<T>(string producerName, T message, IBasicProperties? properties = null)
+        {
+            var option = GetProducerOption(producerName);
+
+            var messageStr = SerializeMessage(message) ?? "";
+
+            var body = Encoding.UTF8.GetBytes(messageStr);
+
+            await _pipeline.ExecuteAsync(async token =>
+            {
+                try
+                {
+                    properties = SetBasicProperties(properties);
+                    await PublishMessageAsync(option, properties, body);
+
+                    _logger?.LogInformation($"{producerName}|Published|{messageStr}");
+                }
+                catch (Exception e)
+                {
+                    _logger?.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                    throw;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Publish a batch of messages asynchronously, extended from BasicPublish().
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="producerName"></param>
+        /// <param name="messageList"></param>
+        /// <param name="properties"></param>
+        public async Task PublishBatchAsync<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null)
+        {
+            var option = GetProducerOption(producerName);
+
+            var messageObjs = messageList.ToList();
+
+            _channel.ExchangeDeclare(option.ExchangeName, option.Type,
+                durable: option.Durable, autoDelete: option.AutoDelete,
+                arguments: option.Arguments);
+
+            var publishTasks = messageObjs.Select(async message =>
+            {
+                var messageStr = SerializeMessage(message) ?? "";
+                var body = Encoding.UTF8.GetBytes(messageStr);
+
+                await _pipeline.ExecuteAsync(async token =>
+                {
+                    try
+                    {
+                        properties = SetBasicProperties(properties);
+                        await PublishMessageAsync(option, properties, body);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger?.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                        throw;
+                    }
+                });
+            });
+
+            await Task.WhenAll(publishTasks);
+
+            _logger?.LogInformation($"{producerName}|Published a batch of messgages.");
+
         }
 
         /// <summary>
@@ -316,6 +391,25 @@ namespace NanoRabbit
                 routingKey: option.RoutingKey,
                 basicProperties: properties,
                 body: body);
+        }
+
+        /// <summary>
+        /// Publish message asynchronously.
+        /// </summary>
+        /// <param name="option"></param>
+        /// <param name="properties"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        private async Task PublishMessageAsync(ProducerOptions option, IBasicProperties properties, byte[] body)
+        {
+            await Task.Run(() =>
+            {
+                _channel.BasicPublish(
+                    exchange: option.ExchangeName,
+                    routingKey: option.RoutingKey,
+                    basicProperties: properties,
+                    body: body);
+            });
         }
 
         /// <summary>

@@ -27,6 +27,22 @@ public interface IRabbitHelper
     /// <param name="properties"></param>
     public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null);
     /// <summary>
+    /// Publish message asynchronously, extended from BasicPublish().
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="producerName"></param>
+    /// <param name="message"></param>
+    /// <param name="properties"></param>
+    public Task PublishAsync<T>(string producerName, T message, IBasicProperties? properties = null);
+    /// <summary>
+    /// Publish a batch of messages asynchronously, extended from BasicPublish().
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="producerName"></param>
+    /// <param name="messageList"></param>
+    /// <param name="properties"></param>
+    public Task PublishBatchAsync<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null);
+    /// <summary>
     /// Add a consumer by using predefined consumer configs.
     /// </summary>
     /// <param name="consumerName"></param>
