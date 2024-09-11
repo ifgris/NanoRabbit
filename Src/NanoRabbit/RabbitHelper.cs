@@ -305,7 +305,7 @@ namespace NanoRabbit
         /// <param name="exclusive"></param>
         /// <param name="autoDelete"></param>
         /// <param name="arguments"></param>
-        public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
+        public void QueueDeclare(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null)
         {
             _channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
         }
