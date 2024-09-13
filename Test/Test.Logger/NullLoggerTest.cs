@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NanoRabbit;
 using NanoRabbit.Connection;
@@ -11,12 +10,7 @@ namespace Test.Logger
         [TestMethod]
         public void TestMethod1()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
-            var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+            var logger = NullLogger.Instance;
 
             var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
             {
