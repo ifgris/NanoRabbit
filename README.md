@@ -6,9 +6,7 @@
 ## About
 
 NanoRabbit, A **Lightweight** RabbitMQ .NET 3rd party library for .NET 6 and up, which makes a simple way to manage
-*Multiple* connections, producers, consumers, and easy to use.
-
-> *NanoRabbit is under development! Please note that some APIs may change their names or usage!*
+**Multiple** *connections*, *producers*, *consumers*, and easy to use.
 
 ## Building
 
@@ -34,16 +32,16 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 |  NanoRabbit   | RabbitMQ.Client |     .NET      |
 | :-----------: | :-------------: | :-----------: |
 | 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
-| 0.1.9, 0.2.0, 0.2.1  |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
+| 0.1.9 ~ 0.2.2 |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 
 ## Document
 
-The NanoRabbit Document is at [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
+For details, see: [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 ## QuickStart
 
-> *NanoRabbit is designed as a library depends on **NAMING** Producers, Consumers. So it's important to set
-a **UNIQUE NAME** for each Producers, Consumers.*
+> *NanoRabbit is designed as a library depends on **NAMING** Connections, Producers and Consumers. So it's important to set
+a **UNIQUE NAME** for each Connections, Producers and Consumers.*
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
@@ -74,7 +72,8 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
     Producers = new List<ProducerOptions> { new ProducerOptions {
             ProducerName = "FooProducer",
             ExchangeName = "amq.topic",
-            RoutingKey = "foo.key"
+            RoutingKey = "foo.key",
+            Type = ExchangeType.Topic
         } 
     }
 }, logger);
@@ -103,7 +102,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 }, logger);
 ```
 
-### Simple Publish
+### Simple Publish Messages
 
 [After](#rabbitproducer) registering a `RabbitProducer` in the `RabbitHelper`, you can simply publish a message by calling `Publish<T>(string producerName, T message)`.
 
@@ -111,7 +110,13 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
 ```
 
-### Simple Consume
+Asynchronously publishing is also available:
+
+```csharp
+await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
+```
+
+### Simple Consume Messages
 
 [After](#rabbitconsumer) registering a `RabbitConsumer` in the `RabbitConsumer`, you can simply consume a message by
 calling `AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)`.
@@ -131,6 +136,8 @@ while (true)
 > Working on it.
 
 ### DependencyInjection
+
+NanoRabbit provides some functions to inject IRabbitHelper in a simple way.
 
 #### AddRabbitProducer
 
@@ -209,6 +216,7 @@ More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/
 - [x] ASP.NET support
 - [x] TLS support
 - [x] Re-trying of failed sends
+- [x] Basic [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) functions extensions
 
 ## Thanks
 
@@ -217,6 +225,7 @@ More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
 - [Masstransit](https://github.com/masstransit/masstransit)
 - [EasyNetQ](https://github.com/autofac/Autofac)
+- [Polly.Core](https://github.com/App-vNext/Polly)
 
 ## License
 

@@ -20,29 +20,13 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
             ProducerName = "FooProducer",
             ExchangeName = "amq.topic",
             RoutingKey = "foo.key",
-            Type = ExchangeType.Topic
-        }
-    },
-    Consumers = new List<ConsumerOptions> { new ConsumerOptions {
-            ConsumerName= "FooConsumer",
-            QueueName = "foo-queue"
+            Type= ExchangeType.Topic
         }
     }
 }, logger);
 
-rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
+await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
+
+await rabbitHelper.PublishBatchAsync<string>("FooProducer", new List<string> { "Test 1", "Test 2" });
 
 Console.WriteLine(" Press [enter] to exit.");
-
-while (true)
-{
-    rabbitHelper.AddConsumer("FooConsumer", message =>
-    {
-        Console.WriteLine(message);
-    });
-
-    if (Console.ReadLine() == "")
-    {
-        break;
-    }
-}

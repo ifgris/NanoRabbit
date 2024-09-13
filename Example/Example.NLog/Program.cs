@@ -72,7 +72,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                 });
         }, loggerFactory: serviceCollection =>
         {
-            var logger = LoggerFactory.Create(builder => builder.AddNLog()).CreateLogger<Program>();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
             return logger;
         })
         .AddRabbitConsumer<FooQueueHandler>("FooConsumer", consumers: 3)

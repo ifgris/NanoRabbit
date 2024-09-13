@@ -1,5 +1,4 @@
 ﻿using RabbitMQ.Client;
-using System.Threading.Channels;
 
 namespace NanoRabbit;
 
@@ -26,6 +25,22 @@ public interface IRabbitHelper
     /// <param name="messageList"></param>
     /// <param name="properties"></param>
     public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null);
+    /// <summary>
+    /// Publish message asynchronously, extended from BasicPublish().
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="producerName"></param>
+    /// <param name="message"></param>
+    /// <param name="properties"></param>
+    public Task PublishAsync<T>(string producerName, T message, IBasicProperties? properties = null);
+    /// <summary>
+    /// Publish a batch of messages asynchronously, extended from BasicPublish().
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="producerName"></param>
+    /// <param name="messageList"></param>
+    /// <param name="properties"></param>
+    public Task PublishBatchAsync<T>(string producerName, IEnumerable<T?> messageList, IBasicProperties? properties = null);
     /// <summary>
     /// Add a consumer by using predefined consumer configs.
     /// </summary>
@@ -62,7 +77,7 @@ public interface IRabbitHelper
     /// <param name="exclusive"></param>
     /// <param name="autoDelete"></param>
     /// <param name="arguments"></param>
-    public void DeclareQueue(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null);
+    public void QueueDeclare(string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null);
     /// <summary>
     /// Bind a queue to an exchange.
     /// </summary>
