@@ -13,7 +13,7 @@ public static class RabbitHelperExtensions
     private static readonly ILogger NullLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
     /// <summary>
-    /// Adds a singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
+    /// Add a singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="builder"></param>
@@ -30,7 +30,7 @@ public static class RabbitHelperExtensions
     }
 
     /// <summary>
-    /// Adds a keyed singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
+    /// Add a keyed singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="key"></param>
@@ -57,7 +57,7 @@ public static class RabbitHelperExtensions
     }
 
     /// <summary>
-    /// Adds a singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
+    /// Add a singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
     /// </summary>
     /// <typeparam name="TRabbitConfiguration"></typeparam>
     /// <param name="services"></param>
@@ -82,7 +82,7 @@ public static class RabbitHelperExtensions
     }
 
     /// <summary>
-    /// Adds a keyed singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
+    /// Add a keyed singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
     /// </summary>
     /// <typeparam name="TRabbitConfiguration"></typeparam>
     /// <param name="services"></param>
@@ -171,7 +171,7 @@ public static class RabbitHelperExtensions
     }
 
     /// <summary>
-    /// Add a async consumer to specific IRabbitHelper.
+    /// Add an async consumer to specific IRabbitHelper.
     /// </summary>
     /// <typeparam name="TAsyncHandler"></typeparam>
     /// <param name="services"></param>
@@ -196,9 +196,9 @@ public static class RabbitHelperExtensions
     }
 
     /// <summary>
-    /// Add a async consumer to specific keyed IRabbitHelper.
+    /// Add an async consumer to specific keyed IRabbitHelper.
     /// </summary>
-    /// <typeparam name="THandler"></typeparam>
+    /// <typeparam name="TAsyncHandler"></typeparam>
     /// <param name="services"></param>
     /// <param name="key"></param>
     /// <param name="consumerName"></param>
