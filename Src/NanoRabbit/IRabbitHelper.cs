@@ -100,7 +100,7 @@ public interface IRabbitHelper
     /// <param name="exchangeName"></param>
     /// <param name="routingKey"></param>
     /// <param name="arguments"></param>
-    public void QueueBind(string queueName, string exchangeName, string routingKey, IDictionary<string, object> arguments);
+    public void QueueBind(string queueName, string exchangeName, string routingKey, IDictionary<string, object>? arguments = null);
     /// <summary>
     /// Delete a queue.
     /// </summary>
