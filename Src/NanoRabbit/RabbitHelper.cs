@@ -298,6 +298,28 @@ namespace NanoRabbit
         }
 
         /// <summary>
+        /// Bind an exchange to an exchange.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="source"></param>
+        /// <param name="routingKey"></param>
+        /// <param name="arguments"></param>
+        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            _channel.ExchangeBind(destination, source, routingKey, arguments);
+        }
+        
+        /// <summary>
+        /// Delete an exchange.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="ifUnused"></param>
+        public void ExchangeDelete(string exchangeName, bool ifUnused)
+        {
+            _channel.ExchangeDelete(exchangeName, ifUnused);
+        }
+
+        /// <summary>
         /// Declare a queue based on RabbitMQ.Client.
         /// </summary>
         /// <param name="queueName"></param>

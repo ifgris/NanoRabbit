@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using System.Threading.Channels;
 
 namespace NanoRabbit;
 
@@ -69,6 +70,20 @@ public interface IRabbitHelper
     /// <param name="autoDelete"></param>
     /// <param name="arguments"></param>
     public void ExchangeDeclare(string exchangeName, string exchangeType, bool durable = false, bool autoDelete = false, IDictionary<string, object>? arguments = null);
+    /// <summary>
+    /// Bind an exchange to an exchange.
+    /// </summary>
+    /// <param name="exchangeName"></param>
+    /// <param name="source"></param>
+    /// <param name="routingKey"></param>
+    /// <param name="arguments"></param>
+    public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+    /// <summary>
+    /// Delete an exchange.
+    /// </summary>
+    /// <param name="exchangeName"></param>
+    /// <param name="ifUnused"></param>
+    public void ExchangeDelete(string exchangeName, bool ifUnused);
     /// <summary>
     /// Declare a queue.
     /// </summary>
