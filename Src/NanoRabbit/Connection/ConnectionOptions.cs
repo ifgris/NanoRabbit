@@ -16,7 +16,7 @@ public class ProducerOptions
     /// <summary>
     /// Exchange name
     /// </summary>
-    public string? ExchangeName { get; set; }
+    public string? ExchangeName { get; set; } = "";
 
     /// <summary>
     /// Publish routing-key
