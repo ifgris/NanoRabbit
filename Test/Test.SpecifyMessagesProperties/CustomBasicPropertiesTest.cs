@@ -40,7 +40,8 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            IBasicProperties props = rabbitHelper.CreateBasicProperties();
+            var channel = rabbitHelper.GetChannel("FooConsumer");
+            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
             props.ContentType = "text/plain";
             props.DeliveryMode = 2;
 
@@ -79,7 +80,8 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            IBasicProperties props = rabbitHelper.CreateBasicProperties();
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
             props.ContentType = "text/plain";
             props.DeliveryMode = 2;
             props.Headers = new Dictionary<string, object>();
@@ -121,7 +123,8 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            IBasicProperties props = rabbitHelper.CreateBasicProperties();
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
             props.ContentType = "text/plain";
             props.DeliveryMode = 2;
             props.Expiration = "36000000";

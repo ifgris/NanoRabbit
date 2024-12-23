@@ -36,7 +36,8 @@ namespace Test.Management
                 }
             }, logger);
 
-            rabbitHelper.ExchangeDeclare("test.topic", ExchangeType.Topic);
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            rabbitHelper.ExchangeDeclare(channel, "test.topic", ExchangeType.Topic);
         }
         
         [TestMethod]
@@ -68,7 +69,8 @@ namespace Test.Management
                 }
             }, logger);
 
-            rabbitHelper.QueueDeclare("test-queue");
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            rabbitHelper.QueueDeclare(channel, "test-queue");
         }
         
         [TestMethod]
@@ -100,7 +102,8 @@ namespace Test.Management
                 }
             }, logger);
 
-            rabbitHelper.QueueBind("test-queue", "test.topic", "test.key", null);
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            rabbitHelper.QueueBind(channel, "test-queue", "test.topic", "test.key", null);
         }
         
         [TestMethod]
@@ -132,7 +135,8 @@ namespace Test.Management
                 }
             }, logger);
 
-            rabbitHelper.QueueDelete("test-queue", false, false);
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            rabbitHelper.QueueDelete(channel, "test-queue", false, false);
         }
         
         [TestMethod]
@@ -164,7 +168,8 @@ namespace Test.Management
                 }
             }, logger);
 
-            rabbitHelper.QueuePurge("test-queue");
+            var channel = rabbitHelper.GetChannel("FooProducer");
+            rabbitHelper.QueuePurge(channel, "test-queue");
         }
     }
 }
