@@ -148,7 +148,7 @@ namespace NanoRabbit
 
                     var body = Encoding.UTF8.GetBytes(messageStr);
 
-                    await PublishMessageAsync(option, properties, body);
+                    await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
 
                     _logger.LogInformation($"{producerName}|Published|{messageStr}");
                 }
@@ -190,7 +190,7 @@ namespace NanoRabbit
                     {
                         try
                         {
-                            await PublishMessageAsync(option, properties, body);
+                            await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
                         }
                         catch (Exception e)
                         {
