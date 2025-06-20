@@ -22,7 +22,7 @@ namespace Example.WebApplication.Controllers
         };
 
         [HttpGet(Name = "PublishMessage")]
-        public void PublishMessage()
+        public async Task PublishMessage()
         {
             var model = new WeatherForecast
             {
@@ -31,7 +31,7 @@ namespace Example.WebApplication.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             };
 
-            _rabbitHelper.Publish<WeatherForecast>("FooProducer", model);
+            await _rabbitHelper.PublishAsync<WeatherForecast>("FooProducer", model);
         }
     }
 }

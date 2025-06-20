@@ -27,7 +27,7 @@ builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
             consumer.ConsumerCount = 3;
         });
 })
-.AddRabbitHandler<FooQueueHandler>().AddRabbitConsumerService();
+.AddRabbitAsyncHandler<FooQueueHandler>().AddRabbitConsumerService();
 
 using IHost host = builder.Build();
 

@@ -80,15 +80,15 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
             return logger;
         })
-        .AddRabbitHandler<FooQueueHandler>()
-        .AddRabbitHandler<BarQueueHandler>()
+        .AddRabbitAsyncHandler<FooQueueHandler>()
+        .AddRabbitAsyncHandler<BarQueueHandler>()
         .AddRabbitConsumerService();
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
     });
 
-public class FooQueueHandler : IMessageHandler
+public class FooQueueHandler : IAsyncMessageHandler
 {
     private readonly ILogger<FooQueueHandler> _logger;
 
@@ -97,18 +97,16 @@ public class FooQueueHandler : IMessageHandler
         _logger = logger;
     }
 
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         _logger.LogInformation($"[x] Received from foo-queue: {message}");
-        Task.Delay(1000).Wait();
+        await Task.Delay(1000);
         _logger.LogInformation("[x] Done");
-
-        return true;
     }
 }
 
-public class BarQueueHandler : IMessageHandler
+public class BarQueueHandler : IAsyncMessageHandler
 {
     private readonly ILogger<BarQueueHandler> _logger;
 
@@ -117,13 +115,11 @@ public class BarQueueHandler : IMessageHandler
         _logger = logger;
     }
 
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         _logger.LogInformation($"[x] Received from bar-queue: {message}");
-        Task.Delay(500).Wait();
+        await Task.Delay(500);
         _logger.LogInformation("[x] Done");
-        
-        return true;
     }
 }

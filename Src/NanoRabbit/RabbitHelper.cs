@@ -15,8 +15,7 @@ namespace NanoRabbit
     public class RabbitHelper : IRabbitHelper, IDisposable
     {
         private IConnection? _connection;
-        private readonly ConcurrentDictionary<string, IModel> _channels;
-        private readonly Dictionary<string, EventingBasicConsumer> _consumers;
+        private readonly ConcurrentDictionary<string, IChannel> _channels;
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
         private readonly ILogger _logger;
@@ -64,18 +63,16 @@ namespace NanoRabbit
                     : "")
                 : _rabbitConfig.ConnectionName;
 
-            if (_rabbitConfig.UseAsyncConsumer) factory.DispatchConsumersAsync = true;
-
             _pipeline = new ResiliencePipelineBuilder()
                 .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 }) // Add retry using the default options
                 .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
                 .Build(); // Builds the resilience pipeline
 
-            _pipeline.Execute(_ =>
+            _pipeline.Execute(async _ =>
             {
                 try
                 {
-                    _connection = factory.CreateConnection();
+                    _connection = await factory.CreateConnectionAsync();
                 }
                 catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException)
                 {
@@ -84,9 +81,8 @@ namespace NanoRabbit
                 }
             });
 
-            _channels = new ConcurrentDictionary<string, IModel>();
+            _channels = new ConcurrentDictionary<string, IChannel>();
 
-            _consumers = new Dictionary<string, EventingBasicConsumer>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
             _logger = logger;
         }
@@ -133,90 +129,13 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Publish message, extended from BasicPublish().
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="producerName"></param>
-        /// <param name="message"></param>
-        /// <param name="properties"></param>
-        public void Publish<T>(string producerName, T message, IBasicProperties? properties = null)
-        {
-            var messageStr = SerializeMessage(message) ?? "";
-            _pipeline.Execute(_ =>
-            {
-                try
-                {
-                    var option = GetProducerOption(producerName);
-                    var channel = GetOrCreatePublishChannel(option.ProducerName);
-
-                    var body = Encoding.UTF8.GetBytes(messageStr);
-
-                    properties = SetBasicProperties(channel, properties);
-                    PublishMessage(option, properties, body);
-
-                    _logger.LogInformation($"{producerName}|Published|{messageStr}");
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
-                    // throw;
-                }
-            });
-        }
-
-        /// <summary>
-        /// Publish a batch of messages, extended from BasicPublish().
-        /// </summary>
-        /// <param name="producerName"></param>
-        /// <param name="messageList"></param>
-        /// <param name="properties"></param>
-        public void PublishBatch<T>(string producerName, IEnumerable<T?> messageList,
-            IBasicProperties? properties = null)
-        {
-            var messageObjs = messageList.ToList();
-
-            _pipeline.Execute(token =>
-            {
-                var option = GetProducerOption(producerName);
-                var channel = GetOrCreatePublishChannel(option.ProducerName);
-
-
-                channel.ExchangeDeclare(option.ExchangeName, option.Type,
-                    durable: option.Durable, autoDelete: option.AutoDelete,
-                    arguments: option.Arguments);
-
-                messageObjs.ForEach(message =>
-                {
-                    var messageStr = SerializeMessage(message) ?? "";
-                    var body = Encoding.UTF8.GetBytes(messageStr);
-
-                    _pipeline.Execute(_ =>
-                    {
-                        try
-                        {
-                            properties = SetBasicProperties(channel, properties);
-                            PublishMessage(option, properties, body);
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
-                            throw;
-                        }
-                    }, token);
-                });
-            });
-
-            _logger.LogInformation($"{producerName}|Published a batch of messgages.");
-        }
-
-        /// <summary>
         /// Publish message asynchronously, extended from BasicPublish().
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="producerName"></param>
         /// <param name="message"></param>
         /// <param name="properties"></param>
-        public async Task PublishAsync<T>(string producerName, T message, IBasicProperties? properties = null)
+        public async Task PublishAsync<T>(string producerName, T message, BasicProperties? properties = null)
         {
             var messageStr = SerializeMessage(message) ?? "";
 
@@ -225,11 +144,10 @@ namespace NanoRabbit
                 try
                 {
                     var option = GetProducerOption(producerName);
-                    var channel = GetOrCreatePublishChannel(option.ProducerName);
+                    var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
 
                     var body = Encoding.UTF8.GetBytes(messageStr);
 
-                    properties = SetBasicProperties(channel, properties);
                     await PublishMessageAsync(option, properties, body);
 
                     _logger.LogInformation($"{producerName}|Published|{messageStr}");
@@ -250,16 +168,16 @@ namespace NanoRabbit
         /// <param name="messageList"></param>
         /// <param name="properties"></param>
         public async Task PublishBatchAsync<T>(string producerName, IEnumerable<T?> messageList,
-            IBasicProperties? properties = null)
+            BasicProperties? properties = null)
         {
             var messageObjs = messageList.ToList();
 
             await _pipeline.ExecuteAsync(async _ =>
             {
                 var option = GetProducerOption(producerName);
-                var channel = GetOrCreatePublishChannel(option.ProducerName);
+                var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
 
-                channel.ExchangeDeclare(option.ExchangeName, option.Type,
+                await channel.ExchangeDeclareAsync(option.ExchangeName, option.Type,
                     durable: option.Durable, autoDelete: option.AutoDelete,
                     arguments: option.Arguments);
 
@@ -272,7 +190,6 @@ namespace NanoRabbit
                     {
                         try
                         {
-                            properties = SetBasicProperties(channel, properties);
                             await PublishMessageAsync(option, properties, body);
                         }
                         catch (Exception e)
@@ -290,17 +207,6 @@ namespace NanoRabbit
         }
 
         /// <summary>
-        /// Add a sync consumer by a custom consumerName.
-        /// </summary>
-        /// <param name="consumerName"></param>
-        /// <param name="onMessageReceived"></param>
-        /// <param name="consumers"></param>
-        public void AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)
-        {
-            AddConsumerInternal(consumerName, null, onMessageReceived, consumers, isAsync: false);
-        }
-
-        /// <summary>
         /// Add an async consumer by a custom consumerName.
         /// </summary>
         /// <param name="consumerName"></param>
@@ -308,30 +214,30 @@ namespace NanoRabbit
         /// <param name="consumers"></param>
         public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
         {
-            AddConsumerInternal(consumerName, onMessageReceivedAsync, null, consumers, isAsync: true);
+            AddConsumerInternal(consumerName, onMessageReceivedAsync, null, consumers);
         }
 
         #endregion
 
         #region utils
 
-        public IModel GetChannel(string channelName)
+        public IChannel GetChannel(string channelName)
         {
             return _channels.GetOrAdd(channelName, name =>
             {
-                var channel = _connection.CreateModel();
-                channel.BasicQos(0, GetConsumerOption(name).PrefetchCount, false);
+                var channel = (_connection.CreateChannelAsync()).GetAwaiter().GetResult();
+                (channel.BasicQosAsync(0, GetConsumerOption(name).PrefetchCount, false)).GetAwaiter().GetResult();
                 return channel;
             });
         }
 
-        public void ReleaseChannel(string channelName)
+        public async Task ReleaseChannel(string channelName)
         {
             if (_channels.TryRemove(channelName, out var channel))
             {
                 if (channel.IsOpen)
-                    channel.Close();
-                channel.Dispose();
+                    await channel.CloseAsync();
+                await channel.DisposeAsync();
             }
         }
 
@@ -344,10 +250,11 @@ namespace NanoRabbit
         /// <param name="durable"></param>
         /// <param name="autoDelete"></param>
         /// <param name="arguments"></param>
-        public void ExchangeDeclare(IModel channel, string exchangeName, string exchangeType, bool durable = false,
+        public async Task ExchangeDeclareAsync(IChannel channel, string exchangeName, string exchangeType,
+            bool durable = false,
             bool autoDelete = false, IDictionary<string, object>? arguments = null)
         {
-            channel.ExchangeDeclare(exchangeName, exchangeType, durable, autoDelete, arguments);
+            await channel.ExchangeDeclareAsync(exchangeName, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
@@ -358,10 +265,10 @@ namespace NanoRabbit
         /// <param name="source"></param>
         /// <param name="routingKey"></param>
         /// <param name="arguments"></param>
-        public void ExchangeBind(IModel channel, string destination, string source, string routingKey,
+        public async Task ExchangeBindAsync(IChannel channel, string destination, string source, string routingKey,
             IDictionary<string, object> arguments)
         {
-            channel.ExchangeBind(destination, source, routingKey, arguments);
+            await channel.ExchangeBindAsync(destination, source, routingKey, arguments);
         }
 
         /// <summary>
@@ -370,9 +277,9 @@ namespace NanoRabbit
         /// <param name="channel"></param>
         /// <param name="exchangeName"></param>
         /// <param name="ifUnused"></param>
-        public void ExchangeDelete(IModel channel, string exchangeName, bool ifUnused)
+        public async Task ExchangeDeleteAsync(IChannel channel, string exchangeName, bool ifUnused)
         {
-            channel.ExchangeDelete(exchangeName, ifUnused);
+            await channel.ExchangeDeleteAsync(exchangeName, ifUnused);
         }
 
         /// <summary>
@@ -384,10 +291,11 @@ namespace NanoRabbit
         /// <param name="exclusive"></param>
         /// <param name="autoDelete"></param>
         /// <param name="arguments"></param>
-        public void QueueDeclare(IModel channel, string queueName, bool durable = true, bool exclusive = false,
+        public async Task QueueDeclareAsync(IChannel channel, string queueName, bool durable = true,
+            bool exclusive = false,
             bool autoDelete = false, IDictionary<string, object>? arguments = null)
         {
-            channel.QueueDeclare(queue: queueName, durable, exclusive, autoDelete, arguments);
+            await channel.QueueDeclareAsync(queue: queueName, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
@@ -398,10 +306,10 @@ namespace NanoRabbit
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="arguments"></param>
-        public void QueueBind(IModel channel, string queueName, string exchangeName, string routingKey,
+        public async Task QueueBindAsync(IChannel channel, string queueName, string exchangeName, string routingKey,
             IDictionary<string, object>? arguments = null)
         {
-            channel.QueueBind(queueName, exchangeName, routingKey, arguments);
+            await channel.QueueBindAsync(queueName, exchangeName, routingKey, arguments);
         }
 
         /// <summary>
@@ -411,9 +319,9 @@ namespace NanoRabbit
         /// <param name="queueName"></param>
         /// <param name="ifUnused"></param>
         /// <param name="ifEmpty"></param>
-        public void QueueDelete(IModel channel, string queueName, bool ifUnused, bool ifEmpty)
+        public async Task QueueDeleteAsync(IChannel channel, string queueName, bool ifUnused, bool ifEmpty)
         {
-            channel.QueueDelete(queueName, ifUnused, ifEmpty);
+            await channel.QueueDeleteAsync(queueName, ifUnused, ifEmpty);
         }
 
         /// <summary>
@@ -421,9 +329,9 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="queueName"></param>
-        public void QueuePurge(IModel channel, string queueName)
+        public async Task QueuePurgeAsync(IChannel channel, string queueName)
         {
-            channel.QueuePurge(queueName);
+            await channel.QueuePurgeAsync(queueName);
         }
 
         /// <summary>
@@ -431,9 +339,11 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="channel"></param>
         /// <returns></returns>
-        public IBasicProperties CreateBasicProperties(IModel channel)
+        [Obsolete]
+        public IBasicProperties CreateBasicProperties(IChannel channel)
         {
-            return channel.CreateBasicProperties();
+            // return channel.CreateBasicProperties();
+            return new BasicProperties();
         }
 
         #endregion
@@ -459,30 +369,13 @@ namespace NanoRabbit
         /// <param name="channel"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        private IBasicProperties SetBasicProperties(IModel channel, IBasicProperties? properties)
+        [Obsolete]
+        private IBasicProperties SetBasicProperties(IChannel channel, IBasicProperties? properties)
         {
-            properties ??= channel.CreateBasicProperties();
-            properties.Persistent = true;
-            return properties;
-        }
-
-        /// <summary>
-        /// Publish message.
-        /// </summary>
-        /// <param name="option"></param>
-        /// <param name="properties"></param>
-        /// <param name="body"></param>
-        private void PublishMessage(ProducerOptions option, IBasicProperties properties, byte[] body)
-        {
-            var channel = GetOrCreatePublishChannel(option.ProducerName);
-            if (channel != null)
-            {
-                channel.BasicPublish(
-                    exchange: option.ExchangeName,
-                    routingKey: option.RoutingKey,
-                    basicProperties: properties,
-                    body: body);
-            }
+            // properties ??= channel.CreateBasicProperties();
+            // properties.Persistent = true;
+            // return properties;
+            return new BasicProperties();
         }
 
         /// <summary>
@@ -492,19 +385,17 @@ namespace NanoRabbit
         /// <param name="properties"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        private async Task PublishMessageAsync(ProducerOptions option, IBasicProperties properties, byte[] body)
+        private async Task PublishMessageAsync(ProducerOptions option, BasicProperties properties, byte[] body)
         {
-            var channel = GetOrCreatePublishChannel(option.ProducerName);
+            var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
             if (channel != null)
             {
-                await Task.Run(() =>
-                {
-                    channel.BasicPublish(
-                        exchange: option.ExchangeName,
-                        routingKey: option.RoutingKey,
-                        basicProperties: properties,
-                        body: body);
-                });
+                await channel.BasicPublishAsync(
+                    exchange: option.ExchangeName,
+                    routingKey: option.RoutingKey,
+                    mandatory: false,
+                    basicProperties: properties,
+                    body: body);
             }
         }
 
@@ -515,9 +406,8 @@ namespace NanoRabbit
         /// <param name="onMessageReceivedAsync"></param>
         /// <param name="onMessageReceived"></param>
         /// <param name="consumers"></param>
-        /// <param name="isAsync"></param>
-        private void AddConsumerInternal(string consumerName, Func<string, Task>? onMessageReceivedAsync,
-            Action<string>? onMessageReceived = null, int consumers = 1, bool isAsync = false)
+        private async Task AddConsumerInternal(string consumerName, Func<string, Task>? onMessageReceivedAsync,
+            Action<string>? onMessageReceived = null, int consumers = 1)
         {
             var option = GetConsumerOption(consumerName);
 
@@ -525,16 +415,16 @@ namespace NanoRabbit
             for (int i = 0; i < consumers; i++)
             {
                 var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                IModel? channel = _connection?.CreateModel();
-                channel?.BasicQos(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+                IChannel? channel = await _connection?.CreateChannelAsync();
+                await channel?.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
                 if (channel != null)
                 {
                     _channels.TryAdd(consumerId, channel);
 
-                    if (isAsync && !_asyncConsumers.ContainsKey(consumerId))
+                    if (!_asyncConsumers.ContainsKey(consumerId))
                     {
                         var consumer = new AsyncEventingBasicConsumer(channel);
-                        consumer.Received += async (_, ea) =>
+                        consumer.ReceivedAsync += async (_, ea) =>
                         {
                             var body = ea.Body.ToArray();
                             var message = Encoding.UTF8.GetString(body);
@@ -542,39 +432,22 @@ namespace NanoRabbit
                             if (onMessageReceivedAsync != null)
                                 await onMessageReceivedAsync(message);
 
-                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                            await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
                             await Task.Yield();
                         };
 
-                        channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
+                        await channel.BasicConsumeAsync(queue: option.QueueName, autoAck: false, consumer: consumer);
                         _asyncConsumers[consumerId] = consumer;
-                    }
-                    else if (!isAsync && !_consumers.ContainsKey(consumerId))
-                    {
-                        var consumer = new EventingBasicConsumer(channel);
-                        consumer.Received += (_, ea) =>
-                        {
-                            var body = ea.Body.ToArray();
-                            var message = Encoding.UTF8.GetString(body);
-
-                            if (onMessageReceived != null)
-                                onMessageReceived(message);
-
-                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                        };
-
-                        channel.BasicConsume(queue: option.QueueName, autoAck: false, consumer: consumer);
-                        _consumers[consumerId] = consumer;
                     }
                 }
             }
         }
 
-        private IModel GetOrCreatePublishChannel(string producerName)
+        private async Task<IChannel> GetOrCreatePublishChannelAsync(string producerName)
         {
             return _channels.GetOrAdd(producerName, _ =>
             {
-                IModel? channel = _connection?.CreateModel();
+                IChannel? channel = (_connection?.CreateChannelAsync()).GetAwaiter().GetResult();
                 if (channel != null)
                 {
                     return channel;
@@ -592,11 +465,11 @@ namespace NanoRabbit
         {
             foreach (var channel in _channels.Values)
             {
-                if (channel.IsOpen) channel.Close();
+                if (channel.IsOpen) (channel.CloseAsync()).ConfigureAwait(false).GetAwaiter().GetResult();
                 channel.Dispose();
             }
 
-            if (_connection != null && _connection.IsOpen) _connection.Close();
+            if (_connection != null && _connection.IsOpen) (_connection.CloseAsync()).GetAwaiter().GetResult();
             _connection?.Dispose();
         }
     }

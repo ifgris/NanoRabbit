@@ -23,7 +23,7 @@ public class TestPublishService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _rabbitHelper.Publish("FooProducer", "Hello from test publish service.");
+            await _rabbitHelper.PublishAsync("FooProducer", "Hello from test publish service.");
             await Task.Delay(1000, stoppingToken);
         }
     }

@@ -65,35 +65,32 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
 
                 return logger;
             })
-            .AddRabbitHandler<FooQueueHandler>()
-            .AddRabbitHandler<BarQueueHandler>()
+            .AddRabbitAsyncHandler<FooQueueHandler>()
+            .AddRabbitAsyncHandler<BarQueueHandler>()
             .AddRabbitConsumerService();
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
     });
 
-public class FooQueueHandler : IMessageHandler
+public class FooQueueHandler : IAsyncMessageHandler
 {
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
-        Task.Delay(1000).Wait();
+        await Task.Delay(1000);
         Console.WriteLine("[x] Done");
-        return true;
     }
 }
 
-public class BarQueueHandler : IMessageHandler
+public class BarQueueHandler : IAsyncMessageHandler
 {
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from bar-queue: {message}");
-        Task.Delay(500).Wait();
+        await Task.Delay(500);
         Console.WriteLine("[x] Done");
-        
-        return true;
     }
 }

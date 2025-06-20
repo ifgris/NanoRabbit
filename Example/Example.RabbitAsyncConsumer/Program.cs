@@ -44,24 +44,22 @@ await host.RunAsync();
 
 public class FooQueueHandler : IAsyncMessageHandler
 {
-    public async Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
         await Task.Delay(1000);
         Console.WriteLine("[x] Done");
-        return true;
     }
 }
 
 public class BarQueueHandler : IAsyncMessageHandler
 {
-    public async Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from bar-queue: {message}");
         await Task.Delay(500);
         Console.WriteLine("[x] Done");
-        return true;
     }
 }

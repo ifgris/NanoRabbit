@@ -21,8 +21,8 @@ public class PublishService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _rabbitHelper.Publish("FooProducer", "Hello from conn1");
-            //_rabbitHelper.Publish("BarProducer", "Hello from conn2");
+            await _rabbitHelper.PublishAsync("FooProducer", "Hello from conn1");
+            // await _rabbitHelper.PublishAsync("BarProducer", "Hello from conn2");
             await Task.Delay(1000, stoppingToken);
         }
     }

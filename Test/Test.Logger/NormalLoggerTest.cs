@@ -7,7 +7,7 @@ namespace Test.Logger
     public class NormalLoggerTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public async Task TestMethod1()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -38,7 +38,7 @@ namespace Test.Logger
                 }
             }, logger);
 
-            rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
+            await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
         }
     }
 }

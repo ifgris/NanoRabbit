@@ -38,13 +38,13 @@ var rabbitConfig = new RabbitConfiguration
 
 var rabbitHelper = new RabbitHelper(rabbitConfig, logger);
 
-rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
+await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
 
 Console.WriteLine(" Press [enter] to exit.");
 
 while (true)
 {
-    rabbitHelper.AddConsumer("FooConsumer", message =>
+    rabbitHelper.AddAsyncConsumer("FooConsumer", async message =>
     {
         Console.WriteLine(message);
     });

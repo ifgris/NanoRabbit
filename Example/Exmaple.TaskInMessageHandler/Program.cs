@@ -69,7 +69,7 @@ public class FooQueueHandler : IAsyncMessageHandler
         Task.Run(() => ProcessQueueAsync());
     }
     
-    public Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
@@ -114,7 +114,7 @@ public class FooQueueHandler : IAsyncMessageHandler
 
         var tasks = batch.Select(async message => {
             await redisDb.StringSetAsync(Guid.NewGuid().ToString(), message);
-            _rabbitHelper.Publish("FooProducer", message);
+            await _rabbitHelper.PublishAsync("FooProducer", message);
         }).ToList();
         await Task.WhenAll(tasks);
 

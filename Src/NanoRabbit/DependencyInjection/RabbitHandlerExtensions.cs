@@ -8,20 +8,6 @@ namespace NanoRabbit.DependencyInjection
     public static class RabbitHandlerExtensions
     {
         /// <summary>
-        /// Add Keyed Scoped Rabbit Handler
-        /// </summary>
-        /// <param name="services"></param>
-        /// <typeparam name="THandler"></typeparam>
-        /// <returns></returns>
-        public static IServiceCollection AddRabbitHandler<THandler>(this IServiceCollection services)
-            where THandler : class, IMessageHandler
-        {
-            var serviceKey = typeof(THandler).Name;
-            services.AddKeyedScoped<IMessageHandler, THandler>(serviceKey);
-            return services;
-        }
-        
-        /// <summary>
         /// Add Keyed Scoped Asynchronous Rabbit Handler
         /// </summary>
         /// <param name="services"></param>

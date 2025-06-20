@@ -147,6 +147,7 @@ public class RabbitConfiguration
     /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations.
     /// Defaults: false
     /// </summary>
+    [Obsolete]
     public bool UseAsyncConsumer { get; set; }
     
     /// <summary>

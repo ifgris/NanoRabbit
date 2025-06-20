@@ -7,7 +7,7 @@ namespace Test.Logger
     public class NullLoggerTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public async Task TestMethod1()
         {
             var logger = NullLogger.Instance;
 
@@ -33,7 +33,7 @@ namespace Test.Logger
                 }
             }, logger);
 
-            rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
+            await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
         }
     }
 }

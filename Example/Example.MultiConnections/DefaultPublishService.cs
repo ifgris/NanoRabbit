@@ -23,7 +23,7 @@ public class DefaultPublishService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _rabbitHelper.Publish("FooProducer", "Hello from default publish service.");
+            await _rabbitHelper.PublishAsync("FooProducer", "Hello from default publish service.");
             await Task.Delay(1000, stoppingToken);
         }
     }

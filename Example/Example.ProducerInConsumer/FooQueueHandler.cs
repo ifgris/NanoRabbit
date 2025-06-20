@@ -3,7 +3,7 @@ using NanoRabbit;
 
 namespace Example.ProducerInConsumer;
 
-public class FooQueueHandler : IMessageHandler
+public class FooQueueHandler : IAsyncMessageHandler
 {
     private readonly IRabbitHelper _rabbitHelper;
 
@@ -12,17 +12,15 @@ public class FooQueueHandler : IMessageHandler
         _rabbitHelper = rabbitHelper;
     }
 
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
 
-        _rabbitHelper.Publish("BarProducer", $"forwared from foo-queue: {message}");
+        await _rabbitHelper.PublishAsync("BarProducer", $"forwared from foo-queue: {message}");
 
         Console.WriteLine("Forwarded a message from foo-queue");
 
         Console.WriteLine("[x] Done");
-        
-        return true;
     }
 }

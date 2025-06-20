@@ -14,7 +14,7 @@ public interface IAsyncMessageHandler
     /// <param name="routingKey">The routing key of the message (if applicable).</param>
     /// <param name="correlationId">The correlation ID of the message (if applicable).</param>
     /// <returns>Returns true if the message was handled successfully; otherwise, false.</returns>
-    Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null);
+    Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null);
 }
 
 /// <summary>
@@ -22,13 +22,13 @@ public interface IAsyncMessageHandler
 /// </summary>
 public class DefaultAsyncMessageHandler : IAsyncMessageHandler
 {
-    private readonly ILogger<DefaultMessageHandler> _logger;
+    private readonly ILogger<DefaultAsyncMessageHandler> _logger;
 
     /// <summary>
     /// Default message handler constructor
     /// </summary>
     /// <param name="logger"></param>
-    public DefaultAsyncMessageHandler(ILogger<DefaultMessageHandler> logger)
+    public DefaultAsyncMessageHandler(ILogger<DefaultAsyncMessageHandler> logger)
     {
         _logger = logger;
     }
@@ -40,7 +40,7 @@ public class DefaultAsyncMessageHandler : IAsyncMessageHandler
     /// <param name="routingKey"></param>
     /// <param name="correlationId"></param>
     /// <returns></returns>
-    public async Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         try
         {
@@ -52,12 +52,10 @@ public class DefaultAsyncMessageHandler : IAsyncMessageHandler
             await Task.Delay(100);
 
             _logger.LogInformation("Message handled successfully (Handler).");
-            return true; // Return true to indicate successful processing
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while handling the message (Handler). CorrelationId='{CorrelationId}'", correlationId);
-            return false; // Return false to indicate failed processing
         }
     }
 }

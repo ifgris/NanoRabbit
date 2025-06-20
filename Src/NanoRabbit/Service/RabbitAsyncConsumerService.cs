@@ -7,14 +7,14 @@ using RabbitMQ.Client.Events;
 namespace NanoRabbit.Service
 {
     public class RabbitAsyncConsumerService<TConfiguration> : BackgroundService
-    where TConfiguration : RabbitConfiguration
+        where TConfiguration : RabbitConfiguration
     {
         private readonly ILogger<RabbitAsyncConsumerService<TConfiguration>> _logger;
         private readonly TConfiguration _configuration;
         private readonly ConsumerOptions _options;
         private readonly IServiceProvider _serviceProvider;
         private IConnection? _connection;
-        private IModel? _channel;
+        private IChannel? _channel;
         private AsyncEventingBasicConsumer? _consumer;
         private string _consumerTag = string.Empty;
         private readonly string _instanceId; // Used to distinguish between different consumer instances
@@ -38,9 +38,11 @@ namespace NanoRabbit.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Starting, Subscribing queue: {QueueName}", _instanceId,
+            _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Starting, Subscribing queue: {QueueName}",
+                _instanceId,
                 _options.QueueName);
-            stoppingToken.Register(() => _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopping...", _instanceId));
+            stoppingToken.Register(() =>
+                _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopping...", _instanceId));
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -61,7 +63,9 @@ namespace NanoRabbit.Service
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "RabbitMQ Consumer Service [{InstanceId}] An unhandled exception occurred. Will retry after 5 seconds...", _instanceId);
+                    _logger.LogError(ex,
+                        "RabbitMQ Consumer Service [{InstanceId}] An unhandled exception occurred. Will retry after 5 seconds...",
+                        _instanceId);
                     // Close old resources that may exist
                     CloseConnection();
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
@@ -72,7 +76,7 @@ namespace NanoRabbit.Service
             CloseConnection();
         }
 
-        private void Connect(CancellationToken stoppingToken)
+        private async Task Connect(CancellationToken stoppingToken)
         {
             if (_connection != null && _connection.IsOpen) return; // Check if connected
 
@@ -85,46 +89,46 @@ namespace NanoRabbit.Service
                 UserName = _configuration.UserName,
                 Password = _configuration.Password,
                 VirtualHost = _configuration.VirtualHost,
-                DispatchConsumersAsync = true, // Enable an asynchronous consumer dispatcher
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
             };
 
             try
             {
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connecting to {HostName}:{Port}...", _instanceId,
+                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connecting to {HostName}:{Port}...",
+                    _instanceId,
                     factory.HostName, factory.Port);
-                _connection = factory.CreateConnection();
-                _channel = _connection.CreateModel();
-
-                // Event handling for connections and channels (optional, for logging or special handling)
-                _connection.ConnectionShutdown += OnConnectionShutdown;
-                _channel.CallbackException += OnChannelCallbackException;
-                _channel.ModelShutdown += OnChannelModelShutdown;
+                _connection = await factory.CreateConnectionAsync(stoppingToken);
+                _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
                 _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connected, Channel created.", _instanceId);
-                
-                _channel.BasicQos(prefetchSize: 0, prefetchCount: _options.PrefetchCount, global: false);
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] QoS Set PrefetchCount={PrefetchCount}", _instanceId,
+
+                await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: _options.PrefetchCount, global: false,
+                    cancellationToken: stoppingToken);
+                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] QoS Set PrefetchCount={PrefetchCount}",
+                    _instanceId,
                     _options.PrefetchCount);
-                
+
                 if (_options.DeclareQueue)
                 {
-                    _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Declaring Queue '{QueueName}'...", _instanceId,
+                    _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Declaring Queue '{QueueName}'...",
+                        _instanceId,
                         _options.QueueName);
-                    _channel.QueueDeclare(queue: _options.QueueName,
+                    await _channel.QueueDeclareAsync(queue: _options.QueueName,
                         durable: _options.QueueDurable,
                         exclusive: _options.QueueExclusive,
                         autoDelete: _options.QueueAutoDelete,
-                        arguments: _options.QueueArguments);
+                        arguments: _options.QueueArguments,
+                        cancellationToken: stoppingToken);
                 }
 
                 _consumer = new AsyncEventingBasicConsumer(_channel);
-                _consumer.Received += async (_, ea) => { await HandleMessageReceived(ea, stoppingToken); };
-                
-                _consumerTag = _channel.BasicConsume(queue: _options.QueueName, autoAck: _options.AutoAck,
-                    consumer: _consumer);
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Subscribing to '{QueueName}'，ConsumerTag: {ConsumerTag}",
+                _consumer.ReceivedAsync += async (_, ea) => { await HandleMessageReceived(ea, stoppingToken); };
+
+                _consumerTag = await _channel.BasicConsumeAsync(queue: _options.QueueName, autoAck: _options.AutoAck,
+                    consumer: _consumer, cancellationToken: stoppingToken);
+                _logger.LogInformation(
+                    "RabbitMQ Consumer [{InstanceId}] Subscribing to '{QueueName}'，ConsumerTag: {ConsumerTag}",
                     _instanceId, _options.QueueName, _consumerTag);
             }
             catch (Exception ex)
@@ -135,7 +139,7 @@ namespace NanoRabbit.Service
             }
         }
 
-        private async Task<bool> HandleMessageReceived(BasicDeliverEventArgs ea, CancellationToken stoppingToken)
+        private async Task HandleMessageReceived(BasicDeliverEventArgs ea, CancellationToken stoppingToken)
         {
             var messageBody = ea.Body.ToArray();
             var deliveryTag = ea.DeliveryTag;
@@ -150,29 +154,31 @@ namespace NanoRabbit.Service
             // This is essential for working with Scoped services
             using (var scope = _serviceProvider.CreateScope())
             {
-                var messageHandler = scope.ServiceProvider.GetRequiredKeyedService<IAsyncMessageHandler>(_options.HandlerName);
+                var messageHandler =
+                    scope.ServiceProvider.GetRequiredKeyedService<IAsyncMessageHandler>(_options.HandlerName);
 
                 if (messageHandler == null)
                 {
-                    _logger.LogError("RabbitMQ Consumer [{InstanceId}] Unable to resolve IMessageHandler service. The message will not be processed.", _instanceId);
-                    
+                    _logger.LogError(
+                        "RabbitMQ Consumer [{InstanceId}] Unable to resolve IMessageHandler service. The message will not be processed.",
+                        _instanceId);
+
                     try
                     {
-                        _channel?.BasicNack(deliveryTag, false, true);
+                        _channel?.BasicNackAsync(deliveryTag, false, true, stoppingToken);
                     }
                     catch (Exception nackEx)
                     {
                         _logger.LogError(nackEx, "Nack failed.");
                     }
 
-                    return processedSuccessfully;
+                    return;
                 }
 
                 try
                 {
                     // Handle message
-                    processedSuccessfully =
-                        await messageHandler.HandleMessageAsync(messageBody, ea.RoutingKey, correlationId);
+                    await messageHandler.HandleMessageAsync(messageBody, ea.RoutingKey, correlationId);
                 }
                 catch (Exception ex)
                 {
@@ -190,17 +196,17 @@ namespace NanoRabbit.Service
                 {
                     if (processedSuccessfully)
                     {
-                        _channel?.BasicAck(deliveryTag, multiple: false);
+                        _channel?.BasicAckAsync(deliveryTag, multiple: false, stoppingToken);
                         _logger.LogDebug("RabbitMQ Consumer [{InstanceId}] Ack Succeeded. DeliveryTag={DeliveryTag}",
                             _instanceId, deliveryTag);
                     }
                     else
                     {
-                        _channel?.BasicNack(deliveryTag, multiple: false, requeue: false);
+                        _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
                         _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
                             _instanceId, deliveryTag);
                         // TODO: Consider sending failed messages to a dead message queue or logging to a database
-                        processedSuccessfully = false; 
+                        processedSuccessfully = false;
                     }
                 }
                 catch (Exception ackNackEx)
@@ -209,13 +215,12 @@ namespace NanoRabbit.Service
                         "RabbitMQ Consumer [{InstanceId}] Ack/Nack failed. DeliveryTag={DeliveryTag}", _instanceId,
                         deliveryTag);
                     // TODO: Consider sending failed messages to a dead message queue or logging to a database
-                    processedSuccessfully = false; 
+                    processedSuccessfully = false;
                 }
             }
-            return processedSuccessfully;
         }
 
-        private void CloseConnection()
+        private async Task CloseConnection()
         {
             if (_channel != null && _channel.IsOpen)
             {
@@ -223,14 +228,15 @@ namespace NanoRabbit.Service
                 {
                     if (!string.IsNullOrEmpty(_consumerTag))
                     {
-                        _channel.BasicCancel(_consumerTag); // Stop consuming
+                        await _channel.BasicCancelAsync(_consumerTag); // Stop consuming
                     }
 
-                    _channel.Close();
+                    await _channel.CloseAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error [{InstanceId}] occurred while closing RabbitMQ channel.", _instanceId);
+                    _logger.LogWarning(ex, "Error [{InstanceId}] occurred while closing RabbitMQ channel.",
+                        _instanceId);
                 }
 
                 _channel = null;
@@ -240,11 +246,12 @@ namespace NanoRabbit.Service
             {
                 try
                 {
-                    _connection.Close();
+                    await _connection.CloseAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error [{InstanceId}] occurred while closing RabbitMQ connection.", _instanceId);
+                    _logger.LogWarning(ex, "Error [{InstanceId}] occurred while closing RabbitMQ connection.",
+                        _instanceId);
                 }
 
                 _connection = null;
@@ -256,25 +263,9 @@ namespace NanoRabbit.Service
         public override void Dispose()
         {
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Disposing...", _instanceId);
-            CloseConnection();
+            CloseConnection().GetAwaiter().GetResult();
             base.Dispose();
             GC.SuppressFinalize(this);
-        }
-        
-        private void OnConnectionShutdown(object? sender, ShutdownEventArgs e)
-        {
-            _logger.LogWarning("RabbitMQ Connection Closed [{InstanceId}]. Reason: {Reason}", _instanceId, e.ReplyText);
-            // After the connection is closed, the loop in ExecuteAsync tries to reconnect
-        }
-
-        private void OnChannelModelShutdown(object? sender, ShutdownEventArgs e)
-        {
-            _logger.LogWarning("RabbitMQ Channel Close [{InstanceId}]. Reason: {Reason}", _instanceId, e.ReplyText);
-        }
-
-        private void OnChannelCallbackException(object? sender, CallbackExceptionEventArgs e)
-        {
-            _logger.LogError(e.Exception, "An exception occurs in the channel callback [{InstanceId}].", _instanceId);
         }
     }
 }

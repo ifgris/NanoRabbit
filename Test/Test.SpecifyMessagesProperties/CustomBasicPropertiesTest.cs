@@ -8,7 +8,7 @@ namespace Test.SpecifyMessagesProperties
     public class CustomBasicPropertiesTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public async Task TestMethod1()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -40,15 +40,15 @@ namespace Test.SpecifyMessagesProperties
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooConsumer");
-            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
+            var props = new BasicProperties();
             props.ContentType = "text/plain";
-            props.DeliveryMode = 2;
+            props.DeliveryMode = DeliveryModes.Persistent;
 
-            rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit", props);
+            await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit", props);
         }
         
         [TestMethod]
-        public void TestMethod2()
+        public async Task TestMethod2()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -80,18 +80,18 @@ namespace Test.SpecifyMessagesProperties
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
+            var props = new BasicProperties();
             props.ContentType = "text/plain";
-            props.DeliveryMode = 2;
+            props.DeliveryMode = DeliveryModes.Transient;
             props.Headers = new Dictionary<string, object>();
             props.Headers.Add("latitude", 51.5252949);
             props.Headers.Add("longitude", -0.0905493);
 
-            rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit", props);
+            await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit", props);
         }
         
         [TestMethod]
-        public void TestMethod3()
+        public async Task TestMethod3()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -123,12 +123,12 @@ namespace Test.SpecifyMessagesProperties
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            IBasicProperties props = rabbitHelper.CreateBasicProperties(channel);
+            var props = new BasicProperties();
             props.ContentType = "text/plain";
-            props.DeliveryMode = 2;
+            props.DeliveryMode = DeliveryModes.Persistent;
             props.Expiration = "36000000";
 
-            rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit", props);
+            await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit", props);
         }
     }
 }

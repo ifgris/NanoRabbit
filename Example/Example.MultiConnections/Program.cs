@@ -53,8 +53,8 @@ builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", rabbitConfigurationBui
         });
 });
 
-builder.Services.AddRabbitHandler<FooQueueHandler>();
-builder.Services.AddRabbitHandler<BarQueueHandler>();
+builder.Services.AddRabbitAsyncHandler<FooQueueHandler>();
+builder.Services.AddRabbitAsyncHandler<BarQueueHandler>();
 
 builder.Services.AddKeyedRabbitConsumerService("DefaultRabbitHelper");
 builder.Services.AddKeyedRabbitConsumerService("TestRabbitHelper");
@@ -65,28 +65,26 @@ builder.Services.AddHostedService<TestPublishService>();
 var host = builder.Build();
 await host.RunAsync();
 
-public class FooQueueHandler : IMessageHandler
+public class FooQueueHandler : IAsyncMessageHandler
 {
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null,
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null,
         string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
-        Task.Delay(1000);
+        await Task.Delay(1000);
         Console.WriteLine("[x] Done");
-        return true;
     }
 }
 
-public class BarQueueHandler : IMessageHandler
+public class BarQueueHandler : IAsyncMessageHandler
 {
-    public bool HandleMessage(byte[] messageBody, string? routingKey = null,
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null,
         string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from bar-queue: {message}");
         Task.Delay(1000);
         Console.WriteLine("[x] Done");
-        return true;
     }
 }

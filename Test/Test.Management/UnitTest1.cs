@@ -7,7 +7,7 @@ namespace Test.Management
     public class UnitTest1
     {
         [TestMethod]
-        public void TestExchangeDeclare()
+        public async Task TestExchangeDeclare()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -36,11 +36,11 @@ namespace Test.Management
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            rabbitHelper.ExchangeDeclare(channel, "test.topic", ExchangeType.Topic);
+            await rabbitHelper.ExchangeDeclareAsync(channel, "test.topic", ExchangeType.Topic);
         }
         
         [TestMethod]
-        public void TestQueueDeclare()
+        public async Task TestQueueDeclare()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -69,11 +69,11 @@ namespace Test.Management
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            rabbitHelper.QueueDeclare(channel, "test-queue");
+            await rabbitHelper.QueueDeclareAsync(channel, "test-queue");
         }
         
         [TestMethod]
-        public void TestQueueBind()
+        public async Task TestQueueBind()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -102,11 +102,11 @@ namespace Test.Management
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            rabbitHelper.QueueBind(channel, "test-queue", "test.topic", "test.key", null);
+            await rabbitHelper.QueueBindAsync(channel, "test-queue", "test.topic", "test.key", null);
         }
         
         [TestMethod]
-        public void TestQueueDelete()
+        public async Task TestQueueDelete()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -135,11 +135,11 @@ namespace Test.Management
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            rabbitHelper.QueueDelete(channel, "test-queue", false, false);
+            await rabbitHelper.QueueDeleteAsync(channel, "test-queue", false, false);
         }
         
         [TestMethod]
-        public void TestQueuePurge()
+        public async Task TestQueuePurge()
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -168,7 +168,7 @@ namespace Test.Management
             }, logger);
 
             var channel = rabbitHelper.GetChannel("FooProducer");
-            rabbitHelper.QueuePurge(channel, "test-queue");
+            await rabbitHelper.QueuePurgeAsync(channel, "test-queue");
         }
     }
 }

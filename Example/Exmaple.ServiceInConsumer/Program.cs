@@ -66,7 +66,7 @@ public class FooQueueHandler : IAsyncMessageHandler
         _connFactory = connFactory;
     }
 
-    public async Task<bool> HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from foo-queue: {message}");
@@ -75,9 +75,7 @@ public class FooQueueHandler : IAsyncMessageHandler
         var redisDb = redisConn.GetDatabase();
         await redisDb.StringSetAsync("1", message);
 
-        _rabbitHelper.Publish("FooProducer", message);
-        
-        return true;
+        await _rabbitHelper.PublishAsync("FooProducer", message);
     }
 }
 
@@ -102,7 +100,7 @@ public class TestHostedService : BackgroundService
             var nowTime = DateTime.Now.ToLongTimeString();
             await redisDb.StringSetAsync("1", nowTime);
 
-            _rabbitHelper.Publish("FooProducer", nowTime);
+            await _rabbitHelper.PublishAsync("FooProducer", nowTime);
             await Task.Delay(1000, stoppingToken);
         }
     }

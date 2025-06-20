@@ -22,12 +22,12 @@ public static class RabbitConsumerServiceExtensions
         this IServiceCollection services)
     {
         var configuration = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();
-        
+
         if (configuration == null)
         {
             throw new ArgumentNullException(nameof(configuration));
         }
-        
+
         if (configuration.Consumers == null)
         {
             throw new ArgumentNullException(nameof(ConsumerOptions));
@@ -61,37 +61,19 @@ public static class RabbitConsumerServiceExtensions
             // Register as IHostedService for each consumer
             for (int i = 0; i < consumerOptions.ConsumerCount; i++)
             {
-                if (configuration.UseAsyncConsumer)
+                services.AddSingleton<IHostedService>(provider =>
                 {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitAsyncConsumerService<RabbitConfiguration>(
-                            logger,
-                            configuration,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-                else
-                {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitConsumerService<RabbitConfiguration>(
-                            logger,
-                            configuration,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-    
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+
+                    return new RabbitAsyncConsumerService<RabbitConfiguration>(
+                        logger,
+                        configuration,
+                        consumerOptions.ConsumerName,
+                        provider
+                    );
+                });
+
                 Console.WriteLine(
                     $"'{consumerOptions.ConsumerName}' (Host: {configuration.HostName}, Queue: {consumerOptions.QueueName}) has been registered.");
             }
@@ -111,12 +93,12 @@ public static class RabbitConsumerServiceExtensions
         this IServiceCollection services, object? key)
     {
         var configuration = services.BuildServiceProvider().GetRequiredKeyedService<RabbitConfiguration>(key);
-        
+
         if (configuration == null)
         {
             throw new ArgumentNullException(nameof(configuration));
         }
-        
+
         if (configuration.Consumers == null)
         {
             throw new ArgumentNullException(nameof(ConsumerOptions));
@@ -150,37 +132,19 @@ public static class RabbitConsumerServiceExtensions
             // Register as IHostedService for each consumer
             for (int i = 0; i < consumerOptions.ConsumerCount; i++)
             {
-                if (configuration.UseAsyncConsumer)
+                services.AddSingleton<IHostedService>(provider =>
                 {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitAsyncConsumerService<RabbitConfiguration>(
-                            logger,
-                            configuration,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-                else
-                {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitConsumerService<RabbitConfiguration>(
-                            logger,
-                            configuration,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-    
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+
+                    return new RabbitAsyncConsumerService<RabbitConfiguration>(
+                        logger,
+                        configuration,
+                        consumerOptions.ConsumerName,
+                        provider
+                    );
+                });
+
                 Console.WriteLine(
                     $"'{consumerOptions.ConsumerName}' (Host: {configuration.HostName}, Queue: {consumerOptions.QueueName}) has been registered.");
             }
@@ -188,7 +152,7 @@ public static class RabbitConsumerServiceExtensions
 
         return services;
     }
-    
+
     /// <summary>
     /// Add Keyed RabbitConsumerService(RabbitAsyncConsumerService) BackgroundService for each consumer configs by reading appsettings.json.
     /// </summary>
@@ -197,15 +161,16 @@ public static class RabbitConsumerServiceExtensions
     /// <returns>Configured IServiceCollection</returns>
     /// <exception cref="ArgumentNullException">Throws when configuration is null.</exception>
     public static IServiceCollection AddRabbitConsumerServiceFromAppSettings<TRabbitConfiguration>(
-        this IServiceCollection services, IConfiguration configuration) where TRabbitConfiguration : RabbitConfiguration, new()
+        this IServiceCollection services, IConfiguration configuration)
+        where TRabbitConfiguration : RabbitConfiguration, new()
     {
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
-        
+
         if (rabbitConfig == null)
         {
             throw new ArgumentNullException(nameof(configuration));
         }
-        
+
         if (rabbitConfig.Consumers == null)
         {
             throw new ArgumentNullException(nameof(ConsumerOptions));
@@ -239,37 +204,19 @@ public static class RabbitConsumerServiceExtensions
             // Register as IHostedService for each consumer
             for (int i = 0; i < consumerOptions.ConsumerCount; i++)
             {
-                if (rabbitConfig.UseAsyncConsumer)
+                services.AddSingleton<IHostedService>(provider =>
                 {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitAsyncConsumerService<RabbitConfiguration>(
-                            logger,
-                            rabbitConfig,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-                else
-                {
-                    services.AddSingleton<IHostedService>(provider =>
-                    {
-                        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                        var logger = loggerFactory.CreateLogger<RabbitConsumerService<RabbitConfiguration>>();
-    
-                        return new RabbitConsumerService<RabbitConfiguration>(
-                            logger,
-                            rabbitConfig,
-                            consumerOptions.ConsumerName,
-                            provider
-                        );
-                    });
-                }
-    
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+
+                    return new RabbitAsyncConsumerService<RabbitConfiguration>(
+                        logger,
+                        rabbitConfig,
+                        consumerOptions.ConsumerName,
+                        provider
+                    );
+                });
+
                 Console.WriteLine(
                     $"'{consumerOptions.ConsumerName}' (Host: {rabbitConfig.HostName}, Queue: {consumerOptions.QueueName}) has been registered.");
             }

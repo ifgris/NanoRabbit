@@ -22,6 +22,6 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
     }
 }, logger);
 
-rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
+await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
 
 Console.WriteLine(" Press [enter] to exit.");
