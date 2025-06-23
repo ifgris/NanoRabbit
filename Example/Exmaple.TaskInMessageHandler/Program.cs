@@ -6,12 +6,12 @@ using NanoRabbit.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Text;
 
-var builder = Host.CreateApplicationBuilder();
+var builder = Host.CreateApplicationBuilder(args);
 
 // must be injected before IRabbitHelper's injection.
 builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
 {
-    var connStr = provider.GetRequiredService<IConfiguration>().GetSection("DbConfig").GetSection(nameof(RedisConfig)).Get<RedisConfig>()?.DbConnStr;
+    var connStr = provider.GetRequiredService<IConfiguration>().GetConnectionString("Redis");
     return new RedisConnectionFactory(connStr);
 });
 
@@ -38,7 +38,6 @@ builder.Services.AddKeyedRabbitHelper("default", rabbitConfigurationBuilder =>
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
-        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
         .AddConsumerOption(consumer =>
         {
             consumer.ConsumerName = "FooConsumer";

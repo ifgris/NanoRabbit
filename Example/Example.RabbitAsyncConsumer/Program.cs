@@ -12,7 +12,6 @@ builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
-        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";

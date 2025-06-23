@@ -84,7 +84,7 @@ public class BarQueueHandler : IAsyncMessageHandler
     {
         var message = Encoding.UTF8.GetString(messageBody);
         Console.WriteLine($"[x] Received from bar-queue: {message}");
-        Task.Delay(1000);
+        await Task.Delay(1000);
         Console.WriteLine("[x] Done");
     }
 }

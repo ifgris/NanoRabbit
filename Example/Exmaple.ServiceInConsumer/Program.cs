@@ -37,7 +37,6 @@ builder.Services.AddKeyedRabbitHelper("default", rabbitConfigurationBuilder =>
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
-        .UseAsyncConsumer(true) // set UseAsyncConsumer to true
         .AddConsumerOption(consumer =>
         {
             consumer.ConsumerName = "FooConsumer";
