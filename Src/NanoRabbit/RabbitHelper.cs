@@ -128,9 +128,7 @@ namespace NanoRabbit
             {
                 var connectionOption = _rabbitConfig.Producers.FirstOrDefault(o => o.ProducerName == producerName);
 
-                return connectionOption == null
-                    ? throw new Exception($"Producer '{producerName}' not found!")
-                    : connectionOption;
+                return connectionOption ?? throw new Exception($"Producer '{producerName}' not found!");
             }
 
             throw new Exception("No ProducerOptions added in RabbitHelper!");
@@ -303,7 +301,7 @@ namespace NanoRabbit
         /// <param name="arguments"></param>
         public async Task ExchangeDeclareAsync(IChannel channel, string exchangeName, string exchangeType,
             bool durable = false,
-            bool autoDelete = false, IDictionary<string, object>? arguments = null)
+            bool autoDelete = false, IDictionary<string, object?>? arguments = null)
         {
             await channel.ExchangeDeclareAsync(exchangeName, exchangeType, durable, autoDelete, arguments);
         }
@@ -317,7 +315,7 @@ namespace NanoRabbit
         /// <param name="routingKey"></param>
         /// <param name="arguments"></param>
         public async Task ExchangeBindAsync(IChannel channel, string destination, string source, string routingKey,
-            IDictionary<string, object> arguments)
+            IDictionary<string, object?>? arguments)
         {
             await channel.ExchangeBindAsync(destination, source, routingKey, arguments);
         }
@@ -344,7 +342,7 @@ namespace NanoRabbit
         /// <param name="arguments"></param>
         public async Task QueueDeclareAsync(IChannel channel, string queueName, bool durable = true,
             bool exclusive = false,
-            bool autoDelete = false, IDictionary<string, object>? arguments = null)
+            bool autoDelete = false, IDictionary<string, object?>? arguments = null)
         {
             await channel.QueueDeclareAsync(queue: queueName, durable, exclusive, autoDelete, arguments);
         }
@@ -358,7 +356,7 @@ namespace NanoRabbit
         /// <param name="routingKey"></param>
         /// <param name="arguments"></param>
         public async Task QueueBindAsync(IChannel channel, string queueName, string exchangeName, string routingKey,
-            IDictionary<string, object>? arguments = null)
+            IDictionary<string, object?>? arguments = null)
         {
             await channel.QueueBindAsync(queueName, exchangeName, routingKey, arguments);
         }
@@ -385,18 +383,6 @@ namespace NanoRabbit
             await channel.QueuePurgeAsync(queueName);
         }
 
-        /// <summary>
-        /// Create a custom BasicProperties.
-        /// </summary>
-        /// <param name="channel"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public IBasicProperties CreateBasicProperties(IChannel channel)
-        {
-            // return channel.CreateBasicProperties();
-            return new BasicProperties();
-        }
-
         #endregion
 
         #region private functions
@@ -412,21 +398,6 @@ namespace NanoRabbit
             return typeof(T) == typeof(string)
                 ? (message != null ? message.ToString() : "")
                 : JsonConvert.SerializeObject(message);
-        }
-
-        /// <summary>
-        /// Set basic properties.
-        /// </summary>
-        /// <param name="channel"></param>
-        /// <param name="properties"></param>
-        /// <returns></returns>
-        [Obsolete]
-        private IBasicProperties SetBasicProperties(IChannel channel, IBasicProperties? properties)
-        {
-            // properties ??= channel.CreateBasicProperties();
-            // properties.Persistent = true;
-            // return properties;
-            return new BasicProperties();
         }
 
         /// <summary>

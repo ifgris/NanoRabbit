@@ -61,7 +61,7 @@ public interface IRabbitHelper
     /// <param name="durable"></param>
     /// <param name="autoDelete"></param>
     /// <param name="arguments"></param>
-    public Task ExchangeDeclareAsync(IChannel channel, string exchangeName, string exchangeType, bool durable = false, bool autoDelete = false, IDictionary<string, object>? arguments = null);
+    public Task ExchangeDeclareAsync(IChannel channel, string exchangeName, string exchangeType, bool durable = false, bool autoDelete = false, IDictionary<string, object?>? arguments = null);
 
     /// <summary>
     /// Bind an exchange to an exchange.
@@ -71,7 +71,7 @@ public interface IRabbitHelper
     /// <param name="source"></param>
     /// <param name="routingKey"></param>
     /// <param name="arguments"></param>
-    public Task ExchangeBindAsync(IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments);
+    public Task ExchangeBindAsync(IChannel channel, string destination, string source, string routingKey, IDictionary<string, object?>? arguments);
 
     /// <summary>
     /// Delete an exchange.
@@ -90,7 +90,7 @@ public interface IRabbitHelper
     /// <param name="exclusive"></param>
     /// <param name="autoDelete"></param>
     /// <param name="arguments"></param>
-    public Task QueueDeclareAsync(IChannel channel, string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object>? arguments = null);
+    public Task QueueDeclareAsync(IChannel channel, string queueName, bool durable = true, bool exclusive = false, bool autoDelete = false, IDictionary<string, object?>? arguments = null);
 
     /// <summary>
     /// Bind a queue to an exchange.
@@ -100,7 +100,7 @@ public interface IRabbitHelper
     /// <param name="exchangeName"></param>
     /// <param name="routingKey"></param>
     /// <param name="arguments"></param>
-    public Task QueueBindAsync(IChannel channel, string queueName, string exchangeName, string routingKey, IDictionary<string, object>? arguments = null);
+    public Task QueueBindAsync(IChannel channel, string queueName, string exchangeName, string routingKey, IDictionary<string, object?>? arguments = null);
 
     /// <summary>
     /// Delete a queue.
@@ -117,12 +117,6 @@ public interface IRabbitHelper
     /// <param name="channel"></param>
     /// <param name="queueName"></param>
     public Task QueuePurgeAsync(IChannel channel, string queueName);
-    /// <summary>
-    /// Create a custom BasicProperties.
-    /// </summary>
-    /// <param name="channel"></param>
-    [Obsolete]
-    public IBasicProperties CreateBasicProperties(IChannel channel);
 
     #endregion
 }

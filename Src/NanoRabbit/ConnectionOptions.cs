@@ -16,12 +16,12 @@ public class ProducerOptions
     /// <summary>
     /// Exchange name
     /// </summary>
-    public string? ExchangeName { get; set; } = "";
+    public string ExchangeName { get; set; } = "";
 
     /// <summary>
     /// Publish routing-key
     /// </summary>
-    public string? RoutingKey { get; set; }
+    public string RoutingKey { get; set; } = "";
 
     /// <summary>
     /// Exchange type, default: direct
@@ -51,7 +51,7 @@ public class ProducerOptions
     /// <summary>
     /// Exchange additional arguments
     /// </summary>
-    public IDictionary<string, object>? Arguments { get; set; }
+    public IDictionary<string, object?>? Arguments { get; set; }
 }
 
 /// <summary>
@@ -100,7 +100,7 @@ public class ConsumerOptions
     public bool QueueDurable { get; set; } = true;
     public bool QueueExclusive { get; set; } = false;
     public bool QueueAutoDelete { get; set; } = false;
-    public IDictionary<string, object>? QueueArguments { get; set; }
+    public IDictionary<string, object?>? QueueArguments { get; set; }
     public bool AutoAck { get; set; } = false;
 
     #endregion 
@@ -121,7 +121,7 @@ public class RabbitConfiguration
     /// RabbitMQ HostName.
     /// Example: "localhost"
     /// </summary>
-    public string? HostName { get; set; } = "localhost";
+    public string HostName { get; set; } = "localhost";
     /// <summary>
     /// RabbitMQ AmqpTcpEndpoint port.
     /// Defaults: 5672
@@ -131,25 +131,18 @@ public class RabbitConfiguration
     /// RabbitMQ UserName.
     /// Example: "guest"
     /// </summary>
-    public string? UserName { get; set; } = "guest";
+    public string UserName { get; set; } = "guest";
     /// <summary>
     /// RabbitMQ Password.
     /// Example: "guest"
     /// </summary>
-    public string? Password { get; set; } =  "guest";
+    public string Password { get; set; } =  "guest";
 
     /// <summary>
     /// RabbitMQ VirtualHost.
     /// Example: "/"
     /// </summary>
-    public string? VirtualHost { get; set; } = "/";
-
-    /// <summary>
-    /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations.
-    /// Defaults: false
-    /// </summary>
-    [Obsolete]
-    public bool UseAsyncConsumer { get; set; }
+    public string VirtualHost { get; set; } = "/";
     
     /// <summary>
     /// Connect to RabbitMQ using TLS.

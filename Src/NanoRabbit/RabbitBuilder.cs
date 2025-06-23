@@ -75,17 +75,6 @@ public class RabbitConfigurationBuilder
     }
 
     /// <summary>
-    /// Set to true will enable an asynchronous consumer dispatcher. Defaults to false.
-    /// </summary>
-    /// <param name="useAsyncConsumer"></param>
-    public RabbitConfigurationBuilder UseAsyncConsumer(bool useAsyncConsumer)
-    {
-        _rabbitConfiguration.UseAsyncConsumer = useAsyncConsumer;
-
-        return this;
-    }
-
-    /// <summary>
     /// Connect to RabbitMQ using TLS.
     /// </summary>
     /// <param name="config"></param>
