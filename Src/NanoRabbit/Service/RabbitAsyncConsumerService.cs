@@ -151,70 +151,59 @@ namespace NanoRabbit.Service
 
             // Create a new Dependency Injection Scope for each message process
             // This is essential for working with Scoped services
-            using (var scope = _serviceProvider.CreateScope())
+            using var scope = _serviceProvider.CreateScope();
+            IAsyncMessageHandler messageHandler;
+            try
             {
-                var messageHandler =
+                messageHandler =
                     scope.ServiceProvider.GetRequiredKeyedService<IAsyncMessageHandler>(_options.HandlerName);
+            }
+            catch (InvalidOperationException)
+            {
+                throw new ArgumentException($"Could not resolve IAsyncMessageHandler by key (HandlerName): {_options.HandlerName}. Please check configuration.");
+            }
 
-                if (messageHandler == null)
-                {
-                    _logger.LogError(
-                        "RabbitMQ Consumer [{InstanceId}] Unable to resolve IMessageHandler service. The message will not be processed.",
-                        _instanceId);
+            try
+            {
+                // Handle message
+                await messageHandler.HandleMessageAsync(messageBody, ea.RoutingKey, correlationId);
 
-                    try
-                    {
-                        _channel?.BasicNackAsync(deliveryTag, false, true, stoppingToken);
-                    }
-                    catch (Exception nackEx)
-                    {
-                        _logger.LogError(nackEx, "Nack failed.");
-                    }
-
-                    return;
-                }
-
-                try
-                {
-                    // Handle message
-                    await messageHandler.HandleMessageAsync(messageBody, ea.RoutingKey, correlationId);
-
-                    // Acknowledge or reject the message based on the result (if not AutoAck)
-                    if (!_options.AutoAck)
-                    {
-                        try
-                        {
-                            _channel?.BasicAckAsync(deliveryTag, multiple: false, stoppingToken);
-                            _logger.LogDebug(
-                                "RabbitMQ Consumer [{InstanceId}] Ack Succeeded. DeliveryTag={DeliveryTag}",
-                                _instanceId, deliveryTag);
-                        }
-                        catch (Exception ackNackEx)
-                        {
-                            _logger.LogError(ackNackEx,
-                                "RabbitMQ Consumer [{InstanceId}] Ack failed. DeliveryTag={DeliveryTag}", _instanceId,
-                                deliveryTag);
-                            // TODO: Consider sending failed messages to a dead message queue or logging to a database
-                        }
-                    }
-                }
-                catch (Exception ex)
+                // Acknowledge or reject the message based on the result (if not AutoAck)
+                if (!_options.AutoAck)
                 {
                     try
                     {
-                        _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
-                    }
-                    catch (Exception)
-                    {
-                        _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
+                        _channel?.BasicAckAsync(deliveryTag, multiple: false, stoppingToken);
+                        _logger.LogDebug(
+                            "RabbitMQ Consumer [{InstanceId}] Ack Succeeded. DeliveryTag={DeliveryTag}",
                             _instanceId, deliveryTag);
                     }
-
-                    _logger.LogError(ex,
-                        "RabbitMQ Consumer [{InstanceId}] An exception occurred when calling IMessageHandler. DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
-                        _instanceId, deliveryTag, correlationId);
+                    catch (Exception ackNackEx)
+                    {
+                        _logger.LogError(ackNackEx,
+                            "RabbitMQ Consumer [{InstanceId}] Ack failed. DeliveryTag={DeliveryTag}", _instanceId,
+                            deliveryTag);
+                        // TODO: Consider sending failed messages to a dead message queue or logging to a database
+                        _channel?.BasicNackAsync(deliveryTag, false, true, stoppingToken);
+                    }
                 }
-            } // Scope Dispose
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
+                }
+                catch (Exception)
+                {
+                    _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
+                        _instanceId, deliveryTag);
+                }
+
+                _logger.LogError(ex,
+                    "RabbitMQ Consumer [{InstanceId}] An exception occurred when calling IMessageHandler. DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
+                    _instanceId, deliveryTag, correlationId);
+            }
         }
 
         private async Task CloseConnection()
