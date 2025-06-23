@@ -33,7 +33,7 @@ public interface IRabbitHelper
     /// <param name="consumerName"></param>
     /// <param name="onMessageReceivedAsync"></param>
     /// <param name="consumers"></param>
-    public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1);
+    public Task AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1);
 
     #endregion
 
@@ -44,7 +44,7 @@ public interface IRabbitHelper
     /// </summary>
     /// <param name="channelName"></param>
     /// <returns></returns>
-    public IChannel GetChannel(string channelName);
+    public Task<IChannel> GetChannel(string channelName);
 
     /// <summary>
     /// Release channel.

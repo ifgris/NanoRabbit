@@ -14,8 +14,8 @@ namespace NanoRabbit
     /// </summary>
     public class RabbitHelper : IRabbitHelper, IDisposable
     {
-        private IConnection? _connection;
-        private readonly ConcurrentDictionary<string, IChannel> _channels;
+        private readonly IConnection _connection;
+        private readonly ConcurrentDictionary<string, Task<IChannel>> _channels;
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
         private readonly ILogger _logger;
@@ -26,66 +26,94 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
-        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger)
+        /// <param name="connection"></param>
+        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection connection)
         {
             _rabbitConfig = rabbitConfig;
-            ConnectionFactory factory = new();
-
-            if (!string.IsNullOrEmpty(_rabbitConfig.Uri))
-            {
-                factory.Uri = new Uri(_rabbitConfig.Uri);
-            }
-            else
-            {
-                factory = new ConnectionFactory
-                {
-                    HostName = _rabbitConfig.HostName,
-                    Port = _rabbitConfig.Port,
-                    VirtualHost = _rabbitConfig.VirtualHost,
-                    UserName = _rabbitConfig.UserName,
-                    Password = _rabbitConfig.Password
-                };
-
-                // TODO needs testing.
-                if (_rabbitConfig.TLSConfig != null)
-                {
-                    factory.Ssl.Enabled = _rabbitConfig.TLSConfig.Enabled;
-                    factory.Ssl.ServerName = _rabbitConfig.TLSConfig.ServerName;
-                    factory.Ssl.CertPath = _rabbitConfig.TLSConfig.CertPath;
-                    factory.Ssl.CertPassphrase = _rabbitConfig.TLSConfig.CertPassphrase;
-                    factory.Ssl.Version = _rabbitConfig.TLSConfig.Version;
-                }
-            }
-
-            factory.ClientProvidedName = string.IsNullOrEmpty(_rabbitConfig.ConnectionName)
-                ? (!string.IsNullOrEmpty(_rabbitConfig.UserName)
-                    ? $"nanorabbit:{_rabbitConfig.UserName.ToLower()}"
-                    : "")
-                : _rabbitConfig.ConnectionName;
+            _logger = logger;
+            _connection = connection;
 
             _pipeline = new ResiliencePipelineBuilder()
                 .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 }) // Add retry using the default options
                 .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
                 .Build(); // Builds the resilience pipeline
 
-            _pipeline.Execute(async _ =>
-            {
-                try
-                {
-                    _connection = await factory.CreateConnectionAsync();
-                }
-                catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException)
-                {
-                    _logger?.LogError($"RabbitMQ Unreachable, reconnecting...");
-                    // throw;
-                }
-            });
-
-            _channels = new ConcurrentDictionary<string, IChannel>();
-
+            _channels = new ConcurrentDictionary<string, Task<IChannel>>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
-            _logger = logger;
         }
+        
+        /// <summary>
+        /// Initiate Connections.
+        /// </summary>
+        /// <param name="rabbitConfig"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
+        public static async Task<RabbitHelper> CreateAsync(RabbitConfiguration rabbitConfig, ILogger logger)
+    {
+        ConnectionFactory factory = new();
+        if (!string.IsNullOrEmpty(rabbitConfig.Uri))
+        {
+            factory.Uri = new Uri(rabbitConfig.Uri);
+        }
+        else
+        {
+            factory = new ConnectionFactory
+            {
+                HostName = rabbitConfig.HostName,
+                Port = rabbitConfig.Port,
+                VirtualHost = rabbitConfig.VirtualHost,
+                UserName = rabbitConfig.UserName,
+                Password = rabbitConfig.Password
+            };
+
+            if (rabbitConfig.TLSConfig != null)
+            {
+                factory.Ssl.Enabled = rabbitConfig.TLSConfig.Enabled;
+                factory.Ssl.ServerName = rabbitConfig.TLSConfig.ServerName;
+                factory.Ssl.CertPath = rabbitConfig.TLSConfig.CertPath;
+                factory.Ssl.CertPassphrase = rabbitConfig.TLSConfig.CertPassphrase;
+                factory.Ssl.Version = rabbitConfig.TLSConfig.Version;
+            }
+        }
+
+        factory.ClientProvidedName = string.IsNullOrEmpty(rabbitConfig.ConnectionName)
+            ? (!string.IsNullOrEmpty(rabbitConfig.UserName)
+                ? $"nanorabbit:{rabbitConfig.UserName.ToLower()}"
+                : "")
+            : rabbitConfig.ConnectionName;
+
+        // 构建 ResiliencePipeline，用于连接创建
+        var connectionPipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 })
+            .AddTimeout(TimeSpan.FromSeconds(10))
+            .Build();
+
+        IConnection connection;
+        try
+        {
+            // wait for connection
+            connection = await connectionPipeline.ExecuteAsync(async t => await factory.CreateConnectionAsync(t));
+            logger.LogInformation("RabbitMQ Connection established successfully.");
+        }
+        catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex)
+        {
+            logger.LogError(ex, "RabbitMQ Broker Unreachable. Failed to connect.");
+            throw;
+        }
+        catch (TimeoutException ex)
+        {
+            logger.LogError(ex, "RabbitMQ Connection timed out.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred during RabbitMQ connection.");
+            throw;
+        }
+
+        // 只有当连接成功建立后，才创建 RabbitHelper 实例
+        return new RabbitHelper(rabbitConfig, logger, connection);
+    }
 
         #region basic functions
 
@@ -144,7 +172,6 @@ namespace NanoRabbit
                 try
                 {
                     var option = GetProducerOption(producerName);
-                    var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
 
                     var body = Encoding.UTF8.GetBytes(messageStr);
 
@@ -172,14 +199,14 @@ namespace NanoRabbit
         {
             var messageObjs = messageList.ToList();
 
-            await _pipeline.ExecuteAsync(async _ =>
+            await _pipeline.ExecuteAsync(async x =>
             {
                 var option = GetProducerOption(producerName);
                 var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
 
                 await channel.ExchangeDeclareAsync(option.ExchangeName, option.Type,
                     durable: option.Durable, autoDelete: option.AutoDelete,
-                    arguments: option.Arguments);
+                    arguments: option.Arguments, cancellationToken: x);
 
                 var publishTasks = messageObjs.Select(async message =>
                 {
@@ -212,29 +239,53 @@ namespace NanoRabbit
         /// <param name="consumerName"></param>
         /// <param name="onMessageReceivedAsync"></param>
         /// <param name="consumers"></param>
-        public void AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
+        public async Task AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1)
         {
-            AddConsumerInternal(consumerName, onMessageReceivedAsync, null, consumers);
+            await AddConsumerInternal(consumerName, onMessageReceivedAsync, consumers);
         }
 
         #endregion
 
         #region utils
 
-        public IChannel GetChannel(string channelName)
+        public async Task<IChannel> GetChannel(string channelName)
         {
-            return _channels.GetOrAdd(channelName, name =>
+            Task<IChannel> channelTask = _channels.GetOrAdd(channelName, async (key) =>
             {
-                var channel = (_connection.CreateChannelAsync()).GetAwaiter().GetResult();
-                (channel.BasicQosAsync(0, GetConsumerOption(name).PrefetchCount, false)).GetAwaiter().GetResult();
-                return channel;
+                if (_connection == null)
+                {
+                    throw new Exception($"Connection is null when trying to create channel for producer: {key}");
+                }
+
+                try
+                {
+                    IChannel? channel = await _connection.CreateChannelAsync();
+
+                    if (channel != null)
+                    {
+                        // await channel.BasicQosAsync(0, GetConsumerOption(channelName).PrefetchCount, false);
+                        return channel;
+                    }
+                    else
+                    {
+                        throw new Exception($"_connection.CreateChannelAsync() returned null for producer: {key}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _channels.TryRemove(key, out _);
+                    throw new Exception($"Failed to create channel for producer '{key}': {ex.Message}", ex);
+                }
             });
+            
+            return await channelTask;
         }
 
         public async Task ReleaseChannel(string channelName)
         {
-            if (_channels.TryRemove(channelName, out var channel))
+            if (_channels.TryRemove(channelName, out var channelTask))
             {
+                var channel = channelTask.ConfigureAwait(false).GetAwaiter().GetResult();
                 if (channel.IsOpen)
                     await channel.CloseAsync();
                 await channel.DisposeAsync();
@@ -404,10 +455,9 @@ namespace NanoRabbit
         /// </summary>
         /// <param name="consumerName"></param>
         /// <param name="onMessageReceivedAsync"></param>
-        /// <param name="onMessageReceived"></param>
         /// <param name="consumers"></param>
         private async Task AddConsumerInternal(string consumerName, Func<string, Task>? onMessageReceivedAsync,
-            Action<string>? onMessageReceived = null, int consumers = 1)
+            int consumers = 1)
         {
             var option = GetConsumerOption(consumerName);
 
@@ -415,11 +465,15 @@ namespace NanoRabbit
             for (int i = 0; i < consumers; i++)
             {
                 var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                IChannel? channel = await _connection?.CreateChannelAsync();
-                await channel?.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+                if (_connection == null)
+                {
+                    throw new InvalidOperationException("Connection initialized failed and the channel could not be created.");
+                }
+                IChannel? channel  = await _connection.CreateChannelAsync();
                 if (channel != null)
                 {
-                    _channels.TryAdd(consumerId, channel);
+                    await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+                    _channels.TryAdd(consumerId, Task.FromResult(channel));
 
                     if (!_asyncConsumers.ContainsKey(consumerId))
                     {
@@ -445,32 +499,81 @@ namespace NanoRabbit
 
         private async Task<IChannel> GetOrCreatePublishChannelAsync(string producerName)
         {
-            return _channels.GetOrAdd(producerName, _ =>
+            Task<IChannel> channelCreationTask = _channels.GetOrAdd(producerName, async (key) =>
             {
-                IChannel? channel = (_connection?.CreateChannelAsync()).GetAwaiter().GetResult();
-                if (channel != null)
+                if (_connection == null)
                 {
-                    return channel;
+                    throw new Exception($"Connection is null when trying to create channel for producer: {key}");
                 }
-                else
+
+                try
                 {
-                    throw new Exception($"Could not create channel: {producerName}");
+                    IChannel? channel = await _connection.CreateChannelAsync();
+
+                    if (channel != null)
+                    {
+                        return channel;
+                    }
+                    else
+                    {
+                        throw new Exception($"_connection.CreateChannelAsync() returned null for producer: {key}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _channels.TryRemove(key, out _);
+                    throw new Exception($"Failed to create channel for producer '{key}': {ex.Message}", ex);
                 }
             });
+
+            return await channelCreationTask;
         }
 
         #endregion
 
         public void Dispose()
         {
-            foreach (var channel in _channels.Values)
+            // Dispose Channels
+            foreach (var channelTask in _channels.Values)
             {
-                if (channel.IsOpen) (channel.CloseAsync()).ConfigureAwait(false).GetAwaiter().GetResult();
-                channel.Dispose();
-            }
+                IChannel? channel = null;
+                try
+                {
+                    channel = channelTask.ConfigureAwait(false).GetAwaiter().GetResult();
 
-            if (_connection != null && _connection.IsOpen) (_connection.CloseAsync()).GetAwaiter().GetResult();
-            _connection?.Dispose();
+                    if (channel != null)
+                    {
+                        if (channel.IsOpen)
+                        {
+                            channel.CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                        }
+                        channel.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error during disposal of a channel task: {ex.Message}");
+                    channel?.Dispose();
+                }
+            }
+            _channels.Clear();
+
+            // Dispose Connection
+            try
+            {
+                if (_connection != null)
+                {
+                    if (_connection.IsOpen)
+                    {
+                        _connection.CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    }
+                    _connection.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during disposal of connection: {ex.Message}");
+            }
         }
     }
 }

@@ -121,7 +121,7 @@ public class RabbitConfiguration
     /// RabbitMQ HostName.
     /// Example: "localhost"
     /// </summary>
-    public string? HostName { get; set; }
+    public string? HostName { get; set; } = "localhost";
     /// <summary>
     /// RabbitMQ AmqpTcpEndpoint port.
     /// Defaults: 5672
@@ -131,17 +131,18 @@ public class RabbitConfiguration
     /// RabbitMQ UserName.
     /// Example: "guest"
     /// </summary>
-    public string? UserName { get; set; }
+    public string? UserName { get; set; } = "guest";
     /// <summary>
     /// RabbitMQ Password.
     /// Example: "guest"
     /// </summary>
-    public string? Password { get; set; }
+    public string? Password { get; set; } =  "guest";
+
     /// <summary>
     /// RabbitMQ VirtualHost.
     /// Example: "/"
     /// </summary>
-    public string? VirtualHost { get; set; }
+    public string? VirtualHost { get; set; } = "/";
 
     /// <summary>
     /// Use async-oriented consumer dispatcher. Only compatible with IAsyncBasicConsumer implementations.

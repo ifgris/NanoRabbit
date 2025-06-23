@@ -50,7 +50,7 @@ namespace NanoRabbit.Service
                 {
                     if (_connection == null || !_connection.IsOpen)
                     {
-                        Connect(stoppingToken); // Reconnect
+                        await Connect(stoppingToken); // Reconnect
                     }
 
                     // Keep ExecuteAsync running, the actual work is done by the EventingBasicConsumer's event handler.
@@ -67,22 +67,22 @@ namespace NanoRabbit.Service
                         "RabbitMQ Consumer Service [{InstanceId}] An unhandled exception occurred. Will retry after 5 seconds...",
                         _instanceId);
                     // Close old resources that may exist
-                    CloseConnection();
+                    await CloseConnection();
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                 }
             }
 
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopped.", _instanceId);
-            CloseConnection();
+            await CloseConnection();
         }
 
         private async Task Connect(CancellationToken stoppingToken)
         {
             if (_connection != null && _connection.IsOpen) return; // Check if connected
 
-            CloseConnection(); // Close old resources that may exist
+            await CloseConnection(); // Close old resources that may exist
 
-            var factory = new ConnectionFactory()
+            var factory = new ConnectionFactory
             {
                 HostName = _configuration.HostName,
                 Port = _configuration.Port,
@@ -134,7 +134,7 @@ namespace NanoRabbit.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "RabbitMQ Consumer [{InstanceId}] Connection or Setup Failure.", _instanceId);
-                CloseConnection();
+                await CloseConnection();
                 throw; // Throw an exception upwards for ExecuteAsync's retry logic to handle
             }
         }
@@ -143,7 +143,7 @@ namespace NanoRabbit.Service
         {
             var messageBody = ea.Body.ToArray();
             var deliveryTag = ea.DeliveryTag;
-            var correlationId = ea.BasicProperties?.CorrelationId;
+            var correlationId = ea.BasicProperties.CorrelationId;
 
             _logger.LogDebug(
                 "RabbitMQ Consumer [{InstanceId}] Received DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
@@ -204,7 +204,7 @@ namespace NanoRabbit.Service
                     {
                         _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
                             _instanceId, deliveryTag);

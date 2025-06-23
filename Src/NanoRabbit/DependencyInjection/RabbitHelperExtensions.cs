@@ -27,7 +27,7 @@ public static class RabbitHelperExtensions
         var rabbitConfig = rabbitConfigBuilder.Build();
 
         services.AddSingleton(rabbitConfig);
-        services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory)));
+        services.AddSingleton<IRabbitHelper>(_ => RabbitHelper.CreateAsync(rabbitConfig, GetLogger(services, loggerFactory)).ConfigureAwait(false).GetAwaiter().GetResult());
         return services;
     }
 
@@ -50,7 +50,7 @@ public static class RabbitHelperExtensions
         services.AddKeyedSingleton(key, rabbitConfig);
         services.AddKeyedSingleton<IRabbitHelper>(key, (_, _) =>
         {
-            var rabbitHelper = new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory));
+            var rabbitHelper = RabbitHelper.CreateAsync(rabbitConfig, GetLogger(services, loggerFactory)).ConfigureAwait(false).GetAwaiter().GetResult();
             return rabbitHelper;
         });
         return services;
@@ -76,7 +76,7 @@ public static class RabbitHelperExtensions
         {
             services.AddSingleton(rabbitConfig);
             services.AddSingleton<IRabbitHelper>(
-                _ => new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory)));
+                _ => RabbitHelper.CreateAsync(rabbitConfig, GetLogger(services, loggerFactory)).ConfigureAwait(false).GetAwaiter().GetResult());
         }
         else
         {
@@ -108,7 +108,7 @@ public static class RabbitHelperExtensions
             services.AddKeyedSingleton(key, rabbitConfig);
             services.AddKeyedSingleton<IRabbitHelper>(key, (_, _) =>
             {
-                var rabbitHelper = new RabbitHelper(rabbitConfig, GetLogger(services, loggerFactory));
+                var rabbitHelper = RabbitHelper.CreateAsync(rabbitConfig, GetLogger(services, loggerFactory)).ConfigureAwait(false).GetAwaiter().GetResult();
                 return rabbitHelper;
             });
         }
