@@ -144,7 +144,6 @@ namespace NanoRabbit.Service
             var messageBody = ea.Body.ToArray();
             var deliveryTag = ea.DeliveryTag;
             var correlationId = ea.BasicProperties?.CorrelationId;
-            bool processedSuccessfully = false;
 
             _logger.LogDebug(
                 "RabbitMQ Consumer [{InstanceId}] Received DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
@@ -179,45 +178,43 @@ namespace NanoRabbit.Service
                 {
                     // Handle message
                     await messageHandler.HandleMessageAsync(messageBody, ea.RoutingKey, correlationId);
+
+                    // Acknowledge or reject the message based on the result (if not AutoAck)
+                    if (!_options.AutoAck)
+                    {
+                        try
+                        {
+                            _channel?.BasicAckAsync(deliveryTag, multiple: false, stoppingToken);
+                            _logger.LogDebug(
+                                "RabbitMQ Consumer [{InstanceId}] Ack Succeeded. DeliveryTag={DeliveryTag}",
+                                _instanceId, deliveryTag);
+                        }
+                        catch (Exception ackNackEx)
+                        {
+                            _logger.LogError(ackNackEx,
+                                "RabbitMQ Consumer [{InstanceId}] Ack failed. DeliveryTag={DeliveryTag}", _instanceId,
+                                deliveryTag);
+                            // TODO: Consider sending failed messages to a dead message queue or logging to a database
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
+                    try
+                    {
+                        _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
+                            _instanceId, deliveryTag);
+                    }
+
                     _logger.LogError(ex,
                         "RabbitMQ Consumer [{InstanceId}] An exception occurred when calling IMessageHandler. DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
                         _instanceId, deliveryTag, correlationId);
-                    processedSuccessfully = false; // Mark as failed
                 }
             } // Scope Dispose
-
-            // Acknowledge or reject the message based on the result (if not AutoAck)
-            if (!_options.AutoAck)
-            {
-                try
-                {
-                    if (processedSuccessfully)
-                    {
-                        _channel?.BasicAckAsync(deliveryTag, multiple: false, stoppingToken);
-                        _logger.LogDebug("RabbitMQ Consumer [{InstanceId}] Ack Succeeded. DeliveryTag={DeliveryTag}",
-                            _instanceId, deliveryTag);
-                    }
-                    else
-                    {
-                        _channel?.BasicNackAsync(deliveryTag, multiple: false, requeue: false, stoppingToken);
-                        _logger.LogWarning("RabbitMQ Consumer [{InstanceId}] Nack Failed. DeliveryTag={DeliveryTag}",
-                            _instanceId, deliveryTag);
-                        // TODO: Consider sending failed messages to a dead message queue or logging to a database
-                        processedSuccessfully = false;
-                    }
-                }
-                catch (Exception ackNackEx)
-                {
-                    _logger.LogError(ackNackEx,
-                        "RabbitMQ Consumer [{InstanceId}] Ack/Nack failed. DeliveryTag={DeliveryTag}", _instanceId,
-                        deliveryTag);
-                    // TODO: Consider sending failed messages to a dead message queue or logging to a database
-                    processedSuccessfully = false;
-                }
-            }
         }
 
         private async Task CloseConnection()
