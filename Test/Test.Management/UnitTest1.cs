@@ -16,7 +16,7 @@ namespace Test.Management
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -35,7 +35,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannel("FooProducer");
             await rabbitHelper.ExchangeDeclareAsync(channel, "test.topic", ExchangeType.Topic);
         }
         
@@ -49,7 +49,7 @@ namespace Test.Management
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -68,7 +68,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannel("FooProducer");
             await rabbitHelper.QueueDeclareAsync(channel, "test-queue");
         }
         
@@ -82,7 +82,7 @@ namespace Test.Management
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -101,7 +101,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannel("FooProducer");
             await rabbitHelper.QueueBindAsync(channel, "test-queue", "test.topic", "test.key", null);
         }
         
@@ -115,7 +115,7 @@ namespace Test.Management
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -134,7 +134,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannel("FooProducer");
             await rabbitHelper.QueueDeleteAsync(channel, "test-queue", false, false);
         }
         
@@ -148,7 +148,7 @@ namespace Test.Management
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -167,7 +167,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannel("FooProducer");
             await rabbitHelper.QueuePurgeAsync(channel, "test-queue");
         }
     }

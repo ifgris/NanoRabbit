@@ -36,7 +36,7 @@ var rabbitConfig = new RabbitConfiguration
     }
 };
 
-var rabbitHelper = new RabbitHelper(rabbitConfig, logger);
+var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig, logger);
 
 await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
 

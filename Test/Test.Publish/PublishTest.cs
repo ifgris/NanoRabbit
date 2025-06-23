@@ -16,7 +16,7 @@ namespace Test.Publish
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",
@@ -48,7 +48,7 @@ namespace Test.Publish
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 UserName = "admin",

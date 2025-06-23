@@ -17,7 +17,7 @@ namespace Test.SpecifyMessagesProperties
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 Port = 5672,
@@ -39,7 +39,6 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooConsumer");
             var props = new BasicProperties();
             props.ContentType = "text/plain";
             props.DeliveryMode = DeliveryModes.Persistent;
@@ -57,7 +56,7 @@ namespace Test.SpecifyMessagesProperties
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 Port = 5672,
@@ -79,7 +78,6 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
             var props = new BasicProperties();
             props.ContentType = "text/plain";
             props.DeliveryMode = DeliveryModes.Transient;
@@ -100,7 +98,7 @@ namespace Test.SpecifyMessagesProperties
 
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 Port = 5672,
@@ -122,7 +120,6 @@ namespace Test.SpecifyMessagesProperties
                 }
             }, logger);
 
-            var channel = rabbitHelper.GetChannel("FooProducer");
             var props = new BasicProperties();
             props.ContentType = "text/plain";
             props.DeliveryMode = DeliveryModes.Persistent;

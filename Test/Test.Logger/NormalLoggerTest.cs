@@ -16,7 +16,7 @@ namespace Test.Logger
 
             var logger = loggerFactory.CreateLogger("RabbitHelper");
 
-            var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+            var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
             {
                 HostName = "localhost",
                 Port = 5672,
