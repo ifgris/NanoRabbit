@@ -81,7 +81,7 @@ namespace Test.SpecifyMessagesProperties
             var props = new BasicProperties();
             props.ContentType = "text/plain";
             props.DeliveryMode = DeliveryModes.Transient;
-            props.Headers = new Dictionary<string, object>();
+            props.Headers = new Dictionary<string, object?>();
             props.Headers.Add("latitude", 51.5252949);
             props.Headers.Add("longitude", -0.0905493);
 

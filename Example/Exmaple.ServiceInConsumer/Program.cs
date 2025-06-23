@@ -10,7 +10,7 @@ var builder = Host.CreateApplicationBuilder();
 // must be injected before IRabbitHelper's injection.
 builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
 {
-    var connStr = provider.GetRequiredService<IConfiguration>().GetSection("DbConfig").GetSection(nameof(RedisConfig)).Get<RedisConfig>()?.DbConnStr;
+    var connStr = provider.GetRequiredService<IConfiguration>().GetConnectionString("Redis");
     return new RedisConnectionFactory(connStr);
 });
 
