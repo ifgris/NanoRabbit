@@ -27,7 +27,7 @@ namespace NanoRabbit
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
         /// <param name="connection"></param>
-        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection connection)
+        private RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection connection)
         {
             _rabbitConfig = rabbitConfig;
             _logger = logger;
@@ -111,7 +111,7 @@ namespace NanoRabbit
                 throw;
             }
 
-            // 只有当连接成功建立后，才创建 RabbitHelper 实例
+            // The RabbitHelper instance is created only when the connection is successfully established
             return new RabbitHelper(rabbitConfig, logger, connection);
         }
 
@@ -146,9 +146,7 @@ namespace NanoRabbit
             {
                 var connectionOption = _rabbitConfig.Consumers.FirstOrDefault(x => x.ConsumerName == consumerName);
 
-                return connectionOption == null
-                    ? throw new Exception($"Consumer '{consumerName}' not found!")
-                    : connectionOption;
+                return connectionOption ?? throw new Exception($"Consumer '{consumerName}' not found!");
             }
 
             throw new Exception("No ConsumerOptions added in RabbitHelper!");
@@ -222,7 +220,7 @@ namespace NanoRabbit
                             _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
                             throw;
                         }
-                    });
+                    }, x);
                 });
 
                 await Task.WhenAll(publishTasks);
@@ -237,17 +235,58 @@ namespace NanoRabbit
         /// <param name="consumerName"></param>
         /// <param name="onMessageReceivedAsync"></param>
         /// <param name="consumers"></param>
-        public async Task AddAsyncConsumer(string consumerName, Func<string, Task> onMessageReceivedAsync,
+        public async Task AddConsumerAsync(string consumerName, Func<string, Task> onMessageReceivedAsync,
             int consumers = 1)
         {
-            await AddConsumerInternal(consumerName, onMessageReceivedAsync, consumers);
+            var option = GetConsumerOption(consumerName);
+
+
+            for (int i = 0; i < consumers; i++)
+            {
+                var consumerId = string.Concat(option.QueueName, "-", i + 1);
+                if (_connection == null)
+                {
+                    throw new InvalidOperationException(
+                        "Connection initialized failed and the channel could not be created.");
+                }
+
+                try
+                {
+                    IChannel channel = await _connection.CreateChannelAsync();
+
+                    await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
+                    _channels.TryAdd(consumerId, Task.FromResult(channel));
+
+                    if (!_asyncConsumers.ContainsKey(consumerId))
+                    {
+                        var consumer = new AsyncEventingBasicConsumer(channel);
+                        consumer.ReceivedAsync += async (_, ea) =>
+                        {
+                            var body = ea.Body.ToArray();
+                            var message = Encoding.UTF8.GetString(body);
+
+                            await onMessageReceivedAsync(message);
+
+                            await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+                            await Task.Yield();
+                        };
+
+                        await channel.BasicConsumeAsync(queue: option.QueueName, autoAck: false, consumer: consumer);
+                        _asyncConsumers[consumerId] = consumer;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Add consumer failed: {consumerName}|{consumerId}|{e.Message}");
+                }
+            }
         }
 
         #endregion
 
         #region utils
 
-        public async Task<IChannel> GetChannel(string channelName)
+        public async Task<IChannel> GetChannelAsync(string channelName)
         {
             Task<IChannel> channelTask = _channels.GetOrAdd(channelName, async (key) =>
             {
@@ -273,7 +312,7 @@ namespace NanoRabbit
             return await channelTask;
         }
 
-        public async Task ReleaseChannel(string channelName)
+        public async Task ReleaseChannelAsync(string channelName)
         {
             if (_channels.TryRemove(channelName, out var channelTask))
             {
@@ -411,60 +450,6 @@ namespace NanoRabbit
                 mandatory: false,
                 basicProperties: properties,
                 body: body);
-        }
-
-        /// <summary>
-        /// Add a consumer (sync or async) by a custom consumerName.
-        /// </summary>
-        /// <param name="consumerName"></param>
-        /// <param name="onMessageReceivedAsync"></param>
-        /// <param name="consumers"></param>
-        private async Task AddConsumerInternal(string consumerName, Func<string, Task>? onMessageReceivedAsync,
-            int consumers = 1)
-        {
-            var option = GetConsumerOption(consumerName);
-
-
-            for (int i = 0; i < consumers; i++)
-            {
-                var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                if (_connection == null)
-                {
-                    throw new InvalidOperationException(
-                        "Connection initialized failed and the channel could not be created.");
-                }
-
-                try
-                {
-                    IChannel channel = await _connection.CreateChannelAsync();
-
-                    await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
-                    _channels.TryAdd(consumerId, Task.FromResult(channel));
-
-                    if (!_asyncConsumers.ContainsKey(consumerId))
-                    {
-                        var consumer = new AsyncEventingBasicConsumer(channel);
-                        consumer.ReceivedAsync += async (_, ea) =>
-                        {
-                            var body = ea.Body.ToArray();
-                            var message = Encoding.UTF8.GetString(body);
-
-                            if (onMessageReceivedAsync != null)
-                                await onMessageReceivedAsync(message);
-
-                            await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
-                            await Task.Yield();
-                        };
-
-                        await channel.BasicConsumeAsync(queue: option.QueueName, autoAck: false, consumer: consumer);
-                        _asyncConsumers[consumerId] = consumer;
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Add consumer failed: {consumerName}|{consumerId}|{e.Message}");
-                }
-            }
         }
 
         private async Task<IChannel> GetOrCreatePublishChannelAsync(string producerName)

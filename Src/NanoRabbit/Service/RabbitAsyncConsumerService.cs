@@ -50,7 +50,7 @@ namespace NanoRabbit.Service
                 {
                     if (_connection == null || !_connection.IsOpen)
                     {
-                        await Connect(stoppingToken); // Reconnect
+                        await ConnectAsync(stoppingToken); // Reconnect
                     }
 
                     // Keep ExecuteAsync running, the actual work is done by the EventingBasicConsumer's event handler.
@@ -67,20 +67,20 @@ namespace NanoRabbit.Service
                         "RabbitMQ Consumer Service [{InstanceId}] An unhandled exception occurred. Will retry after 5 seconds...",
                         _instanceId);
                     // Close old resources that may exist
-                    await CloseConnection();
+                    await CloseConnectionAsync();
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                 }
             }
 
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopped.", _instanceId);
-            await CloseConnection();
+            await CloseConnectionAsync();
         }
 
-        private async Task Connect(CancellationToken stoppingToken)
+        private async Task ConnectAsync(CancellationToken stoppingToken)
         {
             if (_connection != null && _connection.IsOpen) return; // Check if connected
 
-            await CloseConnection(); // Close old resources that may exist
+            await CloseConnectionAsync(); // Close old resources that may exist
 
             var factory = new ConnectionFactory
             {
@@ -123,7 +123,7 @@ namespace NanoRabbit.Service
                 }
 
                 _consumer = new AsyncEventingBasicConsumer(_channel);
-                _consumer.ReceivedAsync += async (_, ea) => { await HandleMessageReceived(ea, stoppingToken); };
+                _consumer.ReceivedAsync += async (_, ea) => { await HandleReceivedMessageAsync(ea, stoppingToken); };
 
                 _consumerTag = await _channel.BasicConsumeAsync(queue: _options.QueueName, autoAck: _options.AutoAck,
                     consumer: _consumer, cancellationToken: stoppingToken);
@@ -134,12 +134,12 @@ namespace NanoRabbit.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "RabbitMQ Consumer [{InstanceId}] Connection or Setup Failure.", _instanceId);
-                await CloseConnection();
+                await CloseConnectionAsync();
                 throw; // Throw an exception upwards for ExecuteAsync's retry logic to handle
             }
         }
 
-        private async Task HandleMessageReceived(BasicDeliverEventArgs ea, CancellationToken stoppingToken)
+        private async Task HandleReceivedMessageAsync(BasicDeliverEventArgs ea, CancellationToken stoppingToken)
         {
             var messageBody = ea.Body.ToArray();
             var deliveryTag = ea.DeliveryTag;
@@ -206,7 +206,7 @@ namespace NanoRabbit.Service
             }
         }
 
-        private async Task CloseConnection()
+        private async Task CloseConnectionAsync()
         {
             if (_channel != null && _channel.IsOpen)
             {
@@ -249,7 +249,7 @@ namespace NanoRabbit.Service
         public override void Dispose()
         {
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Disposing...", _instanceId);
-            CloseConnection().GetAwaiter().GetResult();
+            CloseConnectionAsync().GetAwaiter().GetResult();
             base.Dispose();
             GC.SuppressFinalize(this);
         }

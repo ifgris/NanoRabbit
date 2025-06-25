@@ -39,16 +39,6 @@ public class ProducerOptions
     public bool AutoDelete { get; set; } = false;
 
     /// <summary>
-    /// Set false to disable automatic connection recovery. Defaults to true.
-    /// </summary>
-    public bool AutomaticRecoveryEnabled { get; set; } = true;
-
-    /// <summary>
-    /// Set to true to enable automatic resend cached massages. Defaults to false.
-    /// </summary>
-    public bool AutomaticResend { get; set; } = false;
-
-    /// <summary>
     /// Exchange additional arguments
     /// </summary>
     public IDictionary<string, object?>? Arguments { get; set; }
@@ -73,11 +63,6 @@ public class ConsumerOptions
     /// Subscribe queue name
     /// </summary>
     public string QueueName { get; set; } = null!;
-
-    /// <summary>
-    /// Set false to disable automatic connection recovery. Defaults to true.
-    /// </summary>
-    public bool AutomaticRecoveryEnabled { get; set; } = true;
 
     /// <summary>
     /// BasicQos prefetchSize, default: 0
