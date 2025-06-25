@@ -11,6 +11,7 @@ var builder = Host.CreateApplicationBuilder();
 builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
 {
     var connStr = provider.GetRequiredService<IConfiguration>().GetConnectionString("Redis");
+    if (string.IsNullOrEmpty(connStr)) throw new Exception("Redis connection string not found");
     return new RedisConnectionFactory(connStr);
 });
 
