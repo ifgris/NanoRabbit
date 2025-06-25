@@ -44,7 +44,7 @@ For details, see: [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 > *NanoRabbit is designed as a library depends on **NAMING** Connections, Producers and Consumers. So it's important to
 set
-a **UNIQUE NAME** for each Connections, Producers and Consumers.*
+a **UNIQUE NAME** for each Connection, Producer and Consumer.*
 
 > From RabbitMQ.Client 7.0.0 on, synchronously functions are not suppoerted.
 
