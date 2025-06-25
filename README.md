@@ -33,7 +33,8 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 |:-------------:|:---------------:|:-------------:|
 | 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
 | 0.1.9 ~ 0.2.3 |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
-|     0.2.4     |      6.5.0-6.8.1      |      8.0      |
+|     0.2.4     |   6.5.0-6.8.1   |      8.0      |
+|     0.3.0     |      7.1.2      |      8.0      |
 
 ## Document
 
@@ -44,6 +45,8 @@ For details, see: [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 > *NanoRabbit is designed as a library depends on **NAMING** Connections, Producers and Consumers. So it's important to
 set
 a **UNIQUE NAME** for each Connections, Producers and Consumers.*
+
+> From RabbitMQ.Client 7.0.0 on, synchronously functions are not suppoerted.
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
@@ -65,7 +68,7 @@ var loggerFactory = LoggerFactory.Create(builder =>
 
 var logger = loggerFactory.CreateLogger("RabbitHelper");
 
-var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
 {
     HostName = "localhost",
     Port = 5672,
@@ -90,7 +93,7 @@ Register a RabbitMQ Consumer by calling `RabbitHelper()`, and configure it.
 using NanoRabbit;
 using NanoRabbit.Connection;
 
-var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
+var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
 {
     HostName = "localhost",
     Port = 5672,
@@ -108,13 +111,7 @@ var rabbitHelper = new RabbitHelper(rabbitConfig: new RabbitConfiguration
 ### Simple Publish Messages
 
 [After](#rabbitproducer) registering a `RabbitProducer` in the `RabbitHelper`, you can simply publish a message by
-calling `Publish<T>(string producerName, T message)`.
-
-```csharp
-rabbitHelper.Publish<string>("FooProducer", "Hello from NanoRabbit");
-```
-
-Asynchronously publishing is also available:
+calling `PublishAsync<T>(string producerName, T message)`.
 
 ```csharp
 await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
@@ -123,12 +120,12 @@ await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
 ### Simple Consume Messages
 
 [After](#rabbitconsumer) registering a `RabbitConsumer` in the `RabbitConsumer`, you can simply consume a message by
-calling `AddConsumer(string consumerName, Action<string> onMessageReceived, int consumers = 1)`.
+calling `AddConsumerAsync(string consumerName, Action<string> onMessageReceived, int consumers = 1)`.
 
 ```csharp
 while (true)
 {
-    rabbitHelper.AddConsumer("FooConsumer", message =>
+    await rabbitHelper.AddConsumerAsync("FooConsumer", message =>
     {
         Console.WriteLine(message);
     });

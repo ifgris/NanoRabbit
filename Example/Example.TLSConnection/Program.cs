@@ -43,7 +43,7 @@ Console.WriteLine(" Press [enter] to exit.");
 
 while (true)
 {
-    await rabbitHelper.AddAsyncConsumer("FooConsumer", async message =>
+    await rabbitHelper.AddConsumerAsync("FooConsumer", async message =>
     {
         Console.WriteLine(message);
         await Task.Delay(1000);

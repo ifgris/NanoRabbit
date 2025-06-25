@@ -9,11 +9,6 @@ namespace Test.Management
         [TestMethod]
         public async Task TestExchangeDeclare()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
             var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
@@ -35,18 +30,13 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = await rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannelAsync("FooProducer");
             await rabbitHelper.ExchangeDeclareAsync(channel, "test.topic", ExchangeType.Topic);
         }
         
         [TestMethod]
         public async Task TestQueueDeclare()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
             var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
@@ -68,18 +58,13 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = await rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannelAsync("FooProducer");
             await rabbitHelper.QueueDeclareAsync(channel, "test-queue");
         }
         
         [TestMethod]
         public async Task TestQueueBind()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
             var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
@@ -101,18 +86,13 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = await rabbitHelper.GetChannel("FooProducer");
-            await rabbitHelper.QueueBindAsync(channel, "test-queue", "test.topic", "test.key", null);
+            var channel = await rabbitHelper.GetChannelAsync("FooProducer");
+            await rabbitHelper.QueueBindAsync(channel, "test-queue", "test.topic", "test.key");
         }
         
         [TestMethod]
         public async Task TestQueueDelete()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
             var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
@@ -134,18 +114,13 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = await rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannelAsync("FooProducer");
             await rabbitHelper.QueueDeleteAsync(channel, "test-queue", false, false);
         }
         
         [TestMethod]
         public async Task TestQueuePurge()
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-
             var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 
             var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
@@ -167,7 +142,7 @@ namespace Test.Management
                 }
             }, logger);
 
-            var channel = await rabbitHelper.GetChannel("FooProducer");
+            var channel = await rabbitHelper.GetChannelAsync("FooProducer");
             await rabbitHelper.QueuePurgeAsync(channel, "test-queue");
         }
     }
