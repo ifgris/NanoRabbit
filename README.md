@@ -46,7 +46,7 @@ For details, see: [NanoRabbit Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 set
 a **UNIQUE NAME** for each Connection, Producer and Consumer.*
 
-> From RabbitMQ.Client 7.0.0 on, synchronously functions are not suppoerted.
+> From RabbitMQ.Client 7.0.0 (NanoRabbit 0.3.0) on, synchronously functions are not suppoerted.
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
