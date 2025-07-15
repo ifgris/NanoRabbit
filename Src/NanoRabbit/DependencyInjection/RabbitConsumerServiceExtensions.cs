@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Helper;
@@ -21,6 +22,8 @@ public static class RabbitConsumerServiceExtensions
     public static IServiceCollection AddRabbitConsumerService(
         this IServiceCollection services)
     {
+        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
+        
         var configuration = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();
 
         if (configuration == null)
@@ -65,12 +68,15 @@ public static class RabbitConsumerServiceExtensions
                 {
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+                    var connectionManager = provider.GetRequiredService<IConnectionManager>();
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,
                         configuration,
                         consumerOptions.ConsumerName,
-                        provider
+                        provider,
+                        connectionManager,
+                        configuration.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
                     );
                 });
 
@@ -92,6 +98,8 @@ public static class RabbitConsumerServiceExtensions
     public static IServiceCollection AddKeyedRabbitConsumerService(
         this IServiceCollection services, object? key)
     {
+        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
+        
         var configuration = services.BuildServiceProvider().GetRequiredKeyedService<RabbitConfiguration>(key);
 
         if (configuration == null)
@@ -136,12 +144,15 @@ public static class RabbitConsumerServiceExtensions
                 {
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+                    var connectionManager = provider.GetRequiredService<IConnectionManager>();
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,
                         configuration,
                         consumerOptions.ConsumerName,
-                        provider
+                        provider,
+                        connectionManager,
+                        configuration.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
                     );
                 });
 
@@ -164,6 +175,8 @@ public static class RabbitConsumerServiceExtensions
         this IServiceCollection services, IConfiguration configuration)
         where TRabbitConfiguration : RabbitConfiguration, new()
     {
+        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
+        
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
 
         if (rabbitConfig == null)
@@ -208,12 +221,15 @@ public static class RabbitConsumerServiceExtensions
                 {
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+                    var connectionManager = provider.GetRequiredService<IConnectionManager>();
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,
                         rabbitConfig,
                         consumerOptions.ConsumerName,
-                        provider
+                        provider,
+                        connectionManager,
+                        rabbitConfig.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
                     );
                 });
 

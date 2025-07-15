@@ -13,6 +13,8 @@ namespace NanoRabbit.Service
         private readonly TConfiguration _configuration;
         private readonly ConsumerOptions _options;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConnectionManager _connectionManager;
+        private readonly string _connectionName; 
         private IConnection? _connection;
         private IChannel? _channel;
         private AsyncEventingBasicConsumer? _consumer;
@@ -23,7 +25,7 @@ namespace NanoRabbit.Service
             ILogger<RabbitAsyncConsumerService<TConfiguration>> logger,
             TConfiguration configuration,
             string consumerName,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider, IConnectionManager connectionManager, string connectionName)
         {
             _logger = logger;
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -32,6 +34,8 @@ namespace NanoRabbit.Service
                        throw new ArgumentNullException($"Could not find consumer options: {consumerName}");
 
             _serviceProvider = serviceProvider;
+            _connectionManager = connectionManager;
+            _connectionName = connectionName;
             _instanceId = $"{_options.ConsumerName}-{Guid.NewGuid().ToString("N")[..6]}"; // create a short instance id
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Initializing...", _instanceId);
         }
@@ -48,10 +52,7 @@ namespace NanoRabbit.Service
             {
                 try
                 {
-                    if (_connection == null || !_connection.IsOpen)
-                    {
-                        await ConnectAsync(stoppingToken); // Reconnect
-                    }
+                    await ConnectAsync(stoppingToken); // Reconnect
 
                     // Keep ExecuteAsync running, the actual work is done by the EventingBasicConsumer's event handler.
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
@@ -67,21 +68,19 @@ namespace NanoRabbit.Service
                         "RabbitMQ Consumer Service [{InstanceId}] An unhandled exception occurred. Will retry after 5 seconds...",
                         _instanceId);
                     // Close old resources that may exist
-                    await CloseConnectionAsync();
+                    await CloseChannelAsync();
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                 }
             }
 
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopped.", _instanceId);
-            await CloseConnectionAsync();
+            await CloseChannelAsync();
         }
 
         private async Task ConnectAsync(CancellationToken stoppingToken)
         {
-            if (_connection != null && _connection.IsOpen) return; // Check if connected
-
-            await CloseConnectionAsync(); // Close old resources that may exist
-
+            await CloseChannelAsync();
+            
             var factory = new ConnectionFactory
             {
                 HostName = _configuration.HostName,
@@ -98,7 +97,7 @@ namespace NanoRabbit.Service
                 _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connecting to {HostName}:{Port}...",
                     _instanceId,
                     factory.HostName, factory.Port);
-                _connection = await factory.CreateConnectionAsync(stoppingToken);
+                _connection = await _connectionManager.GetOrCreateConnectionAsync(_connectionName, factory, stoppingToken);
                 _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
                 _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connected, Channel created.", _instanceId);
@@ -134,7 +133,7 @@ namespace NanoRabbit.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "RabbitMQ Consumer [{InstanceId}] Connection or Setup Failure.", _instanceId);
-                await CloseConnectionAsync();
+                await CloseChannelAsync();
                 throw; // Throw an exception upwards for ExecuteAsync's retry logic to handle
             }
         }
@@ -201,12 +200,12 @@ namespace NanoRabbit.Service
                 }
 
                 _logger.LogError(ex,
-                    "RabbitMQ Consumer [{InstanceId}] An exception occurred when calling IMessageHandler. DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
+                    "RabbitMQ Consumer [{InstanceId}] An exception occurred when calling IAsyncMessageHandler. DeliveryTag={DeliveryTag}, CorrelationId='{CorrelationId}'",
                     _instanceId, deliveryTag, correlationId);
             }
         }
 
-        private async Task CloseConnectionAsync()
+        private async Task CloseChannelAsync()
         {
             if (_channel != null && _channel.IsOpen)
             {
@@ -228,28 +227,13 @@ namespace NanoRabbit.Service
                 _channel = null;
             }
 
-            if (_connection != null && _connection.IsOpen)
-            {
-                try
-                {
-                    await _connection.CloseAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error [{InstanceId}] occurred while closing RabbitMQ connection.",
-                        _instanceId);
-                }
-
-                _connection = null;
-            }
-
-            _logger.LogInformation("RabbitMQ connection and channel closed [{InstanceId}].", _instanceId);
+            _logger.LogInformation("RabbitMQ channel closed [{InstanceId}].", _instanceId);
         }
 
         public override void Dispose()
         {
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Disposing...", _instanceId);
-            CloseConnectionAsync().GetAwaiter().GetResult();
+            CloseChannelAsync().GetAwaiter().GetResult();
             base.Dispose();
             GC.SuppressFinalize(this);
         }
