@@ -15,6 +15,7 @@ builder.Services.AddRabbitHelper(builder =>
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("FooConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";

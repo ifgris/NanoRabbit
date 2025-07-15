@@ -38,6 +38,7 @@ builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", rabbitConfigurationBui
         .SetVirtualHost("test")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("BarConnectionConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";
