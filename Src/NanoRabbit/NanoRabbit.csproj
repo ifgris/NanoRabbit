@@ -7,8 +7,8 @@
     <Title>NanoRabbit</Title>
     <VersionPrefix>0.0.4</VersionPrefix>
     <Authors>GC Chen</Authors>
-    <PackageProjectUrl>https://github.com/cgcel/NanoRabbit</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/cgcel/NanoRabbit</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/velviagris/NanoRabbit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/velviagris/NanoRabbit</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>NanoRabbit, a Lightweight RabbitMQ .NET 3rd party library.</Description>
