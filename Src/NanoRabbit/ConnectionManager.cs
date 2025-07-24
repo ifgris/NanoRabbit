@@ -12,15 +12,20 @@ namespace NanoRabbit
         private readonly ConcurrentDictionary<string, Task<IConnection>> _connections = new();
         private readonly ILogger<ConnectionManager> _logger;
 
+        /// <summary>
+        /// ConnectionManager Constructor
+        /// </summary>
+        /// <param name="logger"></param>
         public ConnectionManager(ILogger<ConnectionManager> logger)
         {
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IConnection> GetOrCreateConnectionAsync(string connectionName, ConnectionFactory factory,
             CancellationToken cancellationToken = default)
         {
-            // 使用 GetOrAdd 保证原子性，避免重复创建连接
+            // Avoid creating connections repeatedly
             Task<IConnection> connectionTask = _connections.GetOrAdd(connectionName, async (key) =>
             {
                 try
@@ -33,7 +38,6 @@ namespace NanoRabbit
                     {
                         _logger.LogWarning("Connection '{ConnectionName}' shut down. Reason: {Reason}", connectionName,
                             args.Cause);
-                        // 当连接关闭时，从字典中移除，以便下次重新创建
                         _connections.TryRemove(connectionName, out _);
                         return Task.CompletedTask;
                     };
@@ -52,12 +56,10 @@ namespace NanoRabbit
 
             var connection = await connectionTask;
 
-            // 检查连接是否仍然开放，如果连接已经关闭（例如由于网络问题），则需要重新创建
             if (!connection.IsOpen)
             {
                 _logger.LogWarning("Existing connection for '{ConnectionName}' is closed. Attempting to recreate...",
                     connectionName);
-                // 尝试移除旧的，并重新调用 GetOrAdd 来创建新的
                 _connections.TryRemove(connectionName, out _);
                 return await GetOrCreateConnectionAsync(connectionName, factory, cancellationToken); // 递归调用以重新创建
             }
