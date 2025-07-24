@@ -49,7 +49,7 @@ namespace NanoRabbit
                 {
                     _logger.LogError(ex, "Failed to create RabbitMQ connection for '{ConnectionName}'.",
                         connectionName);
-                    _connections.TryRemove(connectionName, out _); // 失败时移除，确保下次重试
+                    _connections.TryRemove(connectionName, out _);
                     throw;
                 }
             });
@@ -61,7 +61,7 @@ namespace NanoRabbit
                 _logger.LogWarning("Existing connection for '{ConnectionName}' is closed. Attempting to recreate...",
                     connectionName);
                 _connections.TryRemove(connectionName, out _);
-                return await GetOrCreateConnectionAsync(connectionName, factory, cancellationToken); // 递归调用以重新创建
+                return await GetOrCreateConnectionAsync(connectionName, factory, cancellationToken);
             }
 
             return connection;
