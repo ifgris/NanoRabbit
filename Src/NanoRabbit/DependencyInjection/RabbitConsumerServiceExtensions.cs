@@ -22,6 +22,7 @@ public static class RabbitConsumerServiceExtensions
     public static IServiceCollection AddRabbitConsumerService(
         this IServiceCollection services)
     {
+        services.TryAddSingleton<IFactoryManager, FactoryManager>();
         services.TryAddSingleton<IConnectionManager, ConnectionManager>();
         
         var configuration = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();

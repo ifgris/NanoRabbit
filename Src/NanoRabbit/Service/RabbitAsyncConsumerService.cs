@@ -42,6 +42,8 @@ namespace NanoRabbit.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await Task.Yield(); // Avoid blockages
+            
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Starting, Subscribing queue: {QueueName}",
                 _instanceId,
                 _options.QueueName);
@@ -52,10 +54,55 @@ namespace NanoRabbit.Service
             {
                 try
                 {
-                    await ConnectAsync(stoppingToken); // Reconnect
+                    var factory = new ConnectionFactory
+                    {
+                        HostName = _configuration.HostName,
+                        Port = _configuration.Port,
+                        UserName = _configuration.UserName,
+                        Password = _configuration.Password,
+                        VirtualHost = _configuration.VirtualHost,
+                        AutomaticRecoveryEnabled = true,
+                        NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
+                    };
+                    if (string.IsNullOrEmpty(_configuration.ConnectionName)) throw new NullReferenceException("ConnectionName is null");
+                    _connection = await _connectionManager.TryConnectAsync(_configuration.ConnectionName, factory, stoppingToken);
+                    
+                    if (_connection == null) return;
+                    
+                    _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
-                    // Keep ExecuteAsync running, the actual work is done by the EventingBasicConsumer's event handler.
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connected, Channel created.", _instanceId);
+
+                    await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: _options.PrefetchCount, global: false,
+                        cancellationToken: stoppingToken);
+                    _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] QoS Set PrefetchCount={PrefetchCount}",
+                        _instanceId,
+                        _options.PrefetchCount);
+
+                    if (_options.DeclareQueue)
+                    {
+                        _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Declaring Queue '{QueueName}'...",
+                            _instanceId,
+                            _options.QueueName);
+                        await _channel.QueueDeclareAsync(queue: _options.QueueName,
+                            durable: _options.QueueDurable,
+                            exclusive: _options.QueueExclusive,
+                            autoDelete: _options.QueueAutoDelete,
+                            arguments: _options.QueueArguments,
+                            cancellationToken: stoppingToken);
+                    }
+
+                    _consumer = new AsyncEventingBasicConsumer(_channel);
+                    _consumer.ReceivedAsync += async (_, ea) => { await HandleReceivedMessageAsync(ea, stoppingToken); };
+
+                    _consumerTag = await _channel.BasicConsumeAsync(queue: _options.QueueName, autoAck: _options.AutoAck,
+                        consumer: _consumer, cancellationToken: stoppingToken);
+                    _logger.LogInformation(
+                        "RabbitMQ Consumer [{InstanceId}] Subscribing to '{QueueName}'，ConsumerTag: {ConsumerTag}",
+                        _instanceId, _options.QueueName, _consumerTag);
+
+                    // Once connected and consumed, it will no longer enter the loop unless disconnected and reconnected
+                    await Task.Delay(Timeout.Infinite, stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -75,67 +122,6 @@ namespace NanoRabbit.Service
 
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Stopped.", _instanceId);
             await CloseChannelAsync();
-        }
-
-        private async Task ConnectAsync(CancellationToken stoppingToken)
-        {
-            await CloseChannelAsync();
-            
-            var factory = new ConnectionFactory
-            {
-                HostName = _configuration.HostName,
-                Port = _configuration.Port,
-                UserName = _configuration.UserName,
-                Password = _configuration.Password,
-                VirtualHost = _configuration.VirtualHost,
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
-            };
-
-            try
-            {
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connecting to {HostName}:{Port}...",
-                    _instanceId,
-                    factory.HostName, factory.Port);
-                _connection = await _connectionManager.GetOrCreateConnectionAsync(_connectionName, factory, stoppingToken);
-                _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
-
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Connected, Channel created.", _instanceId);
-
-                await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: _options.PrefetchCount, global: false,
-                    cancellationToken: stoppingToken);
-                _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] QoS Set PrefetchCount={PrefetchCount}",
-                    _instanceId,
-                    _options.PrefetchCount);
-
-                if (_options.DeclareQueue)
-                {
-                    _logger.LogInformation("RabbitMQ Consumer [{InstanceId}] Declaring Queue '{QueueName}'...",
-                        _instanceId,
-                        _options.QueueName);
-                    await _channel.QueueDeclareAsync(queue: _options.QueueName,
-                        durable: _options.QueueDurable,
-                        exclusive: _options.QueueExclusive,
-                        autoDelete: _options.QueueAutoDelete,
-                        arguments: _options.QueueArguments,
-                        cancellationToken: stoppingToken);
-                }
-
-                _consumer = new AsyncEventingBasicConsumer(_channel);
-                _consumer.ReceivedAsync += async (_, ea) => { await HandleReceivedMessageAsync(ea, stoppingToken); };
-
-                _consumerTag = await _channel.BasicConsumeAsync(queue: _options.QueueName, autoAck: _options.AutoAck,
-                    consumer: _consumer, cancellationToken: stoppingToken);
-                _logger.LogInformation(
-                    "RabbitMQ Consumer [{InstanceId}] Subscribing to '{QueueName}'，ConsumerTag: {ConsumerTag}",
-                    _instanceId, _options.QueueName, _consumerTag);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "RabbitMQ Consumer [{InstanceId}] Connection or Setup Failure.", _instanceId);
-                await CloseChannelAsync();
-                throw; // Throw an exception upwards for ExecuteAsync's retry logic to handle
-            }
         }
 
         private async Task HandleReceivedMessageAsync(BasicDeliverEventArgs ea, CancellationToken stoppingToken)

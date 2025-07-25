@@ -6,6 +6,7 @@ namespace NanoRabbit
     /// Connection manager interface
     /// </summary>
     public interface IConnectionManager
+
     {
         /// <summary>
         /// Get or create Connection
@@ -14,6 +15,14 @@ namespace NanoRabbit
         /// <param name="factory"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IConnection> GetOrCreateConnectionAsync(string connectionName, ConnectionFactory factory, CancellationToken cancellationToken = default);
+        public Task<IConnection?> TryConnectAsync(string connectionName, ConnectionFactory factory,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Check the connection
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public bool CheckConnection(IConnection? connection);
     }
 }
