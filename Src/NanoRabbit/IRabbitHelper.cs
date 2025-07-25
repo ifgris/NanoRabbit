@@ -26,14 +26,6 @@ public interface IRabbitHelper
     /// <param name="messageList"></param>
     /// <param name="properties"></param>
     public Task PublishBatchAsync<T>(string producerName, IEnumerable<T?> messageList, BasicProperties? properties = null);
-    
-    /// <summary>
-    /// Add an asynchronous consumer by using predefined consumer configs.
-    /// </summary>
-    /// <param name="consumerName"></param>
-    /// <param name="onMessageReceivedAsync"></param>
-    /// <param name="consumers"></param>
-    public Task AddConsumerAsync(string consumerName, Func<string, Task> onMessageReceivedAsync, int consumers = 1);
 
     #endregion
 

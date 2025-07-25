@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace NanoRabbit
@@ -12,9 +11,8 @@ namespace NanoRabbit
     /// </summary>
     public class RabbitHelper : IRabbitHelper, IDisposable
     {
-        private readonly IConnection _connection;
+        private readonly IConnection? _connection;
         private readonly ConcurrentDictionary<string, Task<IChannel>> _channels;
-        private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
         private readonly ILogger _logger;
 
@@ -24,83 +22,82 @@ namespace NanoRabbit
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
         /// <param name="connection"></param>
-        private RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection connection)
+        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection? connection)
         {
             _rabbitConfig = rabbitConfig;
             _logger = logger;
             _connection = connection;
 
             _channels = new ConcurrentDictionary<string, Task<IChannel>>();
-            _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
         }
 
-        /// <summary>
-        /// Initiate Connections.
-        /// </summary>
-        /// <param name="rabbitConfig"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public static async Task<RabbitHelper> CreateAsync(RabbitConfiguration rabbitConfig, ILogger logger)
-        {
-            ConnectionFactory factory = new();
-            if (!string.IsNullOrEmpty(rabbitConfig.Uri))
-            {
-                factory.Uri = new Uri(rabbitConfig.Uri);
-            }
-            else
-            {
-                factory = new ConnectionFactory
-                {
-                    HostName = rabbitConfig.HostName,
-                    Port = rabbitConfig.Port,
-                    VirtualHost = rabbitConfig.VirtualHost,
-                    UserName = rabbitConfig.UserName,
-                    Password = rabbitConfig.Password
-                };
-
-                if (rabbitConfig.TLSConfig != null)
-                {
-                    factory.Ssl.Enabled = rabbitConfig.TLSConfig.Enabled;
-                    factory.Ssl.ServerName = rabbitConfig.TLSConfig.ServerName;
-                    factory.Ssl.CertPath = rabbitConfig.TLSConfig.CertPath;
-                    factory.Ssl.CertPassphrase = rabbitConfig.TLSConfig.CertPassphrase;
-                    factory.Ssl.Version = rabbitConfig.TLSConfig.Version;
-                }
-            }
-
-            factory.ClientProvidedName = string.IsNullOrEmpty(rabbitConfig.ConnectionName)
-                ? (!string.IsNullOrEmpty(rabbitConfig.UserName)
-                    ? $"nanorabbit:{rabbitConfig.UserName.ToLower()}"
-                    : "")
-                : rabbitConfig.ConnectionName;
-
-
-            IConnection connection;
-            try
-            {
-                // wait for connection
-                connection = await factory.CreateConnectionAsync();
-                logger.LogInformation("RabbitMQ Connection established successfully.");
-            }
-            catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex)
-            {
-                logger.LogError(ex, "RabbitMQ Broker Unreachable. Failed to connect.");
-                throw;
-            }
-            catch (TimeoutException ex)
-            {
-                logger.LogError(ex, "RabbitMQ Connection timed out.");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred during RabbitMQ connection.");
-                throw;
-            }
-
-            // The RabbitHelper instance is created only when the connection is successfully established
-            return new RabbitHelper(rabbitConfig, logger, connection);
-        }
+        // /// <summary>
+        // /// Initiate Connections.
+        // /// </summary>
+        // /// <param name="rabbitConfig"></param>
+        // /// <param name="logger"></param>
+        // /// <returns></returns>
+        // public static async Task<RabbitHelper> CreateAsync(RabbitConfiguration rabbitConfig, ILogger logger)
+        // {
+        //     ConnectionFactory factory = new();
+        //     if (!string.IsNullOrEmpty(rabbitConfig.Uri))
+        //     {
+        //         factory.Uri = new Uri(rabbitConfig.Uri);
+        //     }
+        //     else
+        //     {
+        //         factory = new ConnectionFactory
+        //         {
+        //             HostName = rabbitConfig.HostName,
+        //             Port = rabbitConfig.Port,
+        //             VirtualHost = rabbitConfig.VirtualHost,
+        //             UserName = rabbitConfig.UserName,
+        //             Password = rabbitConfig.Password
+        //         };
+        //
+        //         if (rabbitConfig.TLSConfig != null)
+        //         {
+        //             factory.Ssl.Enabled = rabbitConfig.TLSConfig.Enabled;
+        //             factory.Ssl.ServerName = rabbitConfig.TLSConfig.ServerName;
+        //             factory.Ssl.CertPath = rabbitConfig.TLSConfig.CertPath;
+        //             factory.Ssl.CertPassphrase = rabbitConfig.TLSConfig.CertPassphrase;
+        //             factory.Ssl.Version = rabbitConfig.TLSConfig.Version;
+        //         }
+        //     }
+        //
+        //     factory.ClientProvidedName = string.IsNullOrEmpty(rabbitConfig.ConnectionName)
+        //         ? (!string.IsNullOrEmpty(rabbitConfig.UserName)
+        //             ? $"nanorabbit:{rabbitConfig.UserName.ToLower()}"
+        //             : "")
+        //         : rabbitConfig.ConnectionName;
+        //
+        //
+        //     IConnection connection;
+        //     try
+        //     {
+        //         // wait for connection
+        //         connection = await factory.CreateConnectionAsync();
+        //         logger.LogInformation("RabbitMQ Connection established successfully.");
+        //     }
+        //     catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex)
+        //     {
+        //         logger.LogError(ex, "RabbitMQ Broker Unreachable. Failed to connect.");
+        //         throw;
+        //     }
+        //     catch (TimeoutException ex)
+        //     {
+        //         logger.LogError(ex, "RabbitMQ Connection timed out.");
+        //         throw;
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         logger.LogError(ex, "An unexpected error occurred during RabbitMQ connection.");
+        //         throw;
+        //     }
+        //
+        //     // The RabbitHelper instance is created only when the connection is successfully established
+        //     return new RabbitHelper(rabbitConfig, logger, connection);
+        // }
 
         #region basic functions
 
@@ -208,59 +205,6 @@ namespace NanoRabbit
 
 
             _logger.LogInformation($"{producerName}|Published a batch of messgages.");
-        }
-
-        /// <summary>
-        /// Add an async consumer by a custom consumerName.
-        /// </summary>
-        /// <param name="consumerName"></param>
-        /// <param name="onMessageReceivedAsync"></param>
-        /// <param name="consumers"></param>
-        public async Task AddConsumerAsync(string consumerName, Func<string, Task> onMessageReceivedAsync,
-            int consumers = 1)
-        {
-            var option = GetConsumerOption(consumerName);
-
-
-            for (int i = 0; i < consumers; i++)
-            {
-                var consumerId = string.Concat(option.QueueName, "-", i + 1);
-                if (_connection == null)
-                {
-                    throw new InvalidOperationException(
-                        "Connection initialized failed and the channel could not be created.");
-                }
-
-                try
-                {
-                    IChannel channel = await _connection.CreateChannelAsync();
-
-                    await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: option.PrefetchCount, global: false);
-                    _channels.TryAdd(consumerId, Task.FromResult(channel));
-
-                    if (!_asyncConsumers.ContainsKey(consumerId))
-                    {
-                        var consumer = new AsyncEventingBasicConsumer(channel);
-                        consumer.ReceivedAsync += async (_, ea) =>
-                        {
-                            var body = ea.Body.ToArray();
-                            var message = Encoding.UTF8.GetString(body);
-
-                            await onMessageReceivedAsync(message);
-
-                            await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
-                            await Task.Yield();
-                        };
-
-                        await channel.BasicConsumeAsync(queue: option.QueueName, autoAck: false, consumer: consumer);
-                        _asyncConsumers[consumerId] = consumer;
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Add consumer failed: {consumerName}|{consumerId}|{e.Message}");
-                }
-            }
         }
 
         #endregion

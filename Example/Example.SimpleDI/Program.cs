@@ -8,40 +8,40 @@ using NanoRabbit.DependencyInjection;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitHelper(builder =>
-{
-    builder.SetHostName("localhost")
-        .SetPort(5672)
-        .SetVirtualHost("/")
-        .SetUserName("admin")
-        .SetPassword("admin")
-        .SetConnectionName("FooConnection")
-        .AddProducerOption(producer =>
-        {
-            producer.ProducerName = "FooProducer";
-            producer.ExchangeName = "amq.topic";
-            producer.RoutingKey = "foo.key";
-            producer.Type = ExchangeType.Topic;
-        })
-        .AddConsumerOption(consumer =>
-        {
-            consumer.ConsumerName = "FooConsumer";
-            consumer.QueueName = "foo-queue";
-            consumer.ConsumerCount = 3;
-            consumer.HandlerName = nameof(FooQueueHandler);
-        })
-        .AddConsumerOption(consumer =>
-        {
-            consumer.ConsumerName = "BarConsumer";
-            consumer.QueueName = "bar-queue";
-            consumer.ConsumerCount = 2;
-            consumer.HandlerName = nameof(BarQueueHandler);
-        });
-})
-.AddRabbitAsyncHandler<FooQueueHandler>()
-.AddRabbitAsyncHandler<BarQueueHandler>()
-.AddRabbitConnection(builder.Configuration)
-.AddRabbitConsumer();
+builder.Services.AddRabbitConnection(builder.Configuration)
+    .AddRabbitHelper(x =>
+    {
+        x.SetHostName("localhost")
+            .SetPort(5672)
+            .SetVirtualHost("/")
+            .SetUserName("admin")
+            .SetPassword("admin")
+            .SetConnectionName("FooConnection")
+            .AddProducerOption(producer =>
+            {
+                producer.ProducerName = "FooProducer";
+                producer.ExchangeName = "amq.topic";
+                producer.RoutingKey = "foo.key";
+                producer.Type = ExchangeType.Topic;
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "FooConsumer";
+                consumer.QueueName = "foo-queue";
+                consumer.ConsumerCount = 3;
+                consumer.HandlerName = nameof(FooQueueHandler);
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "BarConsumer";
+                consumer.QueueName = "bar-queue";
+                consumer.ConsumerCount = 2;
+                consumer.HandlerName = nameof(BarQueueHandler);
+            });
+    })
+    .AddRabbitAsyncHandler<FooQueueHandler>()
+    .AddRabbitAsyncHandler<BarQueueHandler>()
+    .AddRabbitConsumer();
 
 builder.Services.AddHostedService<PublishService>();
 
