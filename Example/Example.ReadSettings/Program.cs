@@ -9,7 +9,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddRabbitHelperFromAppSettings<FooConfiguration>(builder.Configuration)
     .AddRabbitAsyncHandler<FooQueueHandler>()
     .AddRabbitAsyncHandler<BarQueueHandler>()
-    .AddRabbitConsumerServiceFromAppSettings<FooConfiguration>(builder.Configuration);
+    .AddRabbitConnection(builder.Configuration)
+    .AddRabbitConsumerFromAppSettings<FooConfiguration>(builder.Configuration);
 
 builder.Services.AddHostedService<PublishService>();
 

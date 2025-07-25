@@ -19,11 +19,9 @@ public static class RabbitConsumerServiceExtensions
     /// <param name="services">IServiceCollection</param>
     /// <returns>Configured IServiceCollection</returns>
     /// <exception cref="ArgumentNullException">Throws when configuration is null.</exception>
-    public static IServiceCollection AddRabbitConsumerService(
+    public static IServiceCollection AddRabbitConsumer(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<IFactoryManager, FactoryManager>();
-        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
         
         var configuration = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();
 
@@ -61,7 +59,9 @@ public static class RabbitConsumerServiceExtensions
                     $"[Warning] Host '{configuration.HostName}'-'{consumerOptions.ConsumerName}' missing HandlerName, The HandlerName is the name of the IMessageHandler. Be sure to configure each consumer with a HandlerIdentifier in order to resolve the corresponding IMessageHandler.");
                 continue;
             }
-
+            
+            var connectionManager = services.BuildServiceProvider().GetRequiredService<IConnectionManager>();
+            
             // Register as IHostedService for each consumer
             for (int i = 0; i < consumerOptions.ConsumerCount; i++)
             {
@@ -69,7 +69,6 @@ public static class RabbitConsumerServiceExtensions
                 {
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
-                    var connectionManager = provider.GetRequiredService<IConnectionManager>();
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,
@@ -77,7 +76,7 @@ public static class RabbitConsumerServiceExtensions
                         consumerOptions.ConsumerName,
                         provider,
                         connectionManager,
-                        configuration.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
+                        configuration.ConnectionName ?? throw new ArgumentException("ConnectionName is missing")
                     );
                 });
 
@@ -96,10 +95,9 @@ public static class RabbitConsumerServiceExtensions
     /// <param name="key">An object that specifies the key of service object to get.</param>
     /// <returns>Configured IServiceCollection</returns>
     /// <exception cref="ArgumentNullException">Throws when configuration is null.</exception>
-    public static IServiceCollection AddKeyedRabbitConsumerService(
+    public static IServiceCollection AddKeyedRabbitConsumer(
         this IServiceCollection services, object? key)
     {
-        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
         
         var configuration = services.BuildServiceProvider().GetRequiredKeyedService<RabbitConfiguration>(key);
 
@@ -172,11 +170,10 @@ public static class RabbitConsumerServiceExtensions
     /// <param name="configuration"></param>
     /// <returns>Configured IServiceCollection</returns>
     /// <exception cref="ArgumentNullException">Throws when configuration is null.</exception>
-    public static IServiceCollection AddRabbitConsumerServiceFromAppSettings<TRabbitConfiguration>(
+    public static IServiceCollection AddRabbitConsumerFromAppSettings<TRabbitConfiguration>(
         this IServiceCollection services, IConfiguration configuration)
         where TRabbitConfiguration : RabbitConfiguration, new()
     {
-        services.TryAddSingleton<IConnectionManager, ConnectionManager>();
         
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
 

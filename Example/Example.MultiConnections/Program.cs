@@ -57,8 +57,10 @@ builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", rabbitConfigurationBui
 builder.Services.AddRabbitAsyncHandler<FooQueueHandler>();
 builder.Services.AddRabbitAsyncHandler<BarQueueHandler>();
 
-builder.Services.AddKeyedRabbitConsumerService("DefaultRabbitHelper");
-builder.Services.AddKeyedRabbitConsumerService("TestRabbitHelper");
+builder.Services.AddRabbitConnection(builder.Configuration);
+
+builder.Services.AddKeyedRabbitConsumer("DefaultRabbitHelper");
+builder.Services.AddKeyedRabbitConsumer("TestRabbitHelper");
 
 builder.Services.AddHostedService<DefaultPublishService>();
 builder.Services.AddHostedService<TestPublishService>();

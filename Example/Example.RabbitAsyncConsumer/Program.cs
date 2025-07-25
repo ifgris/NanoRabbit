@@ -12,6 +12,7 @@ builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("FooConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";
@@ -36,7 +37,8 @@ builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
 })
 .AddRabbitAsyncHandler<FooQueueHandler>()
 .AddRabbitAsyncHandler<BarQueueHandler>()
-.AddRabbitConsumerService();
+.AddRabbitConnection(builder.Configuration)
+.AddRabbitConsumer();
 
 var host = builder.Build();
 await host.RunAsync();

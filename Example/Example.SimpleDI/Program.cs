@@ -40,7 +40,8 @@ builder.Services.AddRabbitHelper(builder =>
 })
 .AddRabbitAsyncHandler<FooQueueHandler>()
 .AddRabbitAsyncHandler<BarQueueHandler>()
-.AddRabbitConsumerService();
+.AddRabbitConnection(builder.Configuration)
+.AddRabbitConsumer();
 
 builder.Services.AddHostedService<PublishService>();
 

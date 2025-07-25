@@ -9,25 +9,29 @@ namespace NanoRabbit
     /// </summary>
     public class ConnectionManager : IConnectionManager, IDisposable
     {
-        private readonly IFactoryManager _factoryManager;
-        private readonly ConcurrentDictionary<string, Task<IConnection?>> _connections = new();
+        private readonly ConcurrentDictionary<string, Task<IConnection?>> _connections;
+        private readonly ConcurrentDictionary<string, ConnectionFactory> _factories;
         private readonly ILogger<ConnectionManager> _logger;
 
         /// <summary>
         /// ConnectionManager Constructor
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="factoryManager"></param>
-        public ConnectionManager(ILogger<ConnectionManager> logger, IFactoryManager factoryManager)
+        /// <param name="connections"></param>
+        /// <param name="factories"></param>
+        public ConnectionManager(ILogger<ConnectionManager> logger, ConcurrentDictionary<string, Task<IConnection?>> connections, ConcurrentDictionary<string, ConnectionFactory> factories)
         {
             _logger = logger;
-            _factoryManager = factoryManager;
+            _connections = connections;
+            _factories = factories;
         }
 
         /// <inheritdoc />
         public async Task<IConnection?> TryConnectAsync(string connectionName, ConnectionFactory factory,
             CancellationToken cancellationToken = default)
         {
+            TryAddFactory(connectionName, factory, cancellationToken);
+            
             // Avoid creating connections repeatedly
             Task<IConnection?> connectionTask = _connections.GetOrAdd(connectionName, async (key) =>
             {
@@ -71,6 +75,20 @@ namespace NanoRabbit
         }
 
         /// <inheritdoc />
+        public async Task<IConnection?> TryReconnectAsync(string connectionName, CancellationToken cancellationToken = default)
+        {
+            var factory = TryGetFactory(connectionName);
+
+            if (factory == null)
+            {
+                return null;
+            }
+
+            var connection = await TryConnectAsync(connectionName, factory, cancellationToken);
+            return connection;
+        }
+
+        /// <inheritdoc />
         public bool CheckConnection(IConnection? connection)
         {
             if (connection == null) return false;
@@ -101,5 +119,19 @@ namespace NanoRabbit
 
             _connections.Clear();
         }
+
+        /// <inheritdoc />
+        public bool TryAddFactory(string connectionName, ConnectionFactory factory, CancellationToken cancellationToken = default)
+        {
+            return  _factories.TryAdd(connectionName, factory);
+        }
+
+        /// <inheritdoc />
+        public ConnectionFactory? TryGetFactory(string connectionName, CancellationToken cancellationToken = default)
+        { 
+            _factories.TryGetValue(connectionName, out var factory);
+            return factory;
+        }
+        
     }
 }

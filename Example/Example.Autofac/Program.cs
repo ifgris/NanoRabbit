@@ -67,7 +67,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             })
             .AddRabbitAsyncHandler<FooQueueHandler>()
             .AddRabbitAsyncHandler<BarQueueHandler>()
-            .AddRabbitConsumerService();
+            .AddRabbitConnection(context.Configuration)
+            .AddRabbitConsumer();
 
         // register BackgroundService
         services.AddHostedService<PublishService>();
