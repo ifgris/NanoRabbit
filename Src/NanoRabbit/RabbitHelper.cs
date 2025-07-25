@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Polly;
-using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -19,7 +17,6 @@ namespace NanoRabbit
         private readonly Dictionary<string, AsyncEventingBasicConsumer> _asyncConsumers;
         private readonly RabbitConfiguration _rabbitConfig;
         private readonly ILogger _logger;
-        private readonly ResiliencePipeline _pipeline;
 
         /// <summary>
         /// RabbitHelper constructor.
@@ -32,11 +29,6 @@ namespace NanoRabbit
             _rabbitConfig = rabbitConfig;
             _logger = logger;
             _connection = connection;
-
-            _pipeline = new ResiliencePipelineBuilder()
-                .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 }) // Add retry using the default options
-                .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
-                .Build(); // Builds the resilience pipeline
 
             _channels = new ConcurrentDictionary<string, Task<IChannel>>();
             _asyncConsumers = new Dictionary<string, AsyncEventingBasicConsumer>();
@@ -82,17 +74,12 @@ namespace NanoRabbit
                     : "")
                 : rabbitConfig.ConnectionName;
 
-            // 构建 ResiliencePipeline，用于连接创建
-            var connectionPipeline = new ResiliencePipelineBuilder()
-                .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3 })
-                .AddTimeout(TimeSpan.FromSeconds(10))
-                .Build();
 
             IConnection connection;
             try
             {
                 // wait for connection
-                connection = await connectionPipeline.ExecuteAsync(async t => await factory.CreateConnectionAsync(t));
+                connection = await factory.CreateConnectionAsync();
                 logger.LogInformation("RabbitMQ Connection established successfully.");
             }
             catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex)
@@ -163,24 +150,21 @@ namespace NanoRabbit
         {
             var messageStr = SerializeMessage(message) ?? "";
 
-            await _pipeline.ExecuteAsync(async _ =>
+            try
             {
-                try
-                {
-                    var option = GetProducerOption(producerName);
+                var option = GetProducerOption(producerName);
 
-                    var body = Encoding.UTF8.GetBytes(messageStr);
+                var body = Encoding.UTF8.GetBytes(messageStr);
 
-                    await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
+                await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
 
-                    _logger.LogInformation($"{producerName}|Published|{messageStr}");
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
-                    throw;
-                }
-            });
+                _logger.LogInformation($"{producerName}|Published|{messageStr}");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -195,36 +179,33 @@ namespace NanoRabbit
         {
             var messageObjs = messageList.ToList();
 
-            await _pipeline.ExecuteAsync(async x =>
+
+            var option = GetProducerOption(producerName);
+            var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
+
+            await channel.ExchangeDeclareAsync(option.ExchangeName, option.Type,
+                durable: option.Durable, autoDelete: option.AutoDelete,
+                arguments: option.Arguments);
+
+            var publishTasks = messageObjs.Select(async message =>
             {
-                var option = GetProducerOption(producerName);
-                var channel = await GetOrCreatePublishChannelAsync(option.ProducerName);
+                var messageStr = SerializeMessage(message) ?? "";
+                var body = Encoding.UTF8.GetBytes(messageStr);
 
-                await channel.ExchangeDeclareAsync(option.ExchangeName, option.Type,
-                    durable: option.Durable, autoDelete: option.AutoDelete,
-                    arguments: option.Arguments, cancellationToken: x);
 
-                var publishTasks = messageObjs.Select(async message =>
+                try
                 {
-                    var messageStr = SerializeMessage(message) ?? "";
-                    var body = Encoding.UTF8.GetBytes(messageStr);
-
-                    await _pipeline.ExecuteAsync(async _ =>
-                    {
-                        try
-                        {
-                            await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
-                            throw;
-                        }
-                    }, x);
-                });
-
-                await Task.WhenAll(publishTasks);
+                    await PublishMessageAsync(option, properties ?? new BasicProperties(), body);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"{producerName}|Published|{messageStr}|Failed|{e.Message}");
+                    throw;
+                }
             });
+
+            await Task.WhenAll(publishTasks);
+
 
             _logger.LogInformation($"{producerName}|Published a batch of messgages.");
         }
