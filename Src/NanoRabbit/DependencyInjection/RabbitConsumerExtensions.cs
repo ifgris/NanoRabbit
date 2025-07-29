@@ -143,7 +143,7 @@ public static class RabbitConsumerServiceExtensions
                 {
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
-                    var connectionManager = provider.GetRequiredService<IConnectionManager>();
+                    var connectionManager = provider.GetRequiredKeyedService<IConnectionManager>(key);
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,
@@ -220,6 +220,75 @@ public static class RabbitConsumerServiceExtensions
                     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
                     var connectionManager = provider.GetRequiredService<IConnectionManager>();
+
+                    return new RabbitAsyncConsumerService<RabbitConfiguration>(
+                        logger,
+                        rabbitConfig,
+                        consumerOptions.ConsumerName,
+                        provider,
+                        connectionManager,
+                        rabbitConfig.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
+                    );
+                });
+
+                Console.WriteLine(
+                    $"'{consumerOptions.ConsumerName}' (Host: {rabbitConfig.HostName}, Queue: {consumerOptions.QueueName}) has been registered.");
+            }
+        }
+
+        return services;
+    }
+    
+    public static IServiceCollection AddKeyedRabbitConsumerFromAppSettings<TRabbitConfiguration>(
+        this IServiceCollection services, object key, IConfiguration? configuration)
+        where TRabbitConfiguration : RabbitConfiguration, new()
+    {
+        
+        TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
+
+        if (rabbitConfig == null)
+        {
+            throw new ArgumentNullException(nameof(configuration));
+        }
+
+        if (rabbitConfig.Consumers == null)
+        {
+            throw new ArgumentNullException(nameof(ConsumerOptions));
+        }
+
+        // Register all consumers
+        foreach (var consumerOptions in rabbitConfig.Consumers)
+        {
+            // Verify that the ConsumerOptions are valid
+            if (string.IsNullOrWhiteSpace(consumerOptions.ConsumerName))
+            {
+                Console.WriteLine($"[Warning] Host '{rabbitConfig.HostName}' missing ConsumerName, skipping.");
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(consumerOptions.QueueName))
+            {
+                Console.WriteLine(
+                    $"[Warning] Host '{rabbitConfig.HostName}'-'{consumerOptions.ConsumerName}' missing QueueName, skipping.");
+                continue;
+            }
+
+            // Ensure that the HandlerName exists, as it is needed by the consumer service to resolve the handler
+            if (string.IsNullOrWhiteSpace(consumerOptions.HandlerName))
+            {
+                Console.WriteLine(
+                    $"[Warning] Host '{rabbitConfig.HostName}'-'{consumerOptions.ConsumerName}' missing HandlerName, The HandlerName is the name of the IMessageHandler. Be sure to configure each consumer with a HandlerName in order to resolve the corresponding IMessageHandler.");
+                continue;
+            }
+
+            // Register as IHostedService for each consumer
+            for (int i = 0; i < consumerOptions.ConsumerCount; i++)
+            {
+                services.AddSingleton<IHostedService>(provider =>
+                {
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger<RabbitAsyncConsumerService<RabbitConfiguration>>();
+                    var connectionManager = provider.GetRequiredKeyedService<IConnectionManager>(key);
 
                     return new RabbitAsyncConsumerService<RabbitConfiguration>(
                         logger,

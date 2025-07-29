@@ -17,15 +17,12 @@ public static class RabbitHelperExtensions
     /// Add a singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="builder"></param>
     /// <param name="loggerFactory"></param>
     /// <returns></returns>
     public static IServiceCollection AddRabbitHelper(this IServiceCollection services,
-        Action<RabbitConfigurationBuilder> builder, Func<IServiceCollection, ILogger>? loggerFactory = null)
+        Func<IServiceCollection, ILogger>? loggerFactory = null)
     {
-        var rabbitConfigBuilder = new RabbitConfigurationBuilder();
-        builder.Invoke(rabbitConfigBuilder);
-        var rabbitConfig = rabbitConfigBuilder.Build();
+        var rabbitConfig = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();
         
         var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
         // var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
@@ -51,18 +48,15 @@ public static class RabbitHelperExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="key">An object that specifies the key of service object to get.</param>
-    /// <param name="builders"></param>
     /// <param name="loggerFactory"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
     public static IServiceCollection AddKeyedRabbitHelper(this IServiceCollection services, object? key,
-        Action<RabbitConfigurationBuilder> builders, Func<IServiceCollection, ILogger>? loggerFactory = null)
+        Func<IServiceCollection, ILogger>? loggerFactory = null)
     {
-        var rabbitConfigBuilder = new RabbitConfigurationBuilder();
-        builders.Invoke(rabbitConfigBuilder);
-        var rabbitConfig = rabbitConfigBuilder.Build();
+        var rabbitConfig = services.BuildServiceProvider().GetRequiredKeyedService<RabbitConfiguration>(key);
         
-        var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
+        var connectionManager =  services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
         var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
 
@@ -90,7 +84,7 @@ public static class RabbitHelperExtensions
         where TRabbitConfiguration : RabbitConfiguration, new()
     {
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
-
+    
         var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
         var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -104,10 +98,10 @@ public static class RabbitHelperExtensions
         {
             throw new Exception("NanoRabbit Configuration is incorrect.");
         }
-
+    
         return services;
     }
-
+    
     /// <summary>
     /// Add a keyed singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
     /// </summary>
@@ -125,10 +119,10 @@ public static class RabbitHelperExtensions
     {
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
         
-        var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
+        var connectionManager =  services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
         var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
-
+    
         if (rabbitConfig != null)
         {
             services.AddKeyedSingleton(key, rabbitConfig);
