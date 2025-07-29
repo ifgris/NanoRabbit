@@ -39,13 +39,14 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             loggingBuilder.AddNLog(context.Configuration);
         }).BuildServiceProvider();
 
-        services.AddRabbitHelper(builder =>
+        services.AddRabbitConnection(builder =>
         {
             builder.SetHostName("localhost")
                 .SetPort(5672)
                 .SetVirtualHost("/")
                 .SetUserName("admin")
                 .SetPassword("admin")
+                .SetConnectionName("FooConnection")
                 .AddProducerOption(producer =>
                 {
                     producer.ProducerName = "FooProducer";
@@ -74,15 +75,10 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                     consumer.ConsumerCount = 2;
                     consumer.HandlerName = nameof(BarQueueHandler);
                 });
-        }, loggerFactory: serviceCollection =>
-        {
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            return logger;
         })
+        .AddRabbitHelper()
         .AddRabbitAsyncHandler<FooQueueHandler>()
         .AddRabbitAsyncHandler<BarQueueHandler>()
-        .AddRabbitConnection(context.Configuration)
         .AddRabbitConsumer();
 
         // register BackgroundService

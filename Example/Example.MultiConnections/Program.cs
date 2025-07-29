@@ -8,7 +8,7 @@ using NanoRabbit.DependencyInjection;
 var builder = Host.CreateApplicationBuilder();
 
 
-builder.Services.AddKeyedRabbitHelper("DefaultRabbitHelper", rabbitConfigurationBuilder =>
+builder.Services.AddKeyedRabbitConnection("DefaultRabbitHelper", rabbitConfigurationBuilder =>
 {
     rabbitConfigurationBuilder.SetHostName("localhost")
         .SetPort(5672)
@@ -30,15 +30,16 @@ builder.Services.AddKeyedRabbitHelper("DefaultRabbitHelper", rabbitConfiguration
             consumer.HandlerName = nameof(FooQueueHandler);
         });
 });
+builder.Services.AddKeyedRabbitHelper("DefaultRabbitHelper");
 
-builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", rabbitConfigurationBuilder =>
+builder.Services.AddKeyedRabbitConnection("TestRabbitHelper", rabbitConfigurationBuilder =>
 {
     rabbitConfigurationBuilder.SetHostName("localhost")
         .SetPort(5672)
         .SetVirtualHost("test")
         .SetUserName("admin")
         .SetPassword("admin")
-        .SetConnectionName("BarConnectionConnection")
+        .SetConnectionName("BarConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";
@@ -53,11 +54,11 @@ builder.Services.AddKeyedRabbitHelper("TestRabbitHelper", rabbitConfigurationBui
             consumer.HandlerName = nameof(BarQueueHandler);
         });
 });
+builder.Services.AddKeyedRabbitHelper("TestRabbitHelper");
 
 builder.Services.AddRabbitAsyncHandler<FooQueueHandler>();
 builder.Services.AddRabbitAsyncHandler<BarQueueHandler>();
 
-builder.Services.AddRabbitConnection(builder.Configuration);
 
 builder.Services.AddKeyedRabbitConsumer("DefaultRabbitHelper");
 builder.Services.AddKeyedRabbitConsumer("TestRabbitHelper");

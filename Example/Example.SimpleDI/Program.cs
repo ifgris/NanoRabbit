@@ -8,8 +8,7 @@ using NanoRabbit.DependencyInjection;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure the RabbitMQ Connection
-builder.Services.AddRabbitConnection(builder.Configuration)
-    .AddRabbitHelper(x =>
+builder.Services.AddRabbitConnection(x =>
     {
         x.SetHostName("localhost")
             .SetPort(5672)
@@ -39,6 +38,7 @@ builder.Services.AddRabbitConnection(builder.Configuration)
                 consumer.HandlerName = nameof(BarQueueHandler);
             });
     })
+    .AddRabbitHelper()
     .AddRabbitAsyncHandler<FooQueueHandler>()
     .AddRabbitAsyncHandler<BarQueueHandler>()
     .AddRabbitConsumer();

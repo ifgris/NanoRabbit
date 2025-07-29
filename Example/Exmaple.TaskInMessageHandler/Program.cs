@@ -16,13 +16,14 @@ builder.Services.AddSingleton<IRedisConnectionFactory>(provider =>
     return new RedisConnectionFactory(connStr);
 });
 
-builder.Services.AddKeyedRabbitHelper("test", rabbitConfigurationBuilder =>
+builder.Services.AddKeyedRabbitConnection("test", rabbitConfigurationBuilder =>
 {
     rabbitConfigurationBuilder.SetHostName("localhost")
         .SetPort(5672)
         .SetVirtualHost("test")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("TestConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";
@@ -30,15 +31,16 @@ builder.Services.AddKeyedRabbitHelper("test", rabbitConfigurationBuilder =>
             producer.RoutingKey = "foo.key";
             producer.Type = ExchangeType.Topic;
         });
-});
+}).AddKeyedRabbitHelper("test");
 
-builder.Services.AddKeyedRabbitHelper("default", rabbitConfigurationBuilder =>
+builder.Services.AddKeyedRabbitConnection("default", rabbitConfigurationBuilder =>
 {
     rabbitConfigurationBuilder.SetHostName("localhost")
         .SetPort(5672)
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("DefaultConnection")
         .AddConsumerOption(consumer =>
         {
             consumer.ConsumerName = "FooConsumer";
@@ -46,7 +48,7 @@ builder.Services.AddKeyedRabbitHelper("default", rabbitConfigurationBuilder =>
             consumer.HandlerName = nameof(FooQueueHandler);
         });
 })
-.AddRabbitAsyncHandler<FooQueueHandler>();
+.AddRabbitAsyncHandler<FooQueueHandler>().AddKeyedRabbitConsumer("default");
 
 
 var host = builder.Build();

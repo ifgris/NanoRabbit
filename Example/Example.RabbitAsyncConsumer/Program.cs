@@ -5,7 +5,7 @@ using NanoRabbit.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder();
 
-builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
+builder.Services.AddRabbitConnection(rabbitConfigurationBuilder =>
 {
     rabbitConfigurationBuilder.SetHostName("localhost")
         .SetPort(5672)
@@ -35,9 +35,9 @@ builder.Services.AddRabbitHelper(rabbitConfigurationBuilder =>
             consumer.HandlerName = nameof(BarQueueHandler);
         });
 })
+.AddRabbitHelper()
 .AddRabbitAsyncHandler<FooQueueHandler>()
 .AddRabbitAsyncHandler<BarQueueHandler>()
-.AddRabbitConnection(builder.Configuration)
 .AddRabbitConsumer();
 
 var host = builder.Build();

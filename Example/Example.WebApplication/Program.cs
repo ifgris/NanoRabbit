@@ -4,12 +4,13 @@ using NanoRabbit.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRabbitHelper(c =>
+builder.Services.AddRabbitConnection(c =>
 {
     c.SetHostName("localhost")
         .SetVirtualHost("/")
         .SetUserName("admin")
         .SetPassword("admin")
+        .SetConnectionName("FooConnection")
         .AddProducerOption(producer =>
         {
             producer.ProducerName = "FooProducer";
@@ -17,7 +18,7 @@ builder.Services.AddRabbitHelper(c =>
             producer.RoutingKey = "foo.key";
             producer.Type = ExchangeType.Topic;
         });
-});
+}).AddRabbitHelper();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -6,10 +6,11 @@ using NanoRabbit;
 using NanoRabbit.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddRabbitHelperFromAppSettings<FooConfiguration>(builder.Configuration)
+builder.Services.AddRabbitConnectionFromAppSettings<FooConfiguration>(builder.Configuration)
+    .AddRabbitHelperFromAppSettings<FooConfiguration>(builder.Configuration)
     .AddRabbitAsyncHandler<FooQueueHandler>()
     .AddRabbitAsyncHandler<BarQueueHandler>()
-    .AddRabbitConnection(builder.Configuration)
+    
     .AddRabbitConsumerFromAppSettings<FooConfiguration>(builder.Configuration);
 
 builder.Services.AddHostedService<PublishService>();
