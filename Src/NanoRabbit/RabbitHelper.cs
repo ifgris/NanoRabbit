@@ -14,7 +14,7 @@ namespace NanoRabbit
         private readonly IConnection? _connection;
         private readonly ConcurrentDictionary<string, Task<IChannel>> _channels;
         private readonly RabbitConfiguration _rabbitConfig;
-        private readonly ILogger _logger;
+        private readonly ILogger<RabbitHelper> _logger;
 
         /// <summary>
         /// RabbitHelper constructor.
@@ -22,7 +22,7 @@ namespace NanoRabbit
         /// <param name="rabbitConfig"></param>
         /// <param name="logger"></param>
         /// <param name="connection"></param>
-        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger logger, IConnection? connection)
+        public RabbitHelper(RabbitConfiguration rabbitConfig, ILogger<RabbitHelper> logger, IConnection? connection)
         {
             _rabbitConfig = rabbitConfig;
             _logger = logger;
