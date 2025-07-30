@@ -1,0 +1,29 @@
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NanoRabbit;
+
+namespace Example.QuickStart;
+
+public class PublishService : BackgroundService
+{
+    private readonly ILogger<PublishService> _logger;
+    private readonly IRabbitHelper _rabbitHelper;
+
+    public PublishService(ILogger<PublishService> logger, IRabbitHelper rabbitHelper)
+    {
+        _logger = logger;
+        _rabbitHelper = rabbitHelper;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Testing PublishService");
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await _rabbitHelper.PublishAsync("FooProducer", "Hello from conn1");
+            // await _rabbitHelper.PublishAsync("BarProducer", "Hello from conn2");
+            await Task.Delay(1000, stoppingToken);
+        }
+    }
+}

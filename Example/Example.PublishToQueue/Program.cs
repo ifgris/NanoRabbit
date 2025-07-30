@@ -1,27 +1,38 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Example.PublishToQueue;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NanoRabbit;
+using NanoRabbit.DependencyInjection;
 
-var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder.AddConsole();
-});
+var builder = Host.CreateApplicationBuilder(args);
 
-var logger = loggerFactory.CreateLogger("RabbitHelper");
+// Configure the RabbitMQ Connection
+builder.Services.AddRabbitConnection(x =>
+    {
+        x.SetHostName("localhost")
+            .SetPort(5672)
+            .SetVirtualHost("/")
+            .SetUserName("admin")
+            .SetPassword("admin")
+            .SetConnectionName("FooConnection")
+            .AddProducerOption(producer =>
+            {
+                producer.ProducerName = "FooProducer";
+                producer.RoutingKey = "no-key-queue";
+            });
+    })
+    .AddRabbitHelper();
 
-var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
-{
-    HostName = "localhost",
-    Port = 5672,
-    VirtualHost = "bus",
-    UserName = "admin",
-    Password = "admin",
-    Producers = new List<ProducerOptions> { new ProducerOptions {
-            ProducerName = "FooProducer",
-            RoutingKey = "no-key-queue",
-        }
-    }
-}, logger);
 
-await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
+builder.Services.AddHostedService<PublishService>();
+
+using IHost host = builder.Build();
+
+host.Run();
+
+var rabbitMqHelper = host.Services.GetRequiredService<IRabbitHelper>();
+
+await rabbitMqHelper.PublishAsync("FooProducer", "Hello, World!");
 
 Console.WriteLine(" Press [enter] to exit.");
+Console.ReadLine();

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NanoRabbit;
 
-namespace Example.SimpleDI;
+namespace Example.PublishToQueue;
 
 public class PublishService : BackgroundService
 {

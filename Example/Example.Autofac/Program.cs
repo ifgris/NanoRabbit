@@ -19,7 +19,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
-        services.AddRabbitHelper(builder =>
+        services.AddRabbitConnection(builder =>
             {
                 builder.SetHostName("localhost")
                     .SetPort(5672)
@@ -54,7 +54,8 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                         consumer.ConsumerCount = 2;
                         consumer.HandlerName = nameof(BarQueueHandler);
                     });
-            }, serviceCollection =>
+            })
+            .AddRabbitHelper(_ =>
             {
                 var loggerFactory = LoggerFactory.Create(builder =>
                 {
@@ -67,7 +68,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
             })
             .AddRabbitAsyncHandler<FooQueueHandler>()
             .AddRabbitAsyncHandler<BarQueueHandler>()
-            .AddRabbitConnection(context.Configuration)
+            
             .AddRabbitConsumer();
 
         // register BackgroundService
