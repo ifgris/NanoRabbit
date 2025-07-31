@@ -14,32 +14,17 @@ var logger = LogManager.GetCurrentClassLogger();
 try
 {
     logger.Info("Init Program");
-    var host = CreateHostBuilder(args).Build();
-    await host.RunAsync();
-}
-catch (Exception e)
-{
-    logger.Error(e, e.Message);
-    throw;
-}
-
-IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
-    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-    .ConfigureContainer<ContainerBuilder>((context, builders) =>
+    var builder = Host.CreateApplicationBuilder(args);
+    
+    builder.Services.AddLogging(loggingBuilder =>
     {
-        // ...
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddLogging(loggingBuilder =>
-        {
-            // configure Logging with NLog
-            loggingBuilder.ClearProviders();
-            loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
-            loggingBuilder.AddNLog(context.Configuration);
-        }).BuildServiceProvider();
-
-        services.AddRabbitConnection(builder =>
+        // configure Logging with NLog
+        loggingBuilder.ClearProviders();
+        loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
+        loggingBuilder.AddNLog(builder.Configuration);
+    }).BuildServiceProvider();
+    
+    builder.Services.AddRabbitConnection(builder =>
         {
             builder.SetHostName("localhost")
                 .SetPort(5672)
@@ -81,9 +66,16 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
         .AddRabbitAsyncHandler<BarQueueHandler>()
         .AddRabbitConsumer();
 
-        // register BackgroundService
-        services.AddHostedService<PublishService>();
-    });
+    builder.Services.AddHostedService<PublishService>();
+    
+    var host = builder.Build();
+    await host.RunAsync();
+}
+catch (Exception e)
+{
+    logger.Error(e, e.Message);
+    throw;
+}
 
 public class FooQueueHandler : IAsyncMessageHandler
 {

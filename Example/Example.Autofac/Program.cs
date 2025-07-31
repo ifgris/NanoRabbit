@@ -55,17 +55,7 @@ IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                         consumer.HandlerName = nameof(BarQueueHandler);
                     });
             })
-            .AddRabbitHelper(_ =>
-            {
-                var loggerFactory = LoggerFactory.Create(builder =>
-                {
-                    builder.AddConsole();
-                });
-
-                var logger = loggerFactory.CreateLogger("RabbitHelper");
-
-                return logger;
-            })
+            .AddRabbitHelper()
             .AddRabbitAsyncHandler<FooQueueHandler>()
             .AddRabbitAsyncHandler<BarQueueHandler>()
             
