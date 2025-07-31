@@ -100,7 +100,7 @@ namespace NanoRabbit
             foreach (var connectionEntry in _connections)
             {
                 var connection = connectionEntry.Value.ConfigureAwait(false).GetAwaiter().GetResult();
-                if (connection.IsOpen)
+                if (connection != null && connection.IsOpen)
                 {
                     try
                     {
@@ -114,7 +114,7 @@ namespace NanoRabbit
                     }
                 }
 
-                connection.Dispose();
+                connection?.Dispose();
             }
 
             _connections.Clear();
