@@ -74,8 +74,7 @@ public static class RabbitConsumerServiceExtensions
                         configuration,
                         consumerOptions.ConsumerName,
                         provider,
-                        connectionManager,
-                        configuration.ConnectionName ?? throw new ArgumentException("ConnectionName is missing")
+                        connectionManager
                     );
                 });
 
@@ -149,8 +148,7 @@ public static class RabbitConsumerServiceExtensions
                         configuration,
                         consumerOptions.ConsumerName,
                         provider,
-                        connectionManager,
-                        configuration.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
+                        connectionManager
                     );
                 });
 
@@ -225,8 +223,7 @@ public static class RabbitConsumerServiceExtensions
                         rabbitConfig,
                         consumerOptions.ConsumerName,
                         provider,
-                        connectionManager,
-                        rabbitConfig.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
+                        connectionManager
                     );
                 });
 
@@ -294,8 +291,7 @@ public static class RabbitConsumerServiceExtensions
                         rabbitConfig,
                         consumerOptions.ConsumerName,
                         provider,
-                        connectionManager,
-                        rabbitConfig.ConnectionName ?? throw new ArgumentException("ConsumerName is missing")
+                        connectionManager
                     );
                 });
 

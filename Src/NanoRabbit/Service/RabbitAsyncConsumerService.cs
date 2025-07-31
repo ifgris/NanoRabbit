@@ -14,7 +14,6 @@ namespace NanoRabbit.Service
         private readonly ConsumerOptions _options;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConnectionManager _connectionManager;
-        private readonly string _connectionName; 
         private IConnection? _connection;
         private IChannel? _channel;
         private AsyncEventingBasicConsumer? _consumer;
@@ -25,7 +24,7 @@ namespace NanoRabbit.Service
             ILogger<RabbitAsyncConsumerService<TConfiguration>> logger,
             TConfiguration configuration,
             string consumerName,
-            IServiceProvider serviceProvider, IConnectionManager connectionManager, string connectionName)
+            IServiceProvider serviceProvider, IConnectionManager connectionManager)
         {
             _logger = logger;
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -35,7 +34,6 @@ namespace NanoRabbit.Service
 
             _serviceProvider = serviceProvider;
             _connectionManager = connectionManager;
-            _connectionName = connectionName;
             _instanceId = $"{_options.ConsumerName}-{Guid.NewGuid().ToString("N")[..6]}"; // create a short instance id
             _logger.LogInformation("RabbitMQ Consumer Service [{InstanceId}] Initializing...", _instanceId);
         }
@@ -54,17 +52,9 @@ namespace NanoRabbit.Service
             {
                 try
                 {
-                    var factory = new ConnectionFactory
-                    {
-                        HostName = _configuration.HostName,
-                        Port = _configuration.Port,
-                        UserName = _configuration.UserName,
-                        Password = _configuration.Password,
-                        VirtualHost = _configuration.VirtualHost,
-                        AutomaticRecoveryEnabled = true,
-                        NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
-                    };
                     if (string.IsNullOrEmpty(_configuration.ConnectionName)) throw new NullReferenceException("ConnectionName is null");
+                    var factory = _connectionManager.TryGetFactory(_configuration.ConnectionName);
+                    if (factory == null) throw new NullReferenceException($"{_configuration.ConnectionName}|ConnectionFactory is null");
                     _connection = await _connectionManager.TryConnectAsync(_configuration.ConnectionName, factory, stoppingToken);
                     
                     if (_connection == null) return;
