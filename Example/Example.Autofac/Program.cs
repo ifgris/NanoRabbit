@@ -1,69 +1,66 @@
 ﻿using System.Text;
 using NanoRabbit.DependencyInjection;
-using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Example.Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NanoRabbit;
 
-var host = CreateHostBuilder(args).Build();
-await host.RunAsync();
+var builder = Host.CreateApplicationBuilder(args);
 
-IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
-    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-    .ConfigureContainer<ContainerBuilder>((context, builders) =>
+builder.ConfigureContainer(new AutofacServiceProviderFactory(), _ =>
+{
+    
+});
+
+builder.Services.AddRabbitConnection(x =>
     {
-        // ...
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddRabbitConnection(builder =>
+        x.SetHostName("localhost")
+            .SetPort(5672)
+            .SetVirtualHost("/")
+            .SetUserName("admin")
+            .SetPassword("admin")
+            .SetConnectionName("FooConnection")
+            .AddProducerOption(producer =>
             {
-                builder.SetHostName("localhost")
-                    .SetPort(5672)
-                    .SetVirtualHost("/")
-                    .SetUserName("admin")
-                    .SetPassword("admin")
-                    .AddProducerOption(producer =>
-                    {
-                        producer.ProducerName = "FooProducer";
-                        producer.ExchangeName = "amq.topic";
-                        producer.RoutingKey = "foo.key";
-                        producer.Type = ExchangeType.Topic;
-                    })
-                    .AddProducerOption(producer =>
-                    {
-                        producer.ProducerName = "BarProducer";
-                        producer.ExchangeName = "amq.direct";
-                        producer.RoutingKey = "bar.key";
-                        producer.Type = ExchangeType.Direct;
-                    })
-                    .AddConsumerOption(consumer =>
-                    {
-                        consumer.ConsumerName = "FooConsumer";
-                        consumer.QueueName = "foo-queue";
-                        consumer.ConsumerCount = 3;
-                        consumer.HandlerName = nameof(FooQueueHandler);
-                    })
-                    .AddConsumerOption(consumer =>
-                    {
-                        consumer.ConsumerName = "BarConsumer";
-                        consumer.QueueName = "bar-queue";
-                        consumer.ConsumerCount = 2;
-                        consumer.HandlerName = nameof(BarQueueHandler);
-                    });
+                producer.ProducerName = "FooProducer";
+                producer.ExchangeName = "amq.topic";
+                producer.RoutingKey = "foo.key";
+                producer.Type = ExchangeType.Topic;
             })
-            .AddRabbitHelper()
-            .AddRabbitAsyncHandler<FooQueueHandler>()
-            .AddRabbitAsyncHandler<BarQueueHandler>()
+            .AddProducerOption(producer =>
+            {
+                producer.ProducerName = "BarProducer";
+                producer.ExchangeName = "amq.direct";
+                producer.RoutingKey = "bar.key";
+                producer.Type = ExchangeType.Direct;
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "FooConsumer";
+                consumer.QueueName = "foo-queue";
+                consumer.ConsumerCount = 3;
+                consumer.HandlerName = nameof(FooQueueHandler);
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "BarConsumer";
+                consumer.QueueName = "bar-queue";
+                consumer.ConsumerCount = 2;
+                consumer.HandlerName = nameof(BarQueueHandler);
+            });
+    })
+    .AddRabbitHelper()
+    .AddRabbitAsyncHandler<FooQueueHandler>()
+    .AddRabbitAsyncHandler<BarQueueHandler>()
             
-            .AddRabbitConsumer();
+    .AddRabbitConsumer();
 
-        // register BackgroundService
-        services.AddHostedService<PublishService>();
-    });
+builder.Services.AddHostedService<PublishService>();
+
+var host = builder.Build();
+
+await host.RunAsync();
 
 public class FooQueueHandler : IAsyncMessageHandler
 {

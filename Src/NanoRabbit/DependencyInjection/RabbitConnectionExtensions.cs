@@ -31,16 +31,7 @@ namespace NanoRabbit.DependencyInjection
             services.TryAddSingleton(_ =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
-                factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
-                {
-                    HostName = rabbitConfig.HostName,
-                    Port = rabbitConfig.Port,
-                    UserName = rabbitConfig.UserName,
-                    Password = rabbitConfig.Password,
-                    VirtualHost = rabbitConfig.VirtualHost,
-                    AutomaticRecoveryEnabled = true,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
-                });
+                factories.TryAdd(rabbitConfig.ConnectionName, CommonHelper.GetConnectionFactory(rabbitConfig));
                 return factories;
             });
             
@@ -79,16 +70,7 @@ namespace NanoRabbit.DependencyInjection
             services.TryAddKeyedSingleton(key, (_, _) =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
-                factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
-                {
-                    HostName = rabbitConfig.HostName,
-                    Port = rabbitConfig.Port,
-                    UserName = rabbitConfig.UserName,
-                    Password = rabbitConfig.Password,
-                    VirtualHost = rabbitConfig.VirtualHost,
-                    AutomaticRecoveryEnabled = true,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
-                });
+                factories.TryAdd(rabbitConfig.ConnectionName, CommonHelper.GetConnectionFactory(rabbitConfig));
                 return factories;
             });
             
@@ -127,16 +109,7 @@ namespace NanoRabbit.DependencyInjection
             services.TryAddSingleton(_ =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
-                factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
-                {
-                    HostName = rabbitConfig.HostName,
-                    Port = rabbitConfig.Port,
-                    UserName = rabbitConfig.UserName,
-                    Password = rabbitConfig.Password,
-                    VirtualHost = rabbitConfig.VirtualHost,
-                    AutomaticRecoveryEnabled = true,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
-                });
+                factories.TryAdd(rabbitConfig.ConnectionName, CommonHelper.GetConnectionFactory(rabbitConfig));
                 return factories;
             });
             
@@ -175,16 +148,7 @@ namespace NanoRabbit.DependencyInjection
             services.TryAddKeyedSingleton(key, (_, _) =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
-                factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
-                {
-                    HostName = rabbitConfig.HostName,
-                    Port = rabbitConfig.Port,
-                    UserName = rabbitConfig.UserName,
-                    Password = rabbitConfig.Password,
-                    VirtualHost = rabbitConfig.VirtualHost,
-                    AutomaticRecoveryEnabled = true,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
-                });
+                factories.TryAdd(rabbitConfig.ConnectionName, CommonHelper.GetConnectionFactory(rabbitConfig));
                 return factories;
             });
             
