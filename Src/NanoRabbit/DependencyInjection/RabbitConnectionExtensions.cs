@@ -13,18 +13,22 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddRabbitConnection(this IServiceCollection services,
             Action<RabbitConfigurationBuilder> builder)
         {
+            // Get RabbitConfiguration
             var rabbitConfigBuilder = new RabbitConfigurationBuilder();
             builder.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
-            services.AddSingleton<RabbitConfiguration>(rabbitConfig);
+            
+            // Register RabbitConfiguration
+            services.AddSingleton(rabbitConfig);
             
             // Register connections and factories
-            services.TryAddSingleton(x =>
+            services.TryAddSingleton(_ =>
             {
                 var connections = new ConcurrentDictionary<string, Task<IConnection?>>();
                 return connections;
             });
-            services.TryAddSingleton(x =>
+            if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("ConnectionName");
+            services.TryAddSingleton(_ =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
                 factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
@@ -57,10 +61,13 @@ namespace NanoRabbit.DependencyInjection
         public static IServiceCollection AddKeyedRabbitConnection(this IServiceCollection services, object? key,
             Action<RabbitConfigurationBuilder> builder)
         {
+            // Get RabbitConfiguration
             var rabbitConfigBuilder = new RabbitConfigurationBuilder();
             builder.Invoke(rabbitConfigBuilder);
             var rabbitConfig = rabbitConfigBuilder.Build();
-            services.AddKeyedSingleton<RabbitConfiguration>(key, rabbitConfig);
+            
+            // Register RabbitConfiguration
+            services.AddKeyedSingleton(key, rabbitConfig);
             
             // Register connections and factories
             services.TryAddKeyedSingleton(key, (_, _) =>
@@ -68,6 +75,7 @@ namespace NanoRabbit.DependencyInjection
                 var connections = new ConcurrentDictionary<string, Task<IConnection?>>();
                 return connections;
             });
+            if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("ConnectionName");
             services.TryAddKeyedSingleton(key, (_, _) =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
@@ -102,14 +110,21 @@ namespace NanoRabbit.DependencyInjection
             IConfiguration configuration)
         where TRabbitConfiguration : RabbitConfiguration, new()
         {
+            // Get RabbitConfiguration
             TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
+            if  (rabbitConfig == null) throw new NullReferenceException("TRabbitConfiguration");
+            
+            // Register RabbitConfiguration
+            services.TryAddSingleton(rabbitConfig);
+            
             // Register connections and factories
-            services.TryAddSingleton(x =>
+            services.TryAddSingleton(_ =>
             {
                 var connections = new ConcurrentDictionary<string, Task<IConnection?>>();
                 return connections;
             });
-            services.TryAddSingleton(x =>
+            if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("ConnectionName");
+            services.TryAddSingleton(_ =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
                 factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory
@@ -143,14 +158,21 @@ namespace NanoRabbit.DependencyInjection
             IConfiguration configuration)
         where TRabbitConfiguration : RabbitConfiguration
         {
+            // Get RabbitConfiguration
             TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
+            if (rabbitConfig == null) throw new NullReferenceException("TRabbitConfiguration");
+            
+            // Register RabbitConfiguration
+            services.TryAddKeyedSingleton(key, rabbitConfig);
+            
             // Register connections and factories
-            services.TryAddKeyedSingleton(key, (x, _) =>
+            services.TryAddKeyedSingleton(key, (_, _) =>
             {
                 var connections = new ConcurrentDictionary<string, Task<IConnection?>>();
                 return connections;
             });
-            services.TryAddKeyedSingleton(key, (x, _) =>
+            if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("ConnectionName");
+            services.TryAddKeyedSingleton(key, (_, _) =>
             {
                 var factories = new ConcurrentDictionary<string, ConnectionFactory>();
                 factories.TryAdd(rabbitConfig.ConnectionName, new ConnectionFactory

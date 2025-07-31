@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NanoRabbit.Helper;
@@ -240,7 +239,7 @@ public static class RabbitConsumerServiceExtensions
     }
     
     public static IServiceCollection AddKeyedRabbitConsumerFromAppSettings<TRabbitConfiguration>(
-        this IServiceCollection services, object key, IConfiguration? configuration)
+        this IServiceCollection services, object key, IConfiguration configuration)
         where TRabbitConfiguration : RabbitConfiguration, new()
     {
         

@@ -11,8 +11,6 @@ namespace NanoRabbit.DependencyInjection;
 /// </summary>
 public static class RabbitHelperExtensions
 {
-    private static readonly ILogger NullLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-
     /// <summary>
     /// Add a singleton service of the type specified in IRabbitHelper with a factory specified in implementationFactory to the specified Microsoft.Extensions.DependencyInjection.IServiceCollection.
     /// </summary>
@@ -22,11 +20,12 @@ public static class RabbitHelperExtensions
     {
         var rabbitConfig = services.BuildServiceProvider().GetRequiredService<RabbitConfiguration>();
         if (rabbitConfig == null) throw new NullReferenceException("RabbitConfiguration not found");
-        
-        var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
+
+        var connectionManager = services.BuildServiceProvider().GetService<IConnectionManager>();
         if (connectionManager == null) throw new NullReferenceException("ConnectionManager not registered");
-        
-        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
+
+        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName))
+            throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
 
         if (factory == null)
@@ -43,11 +42,12 @@ public static class RabbitHelperExtensions
             };
             connectionManager.TryAddFactory(rabbitConfig.ConnectionName, factory);
         }
-        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false)
+            .GetAwaiter().GetResult();
         var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<RabbitHelper>();
 
-        services.AddSingleton(rabbitConfig);
         services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, logger, connection));
         return services;
     }
@@ -63,13 +63,14 @@ public static class RabbitHelperExtensions
     {
         var rabbitConfig = services.BuildServiceProvider().GetRequiredKeyedService<RabbitConfiguration>(key);
         if (rabbitConfig == null) throw new NullReferenceException("RabbitConfiguration not found");
-        
-        var connectionManager =  services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
+
+        var connectionManager = services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
         if (connectionManager == null) throw new NullReferenceException("ConnectionManager not registered");
-        
-        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
+
+        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName))
+            throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
-        
+
         if (factory == null)
         {
             factory = new ConnectionFactory
@@ -84,14 +85,15 @@ public static class RabbitHelperExtensions
             };
             connectionManager.TryAddFactory(rabbitConfig.ConnectionName, factory);
         }
-        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false)
+            .GetAwaiter().GetResult();
         var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<RabbitHelper>();
 
-        services.AddKeyedSingleton(key, rabbitConfig);
         services.AddKeyedSingleton<IRabbitHelper>(key, (_, _) =>
         {
-            var rabbitHelper = new RabbitHelper(rabbitConfig, logger,  connection);
+            var rabbitHelper = new RabbitHelper(rabbitConfig, logger, connection);
             return rabbitHelper;
         });
         return services;
@@ -111,13 +113,14 @@ public static class RabbitHelperExtensions
     {
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
         if (rabbitConfig == null) throw new NullReferenceException("RabbitConfiguration not found");
-    
-        var connectionManager =  services.BuildServiceProvider().GetService<IConnectionManager>();
+
+        var connectionManager = services.BuildServiceProvider().GetService<IConnectionManager>();
         if (connectionManager == null) throw new NullReferenceException("ConnectionManager not registered");
-        
-        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
+
+        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName))
+            throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
-        
+
         if (factory == null)
         {
             factory = new ConnectionFactory
@@ -132,15 +135,16 @@ public static class RabbitHelperExtensions
             };
             connectionManager.TryAddFactory(rabbitConfig.ConnectionName, factory);
         }
-        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false)
+            .GetAwaiter().GetResult();
         var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<RabbitHelper>();
 
-        services.AddSingleton(rabbitConfig);
         services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, logger, connection));
         return services;
     }
-    
+
     /// <summary>
     /// Add a keyed singleton service of the type specified in IRabbitHelper by reading configurations of appsettings.json.
     /// </summary>
@@ -156,13 +160,14 @@ public static class RabbitHelperExtensions
     {
         TRabbitConfiguration? rabbitConfig = configuration.ReadSettings<TRabbitConfiguration>();
         if (rabbitConfig == null) throw new NullReferenceException("RabbitConfiguration not found");
-        
-        var connectionManager =  services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
+
+        var connectionManager = services.BuildServiceProvider().GetRequiredKeyedService<IConnectionManager>(key);
         if (connectionManager == null) throw new NullReferenceException("ConnectionManager not registered");
-        
-        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName)) throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
+
+        if (string.IsNullOrEmpty(rabbitConfig.ConnectionName))
+            throw new NullReferenceException("RabbitConfiguration.ConnectionName not found");
         var factory = connectionManager.TryGetFactory(rabbitConfig.ConnectionName);
-        
+
         if (factory == null)
         {
             factory = new ConnectionFactory
@@ -177,12 +182,13 @@ public static class RabbitHelperExtensions
             };
             connectionManager.TryAddFactory(rabbitConfig.ConnectionName, factory);
         }
-        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false).GetAwaiter().GetResult();
-    
+
+        var connection = connectionManager.TryConnectAsync(rabbitConfig.ConnectionName, factory).ConfigureAwait(false)
+            .GetAwaiter().GetResult();
+
         var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<RabbitHelper>();
 
-        services.AddSingleton(rabbitConfig);
         services.AddSingleton<IRabbitHelper>(_ => new RabbitHelper(rabbitConfig, logger, connection));
 
         return services;
@@ -198,16 +204,4 @@ public static class RabbitHelperExtensions
     {
         return serviceProvider.GetRequiredKeyedService<IRabbitHelper>(key);
     }
-
-    #region Private
-
-    private static ILogger GetLogger(IServiceCollection services,
-        Func<IServiceCollection, ILogger>? loggerFactory = null)
-    {
-        var logger = loggerFactory is null ? NullLogger : loggerFactory(services);
-
-        return logger;
-    }
-
-    #endregion
 }
