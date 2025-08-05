@@ -33,7 +33,7 @@ See [Wiki](https://github.com/cgcel/NanoRabbit/wiki/Installation) for more detai
 | 0.0.1 ~ 0.1.8 |    obsolete     |   obsolete    |
 | 0.1.9 ~ 0.2.3 |   6.5.0-6.8.1   | 6.0, 7.0, 8.0 |
 |     0.2.4     |   6.5.0-6.8.1   |      8.0      |
-|     0.3.0     |      7.1.2      |      8.0      |
+| 0.3.0, 0.3.1  |      7.1.2      |      8.0      |
 
 ## Document
 
@@ -49,161 +49,134 @@ a **UNIQUE NAME** for each Connection, Producer and Consumer.*
 
 For more, please visit the [Examples](https://github.com/cgcel/NanoRabbit/tree/master/Example).
 
-### Setup RabbitProducers && RabbitConsumers
+### Setup Connections && Helpers && RabbitConsumers
 
-#### RabbitProducer
+#### Setup connections
 
-Register a RabbitMQ Producer by calling
-`RabbitHelper(RabbitConfiguration rabbitConfig, ILogger<RabbitHelper>? logger = null)`, and configure it.
-
-```csharp
-using NanoRabbit;
-using NanoRabbit.Connection;
-
-var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder.AddConsole();
-});
-
-var logger = loggerFactory.CreateLogger("RabbitHelper");
-
-var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
-{
-    HostName = "localhost",
-    Port = 5672,
-    VirtualHost = "/",
-    UserName = "admin",
-    Password = "admin",
-    Producers = new List<ProducerOptions> { new ProducerOptions {
-            ProducerName = "FooProducer",
-            ExchangeName = "amq.topic",
-            RoutingKey = "foo.key",
-            Type = ExchangeType.Topic
-        } 
-    }
-}, logger);
-```
-
-#### RabbitConsumer
-
-Register a RabbitMQ Consumer by calling `RabbitHelper()`, and configure it.
+Before using NanoRabbit, you should register `IConnection` and other configs by calling `AddRabbitConnection(
+this IServiceCollection services,
+Action<RabbitConfigurationBuilder> builder)`
 
 ```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NanoRabbit;
-using NanoRabbit.Connection;
+using NanoRabbit.DependencyInjection;
 
-var rabbitHelper = await RabbitHelper.CreateAsync(rabbitConfig: new RabbitConfiguration
-{
-    HostName = "localhost",
-    Port = 5672,
-    VirtualHost = "/",
-    UserName = "admin",
-    Password = "admin",
-    Consumers = new List<ConsumerOptions> { new ConsumerOptions {
-            ConsumerName= "FooConsumer",
-            QueueName = "foo-queue"
-        }
-    }
-}, logger);
+var builder = Host.CreateApplicationBuilder(args);
+
+// Configure the RabbitMQ Connection
+builder.Services.AddRabbitConnection(x =>
+    {
+        x.SetHostName("localhost")
+            .SetPort(5672)
+            .SetVirtualHost("/")
+            .SetUserName("admin")
+            .SetPassword("admin")
+            .SetConnectionName("FooConnection")
+            .AddProducerOption(producer =>
+            {
+                producer.ProducerName = "FooProducer";
+                producer.ExchangeName = "amq.topic";
+                producer.RoutingKey = "foo.key";
+                producer.Type = ExchangeType.Topic;
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "FooConsumer";
+                consumer.QueueName = "foo-queue";
+                consumer.ConsumerCount = 3;
+                consumer.HandlerName = nameof(FooQueueHandler);
+            })
+            .AddConsumerOption(consumer =>
+            {
+                consumer.ConsumerName = "BarConsumer";
+                consumer.QueueName = "bar-queue";
+                consumer.ConsumerCount = 2;
+                consumer.HandlerName = nameof(BarQueueHandler);
+            });
+    });
+
+// todo: Add RabbitHelpers and RabbitCnsumers if neccessary.
+
+using IHost host = builder.Build();
+
+host.Run();
+
+Console.WriteLine(" Press [enter] to exit.");
+Console.ReadLine();
 ```
 
-### Simple Publish Messages
+#### Add Consumers
 
-[After](#rabbitproducer) registering a `RabbitProducer` in the `RabbitHelper`, you can simply publish a message by
+Register a RabbitMQ Consumer by calling `AddRabbitAsyncHandler<TAsyncHandler>()` and `AddRabbitConsumer()`, you should
+declare `HandlerName` at the previous settings of RabbitConnection.
+
+```csharp
+// Register the connection like before
+builder.Services.AddRabbitConnection(x=>{});
+
+// Register IAsyncHandler and RabbitConsumer
+builder.Services.AddRabbitAsyncHandler<FooQueueHandler>()
+    .AddRabbitAsyncHandler<BarQueueHandler>()
+    .AddRabbitConsumer();
+
+// Build and run the host
+using IHost host = builder.Build();
+host.Run();
+```
+
+When the host starts running, it will start some `BackgroundService` to start consuming.
+
+### Publish Messages
+
+[After](#setup-connections) registering `RabbitConnection`, you should register `RabbitHelper`, then you can simply
+publish a message by
 calling `PublishAsync<T>(string producerName, T message)`.
 
 ```csharp
-await rabbitHelper.PublishAsync<string>("FooProducer", "Hello from NanoRabbit");
+// Register the connection like before
+builder.Services.AddRabbitConnection(x=>{});
+
+// Register a RabbitHelper
+builder.Services.AddRabbitHelper();
+
+// Build and run the host
+using IHost host = builder.Build();
+host.Run();
+
+var rabbitMqHelper = host.Services.GetRequiredService<IRabbitHelper>();
+await rabbitMqHelper.PublishAsync("FooProducer", "Hello, World!");
 ```
 
-### Simple Consume Messages
+### Consume Messages
 
-[After](#rabbitconsumer) registering a `RabbitConsumer` in the `RabbitConsumer`, you can simply consume a message by
-calling `AddConsumerAsync(string consumerName, Action<string> onMessageReceived, int consumers = 1)`.
+[After](#add-consumers) registering a `RabbitConsumer`, you should complete the TAsyncHandler, which is declared in
+`AddRabbitConnection(x=>{})` and being registered by calling `AddRabbitAsyncHandler<TAsyncHandler>()`.
+
+For example:
 
 ```csharp
-while (true)
+public class FooQueueHandler : IAsyncMessageHandler
 {
-    await rabbitHelper.AddConsumerAsync("FooConsumer", message =>
+    public async Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)
     {
-        Console.WriteLine(message);
-    });
+        var message = Encoding.UTF8.GetString(messageBody);
+        Console.WriteLine($"[x] Received from foo-queue: {message}");
+        await Task.Delay(1000);
+        Console.WriteLine("[x] Done");
+    }
 }
 ```
+
+Inherit IAsyncMessageHandler and implement
+`Task HandleMessageAsync(byte[] messageBody, string? routingKey = null, string? correlationId = null)`.
 
 ### Forward messages
 
 > Working on it.
 
-### DependencyInjection
-
-NanoRabbit provides some functions to inject IRabbitHelper in a simple way.
-
-#### AddRabbitProducer
-
-```csharp
-var builder = Host.CreateApplicationBuilder(args);
-
-// Configure the RabbitMQ Connection
-builder.Services.AddRabbitHelper(builder =>
-{
-    builder.SetHostName("localhost")
-        .SetPort(5672)
-        .SetVirtualHost("/")
-        .SetUserName("admin")
-        .SetPassword("admin")
-        .AddProducerOption(producer =>
-        {
-            producer.ProducerName = "FooProducer";
-            producer.ExchangeName = "amq.topic";
-            producer.RoutingKey = "foo.key";
-            producer.Type = ExchangeType.Topic;
-        });
-});
-
-using IHost host = builder.Build();
-
-host.Run();
-```
-
-#### AddRabbitConsumer
-
-```csharp
-var builder = Host.CreateApplicationBuilder(args);
-
-// Configure the RabbitMQ Connection
-builder.Services.AddRabbitHelper(builder =>
-{
-    builder.SetHostName("localhost")
-        .SetPort(5672)
-        .SetVirtualHost("/")
-        .SetUserName("admin")
-        .SetPassword("admin")
-        .AddConsumerOption(consumer =>
-        {
-            consumer.ConsumerName = "FooConsumer";
-            consumer.QueueName = "foo-queue";
-            consumer.ConsumerCount = 3;
-            consumer.HandlerName = nameof(FooQueueHandler);
-        })
-        .AddConsumerOption(consumer =>
-        {
-            consumer.ConsumerName = "BarConsumer";
-            consumer.QueueName = "bar-queue";
-            consumer.ConsumerCount = 2;
-            consumer.HandlerName = nameof(BarQueueHandler);
-        });
-})
-.AddRabbitHandler<FooQueueHandler>()
-.AddRabbitHandler<BarQueueHandler>()
-.AddRabbitConsumerService();
-
-using IHost host = builder.Build();
-
-host.Run();
-```
-
-More *Dependency Injection* Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki/DependencyInjection).
+More Usage at [Wiki](https://github.com/cgcel/NanoRabbit/wiki).
 
 ## Contributing
 
